@@ -1,0 +1,2 @@
+change DEBUG=False
+in models.py add in the genre field to authors
