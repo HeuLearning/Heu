@@ -1,0 +1,24 @@
+.tokenButtonContainer {
+  display: flex;
+  flex-direction: row;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+
+.maskedWordsContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+
+.wordDiv {
+  display: inline-block;
+  margin: 2px;
+  /* border: 1px solid red; */
+}
+
+.thinking {
+  margin-top: 20px;
+  font-size: x-large;
+}

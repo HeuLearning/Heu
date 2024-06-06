@@ -1,0 +1,31 @@
+.header {
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 10vh;
+  /* background: rgb(56, 56, 217); */
+  color: black;
+  padding: 10px;
+  align-items: center;
+  border-bottom: 1px solid rgb(107, 107, 107);
+  /* grid-template-columns: 20px, 1fr; */
+}
+
+.logo{
+  width: 100px;
+  margin-right: 20px;
+}
+
+.linkContainer{
+  display: flex;
+  width: 100%;
+  max-width: 700px;
+  justify-content: space-between;
+  margin-left: 20px;
+  /* background-color: orange; */
+}
+
+.link a{
+  text-decoration: none;
+  color:black;
+}
