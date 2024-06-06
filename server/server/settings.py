@@ -108,6 +108,7 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'sub',
     'AUTH_TOKEN_CLASSES': ('authz.tokens.Auth0Token',),
 }
+
 DATA_UPLOAD_MAX_MEMORY_SIZE = 524288000
 
 # Database

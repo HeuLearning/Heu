@@ -33,16 +33,14 @@ mpmath==1.3.0
 multiprocess==0.70.15
 networkx==3.1
 nltk==3.8.1
-numpy==1.25.2
 packaging==23.1
-pandas==2.1.0
 pathos==0.3.1
 platformdirs==3.10.0
 pox==0.3.3
 ppft==1.7.6.7
 protobuf==4.24.3
 # psycopg2==2.9.7
-psycopg2-binary==2.9.7
+# psycopg2-binary==2.9.7
 pycparser==2.21
 PyJWT==2.8.0
 python-dateutil==2.8.2
@@ -55,18 +53,18 @@ regex==2023.8.8
 requests==2.31.0
 rpds-py==0.10.2
 s3transfer==0.6.2
-safetensors==0.3.3
-sagemaker==2.184.0
+# safetensors==0.3.3
+# sagemaker==2.184.0
 schema==0.7.5
 six==1.16.0
 smdebug-rulesconfig==1.0.1
 sqlparse==0.4.4
 sympy==1.12
 tblib==1.7.0
-tokenizers==0.13.3
-torch==2.0.1
+# tokenizers==0.13.3
+# torch==2.0.1
 tqdm==4.66.1
-transformers==4.32.1
+# transformers==4.32.1
 typing_extensions==4.7.1
 tzdata==2023.3
 unicode==2.9

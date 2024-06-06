@@ -9,7 +9,6 @@ from .models import Author, Text, Suggestion, Comment, CustomUser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
-from .bert import get_results_2, remove_diacritics
 from .getcontext import get_context
 import os
 import requests
@@ -78,54 +77,6 @@ class SuggestionCommentsView(APIView):
         return Response(serializer.data)
     
 
-class GetSuggestionView(APIView):
-    # permission_classes = [IsAuthenticated]
-
-
-    # def get(self, request, format=None):
-    #     print("starting")
-    #     text1 = f"""  ἐπείπερ ἐν τῷ γένει τῶν κατὰ τὸ πρός τι συλλογισμῶν εἰσὶν ὥσπερ οἱ κατὰ τὸ μᾶλλόν τε καὶ ἧττον οὕτως καὶ οἱ κατὰ τὸ ὡσαύτως καὶ ἀνάλογον, επισκεπτ """
-    #     text2= f"""καὶ τούτων ἡ πίστις ἐκ τινῶν ἀξιωμάτων ἤρτηται.    (διαφερέτω δὲ μηδὲν ἢ ὡσαύτως εἰπεῖν ἢ ἴσως ἢ ὁμοίως.   ) ἔστι δὲ τοιοῦτος ὁ λόγος οὗτος καὶ Πλάτωνος ἐν τῇ Πολιτείᾳ γεγραμμένος·    ἀξιοῖ γὰρ Σωκράτης ὡς πόλις γίγνεται καὶ λέγεται δικαία οὕτως καὶ ψυχὴν γίγνεσθαί τε καὶ λέγεσθαι δικαίαν, ὡσαύτως δὲ καὶ πρᾶξιν καὶ νόμον καὶ πᾶν ὁτιοῦν τῶν δικαίων εἶναι λεγομένων κατὰ ταὐτὸν λέγεσθαι σημαινόμενον.    τὸ γὰρ εἶδος τῆς δικαιοσύνης ἀφ’ οὗ λέγεται πάντα τὰ κατὰ μέρος δίκαια, τοῦτο μὲν ἓν ἅπασίν ἐστιν·    εἰ δέ ἐστιν ἕν τι καὶ ταὐτὸν ἀφ’ οὗπερ ἂν ἓν τῶν κατὰ μέρος ἐναργῶς ῥηθήσεται, κἀπὶ τἆλλα πάντ᾽ ἐνεχθήσεται, γιγνωσκόντων ἡμῶν οὐ κατ’ ἴσην ἐπὶ πάντων ἐνάργειαν φαίνεσθαι ταὐτὸν εἶδος ἀλλ’ ἐπ’ ἐκείνων μὲν ἐναργέστερον, ἐφ’ ἑτέρων δ’ ἀμυδρότερον.    καὶ διὰ τοῦτο προγυμνάσας τοὺς κοινωνοῦντας αὐτῷ τοῦ λόγου νεανίσκους ἐν τῷ περὶ τῆς δικαίας πόλεως λόγῳ μεταβὰς ἐπὶ τὴν ψυχὴν ἀποδείκνυσι κἀκείνην κατὰ τὸν αὐτὸν τρόπον δικαίαν λεγομένην ὥσπερ καὶ τὴν πόλιν ὡς εἶναι τὸν συλλογισμὸν τοιοῦτον "ὡσαύτως πόλις τε καὶ ψυχὴ δίκαιαί τε λέγονται καί εἰσιν.    πόλις δὲ δικαία λέγεται τῇ τῶν μερῶν αὐτῆς ἰδιοπραγίᾳ.    καὶ ψυχὴ ἄρα κατὰ τοῦτο δικαία λεχθήσεται.   " ἐπεὶ δὲ καὶ κατὰ τὸν αὐτὸν λόγον ἀποδείκνυται πάνυ πολλὰ παρὰ τοῖς ἀριθμητικοῖς καὶ γεωμέτραις καὶ εἴη ἂν προδήλως πᾶσιν ἀνθρώποις φύσει φαινόμενον ὅτιπερ ἂν οὕτως ἀποδειχθῇ πιστὸν εἶναι, διὰ τοῦτο κἀγὼ κατὰ τὰς περὶ τῶν συλλογισμῶν πραγματείας ἔγραψα περὶ τούτου τοῦ συλλογισμοῦ.    παράδειγμα γὰρ τούτου νοηθὲν καὶ τοῖς ἀπείροις ἀριθμητικῆς τε καὶ γεωμετρίας ἔστω τόδε "ὡς τὸ πρῶτον πρὸς τὸ δεύτερον, οὕτως καὶ τὸ τρίτον πρὸς τὸ τέταρτον.    τὸ δὲ πρῶτον τοῦ δευτέρου διπλάσιόν ἐστιν.    τὸ τρίτον ἄρα τοῦ τετάρτου διπλάσιόν ἐστιν."""  
-    #     strings = all_possibilities(text1, text2, num_tokens=3, right=False)
-    #     return HttpResponse(strings)
-    
-
-    def post(self, request, format=None):
-        print("starting this")
-        text1, text2 = get_context(request.data['words'], request.data['text_id'], request.data['chunk'])
-        # text1 = f"""  ἐπείπερ ἐν τῷ γένει τῶν κατὰ τὸ πρός τι συλλογισμῶν εἰσὶν ὥσπερ οἱ κατὰ τὸ μᾶλλόν τε καὶ ἧττον οὕτως καὶ οἱ κατὰ τὸ ὡσαύτως καὶ ἀνάλογον, επισκεπτ """
-        # text2= f"""καὶ τούτων ἡ πίστις ἐκ τινῶν ἀξιωμάτων ἤρτηται.    (διαφερέτω δὲ μηδὲν ἢ ὡσαύτως εἰπεῖν ἢ ἴσως ἢ ὁμοίως.   ) ἔστι δὲ τοιοῦτος ὁ λόγος οὗτος καὶ Πλάτωνος ἐν τῇ Πολιτείᾳ γεγραμμένος·    ἀξιοῖ γὰρ Σωκράτης ὡς πόλις γίγνεται καὶ λέγεται δικαία οὕτως καὶ ψυχὴν γίγνεσθαί τε καὶ λέγεσθαι δικαίαν, ὡσαύτως δὲ καὶ πρᾶξιν καὶ νόμον καὶ πᾶν ὁτιοῦν τῶν δικαίων εἶναι λεγομένων κατὰ ταὐτὸν λέγεσθαι σημαινόμενον.    τὸ γὰρ εἶδος τῆς δικαιοσύνης ἀφ’ οὗ λέγεται πάντα τὰ κατὰ μέρος δίκαια, τοῦτο μὲν ἓν ἅπασίν ἐστιν·    εἰ δέ ἐστιν ἕν τι καὶ ταὐτὸν ἀφ’ οὗπερ ἂν ἓν τῶν κατὰ μέρος ἐναργῶς ῥηθήσεται, κἀπὶ τἆλλα πάντ᾽ ἐνεχθήσεται, γιγνωσκόντων ἡμῶν οὐ κατ’ ἴσην ἐπὶ πάντων ἐνάργειαν φαίνεσθαι ταὐτὸν εἶδος ἀλλ’ ἐπ’ ἐκείνων μὲν ἐναργέστερον, ἐφ’ ἑτέρων δ’ ἀμυδρότερον.    καὶ διὰ τοῦτο προγυμνάσας τοὺς κοινωνοῦντας αὐτῷ τοῦ λόγου νεανίσκους ἐν τῷ περὶ τῆς δικαίας πόλεως λόγῳ μεταβὰς ἐπὶ τὴν ψυχὴν ἀποδείκνυσι κἀκείνην κατὰ τὸν αὐτὸν τρόπον δικαίαν λεγομένην ὥσπερ καὶ τὴν πόλιν ὡς εἶναι τὸν συλλογισμὸν τοιοῦτον "ὡσαύτως πόλις τε καὶ ψυχὴ δίκαιαί τε λέγονται καί εἰσιν.    πόλις δὲ δικαία λέγεται τῇ τῶν μερῶν αὐτῆς ἰδιοπραγίᾳ.    καὶ ψυχὴ ἄρα κατὰ τοῦτο δικαία λεχθήσεται.   " ἐπεὶ δὲ καὶ κατὰ τὸν αὐτὸν λόγον ἀποδείκνυται πάνυ πολλὰ παρὰ τοῖς ἀριθμητικοῖς καὶ γεωμέτραις καὶ εἴη ἂν προδήλως πᾶσιν ἀνθρώποις φύσει φαινόμενον ὅτιπερ ἂν οὕτως ἀποδειχθῇ πιστὸν εἶναι, διὰ τοῦτο κἀγὼ κατὰ τὰς περὶ τῶν συλλογισμῶν πραγματείας ἔγραψα περὶ τούτου τοῦ συλλογισμοῦ.    παράδειγμα γὰρ τούτου νοηθὲν καὶ τοῖς ἀπείροις ἀριθμητικῆς τε καὶ γεωμετρίας ἔστω τόδε "ὡς τὸ πρῶτον πρὸς τὸ δεύτερον, οὕτως καὶ τὸ τρίτον πρὸς τὸ τέταρτον.    τὸ δὲ πρῶτον τοῦ δευτέρου διπλάσιόν ἐστιν.    τὸ τρίτον ἄρα τοῦ τετάρτου διπλάσιόν ἐστιν."""  
-        # API_URL = 'https://jb9v24dhj5eyzpf4.us-east-1.aws.endpoints.huggingface.cloud'
-        # headers = {
-        #     "Authorization": "Bearer yLFVMjFzKrDuSBOCPxJVmkjDwcHABWjoMjoDdpcCnmILWxVqAAtYpBUCgMDoqhitGdkKabGTpsAFtCoNPpuzmdtfFVcpCvkypGWXlTQhehLfkrYWJhXhgRYVfgAkLUYu",
-        #     "Content-Type": "application/json"
-        # }
-
-
-
-        # def query(payload):
-        #     response = requests.post(API_URL, headers=headers, json=payload)
-        #     return response.json()
-        # output = query({
-        #     "inputs": f'{text1}[MASK]{text2}',
-        #     "paramters": {
-        #         "max_new_tokens": 512,
-        #         "topk": 30,
-        #     }
-        # })
-        # output = get_results(text1, text2, 'τὰς', 1)
-
-        # print(len(output), output)
-        strings = get_results_2(text1, text2, request.data['words'], request.data['numTokens'])
-        og_text_string = ''
-        for w in request.data['words']:
-            og_text_string += f" {w['word']}"
-        # strings = get_desi_result(text1, text2, 1, request.data['words'])
-        # strings = all_possibilities(text1, text2, request.data['words'], num_tokens=request.data['numTokens'], right=False)
-        if len(strings) == 0:
-            print("whoops")
-        return HttpResponse(json.dumps({'suggestions': strings, 'original_text': og_text_string}))
-    
 
 class SaveSuggestionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -184,33 +135,6 @@ class DeleteComentView(APIView):
             return HttpResponse("No Such Comment Exists")
         return HttpResponse("Comment Deleted")
 
-
-class SearchTextView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self, pk):
-        try:
-            text_detail = Text.objects.get(pk=pk)
-            return text_detail
-        except Text.DoesNotExist or Suggestion.DoesNotExist:
-            raise Http404
-             
-
-    def post(self, request, format=None):
-        print(request.data)
-        query = remove_diacritics(request.data['query'])
-        query = re.sub('\s+', ' ', query)
-        text = self.get_object(request.data['text_id'])
-        text_serializer = TextSerializer(text)
-        chunks = text_serializer.data['body'].split("***")
-        potential_sections = []
-        count = 0
-        for i, c in enumerate(chunks):
-            temp_c = re.sub('\s', ' ', remove_diacritics(c))
-            if query in temp_c:
-                potential_sections.append({'offset': i, 'body': c})
-        # print(potential_sections)
-        return Response(potential_sections)
 
     
 class LoginUserView(APIView):
