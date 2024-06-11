@@ -19,7 +19,10 @@ const Header = ({ }: AppProps) => (
     />
     <div className={styles.linkContainer}>
       <Link className={styles.link} href="/"><div>Home</div></Link>
-      <Link className={styles.link} href="/analyze-psellos"><div>Analyze Psellos</div></Link>
+      <Link className={styles.link} href="/about"><div>About</div></Link>
+      <Link className={styles.link} href="/contact"><div>Contact</div></Link>
+      <Link className={styles.link} href="/student"><div>Student</div></Link>
+
       <NavBar/>
     </div>
   </div>

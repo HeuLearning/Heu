@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Author, Text, Suggestion, Comment, Response, Rating, CustomUser
+from .models import CustomUser, Question, MCText
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 
@@ -28,9 +28,5 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Author)
-admin.site.register(Text)
-admin.site.register(Suggestion)
-admin.site.register(Comment)
-admin.site.register(Response)
-admin.site.register(Rating)
+admin.site.register(Question)
+admin.site.register(MCText)
