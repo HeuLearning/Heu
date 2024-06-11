@@ -1,44 +1,12 @@
-.main{
-  /* display: flex;
-  flex-direction: column; */
-}
-
 .background{
   height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  margin: 50px;
-}
-
-.welcome {
-  font-size: 50px;
-  margin-bottom: 20px;
-}
-
-.projectDescription {
-  font-size: larger;
-}
-
-.imageDescription {
-  font-size: smaller;
-}
-
-.shoutout {
-  margin-top: 20px;
-  position: absolute;
-  bottom: 20px;
-}
-
-.homeBody {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  font-weight: 500;
-}
-
-.link {
-  margin: 10px;
+  margin-left: 25vw;
+  margin-right: 25vw;
+  margin-top: 5vw;
+  margin-bottom: 5vw;
 }
