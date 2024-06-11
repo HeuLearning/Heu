@@ -2,9 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-}
-
 body {
     background-color: #F5E4FF;
+}
+
+@layer base {
+    ul, ol {
+      list-style: revert;
+    }
+  }
+
+ol {
+    padding-left: 4.5vw;
 }
