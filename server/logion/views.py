@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
 # from .serializers import ()
-from .models import CustomUser, Question, MCText
+from .models import CustomUser, Question 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
