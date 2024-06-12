@@ -4,7 +4,46 @@
 
 body {
     background-color: #F5E4FF;
+    align-items: center;
+    overflow-x: hidden;
+    margin-left: 22vw;
+    margin-right: 22vw;
+    margin-top: 5vw;
+    margin-bottom: 5vw;
 }
+
+@media only screen and (max-width: 500px) {
+    body {
+        margin-left: 10vw;
+        margin-right: 10vw;
+    }
+    .circle {
+        left: 51vw !important;
+        top: 99vw !important;
+    }
+    
+    .squiggle {
+        left: 52.5vw !important;
+        top: 114.8vw !important;
+    }
+}
+
+@media only screen and (min-width: 501px) and (max-width: 768px) {
+    body {
+        margin-left: 12vw;
+        margin-right: 12vw;
+    }
+    .circle {
+        left: 51.4vw !important;
+        top: 63vw !important;
+    }
+    
+    .squiggle {
+        left: 52.2vw !important;
+        top: 78vw !important;
+    }
+}
+
 
 @layer base {
     ul, ol {
@@ -14,4 +53,22 @@ body {
 
 ol {
     padding-left: 4.5vw;
+}
+
+.circle {
+    left: 35.5vw;
+    top: 27vw;
+}
+
+.squiggle {
+    left: 62.3vw;
+    top: 28.8vw;
+}
+
+svg {
+    margin: 0;
+}
+
+a:hover {
+    color: #AD73CE;
 }
