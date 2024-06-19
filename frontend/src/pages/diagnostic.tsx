@@ -15,7 +15,23 @@ import type { AssessmentHistory } from "models/assessment-history";
 import type { AssessmentQuestion } from "models/assessment-question";
 import { useRef } from "react";
 import { getAccessToken, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import Alert from "@mui/material/Alert";
+import CheckIcon from "@mui/icons-material/Check";
+import Card from "@mui/material/Card";
+import CardHeader from "@mui/material/CardHeader";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
+import { ThemeProvider } from "@mui/material/styles";
+import theme from "../theme.js";
+import Button from "@mui/material/Button";
+import CardActions from "@mui/material/CardActions";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import Item from "@mui/material/Grid";
 
+import styles from "./assessment.module.css";
+
+import "@fontsource/inter";
 // as opposed to the Assessment, this just automatically starts someone on the 
 // exam
 export default function Diagnostic() {
@@ -28,36 +44,8 @@ export default function Diagnostic() {
   const [choices, setChoices] = useState<Array<string>>(['']);
   const [answer, setAnswer] = useState<string>('');
   const isFirstRender = useRef<boolean>(true); // Ref to keep track of the first render
+  const [selectedButton, setSelectedButton] = useState<string>(null);
 
-
-  //  JULIA START:
-  // const assessmentHistory: AssessmentHistory  = {
-  //   id: "123",
-  //   num_attempts: 1,
-  //   questions: ["1", "2"],
-  //   scores: ["1, 0"],
-  // }
-
-  // const assessmentQuestion: AssessmentQuestion = {
-  //   done: false,
-  //   question: {
-  //     text: "I went to the store",
-  //     audio: null,
-  //     image: null,
-  //     json: {
-  //       blank_id: "1",
-  //       wordbank: ["ate", "sat", "cried"],
-  //       answer: "went",
-  //       instruction: "Fill in the blank from the choices below"
-  //     }
-  //   },
-  //   format: "a"
-  // }
-
-
-  // const choices = assessmentQuestion.question.json.wordbank;
-
-  // END 
   const fisherYatesShuffle = (arr: Array<string>) => {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -133,17 +121,17 @@ export default function Diagnostic() {
       void fetchData();
   }
 
+  // const handleButtonClick = (buttonValue: string) => {
+  //   setSelectedButton(buttonValue);
+  // };
 
   const submitAnswer = (answer: string): void  =>  {
-    getQuestion(answer, assessmentHistory, assessmentQuestion);
-    console.log("alright");
-    // if (assessmentQuestion.question && answer === assessmentQuestion.question.json.answer) {
-    //   setAnswer('correct');
-    // } else {
-    //   setAnswer('wrong');
-    // }
-
-    // setShouldGetQuestion(true);
+    setSelectedButton(answer);
+    let isRight = 'wrong';
+    if (assessmentQuestion.question && answer === assessmentQuestion.question.json.answer) {
+      isRight = 'correct'
+    }
+    getQuestion(isRight, assessmentHistory, assessmentQuestion);
   }
   // code to start the assessment
   // useEffect(() => {
@@ -175,9 +163,25 @@ export default function Diagnostic() {
 
   if (assessmentQuestion && assessmentQuestion.done) {
     return(
-      <div>
-        great job you finished
-      </div>
+      <>
+      <Head>
+        <title>Heu Learning</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <main>
+        <NavBar />
+        <ThemeProvider theme={theme}>
+          <Card sx={{ justifyContent: "center", p: 2 }}>
+            <CardContent>
+              <Typography align="center" variant="h6">
+                You're done!
+              </Typography>
+            </CardContent>
+          </Card>
+          <br></br>
+        </ThemeProvider>
+      </main>
+    </>
     )
   }
 
@@ -204,48 +208,99 @@ export default function Diagnostic() {
     const afterBlank: string = textParts.slice(blank_id + 1).join(" ");
     return (
       <>
-        <NavBar/>
-        <div>
-          {answer === "wrong" && <div>dumb</div>}
-          {answer === "correct" && <div>smart</div>}
-          <div>{assessmentQuestion.question.json.instruction}</div>
-          <div>
-            {beforeBlank}
-          </div>
-          <div>
-            ___
-          </div>
-          <div>
-          <div>
-            {afterBlank}
-          </div>
-          {choices.map((a, i) => {
-            return(
-              <div key={i}>
-                <button onClick={() => submitAnswer(a)}>{a}</button>
+        <NavBar />
+        <ThemeProvider theme={theme}>
+          <Card sx={{ justifyContent: "center", p: 2 }}>
+            <CardContent>
+              <Typography variant="h6">Question 1</Typography>
+              <Typography align="center" variant="h6">
+                {assessmentQuestion.question.json.instruction}
+              </Typography>
+              <br></br>
+              <br></br>
+              <Typography align="center" variant="h5">
+                {beforeBlank} ___ {afterBlank}
+              </Typography>
+              <br></br>
+              <div>
+                <Grid
+                  justifyContent="center"
+                  container
+                  spacing={1.5}
+                  direction="row"
+                >
+                  {choices.map((a, i) => {
+                    return (
+                      <Grid item key={i}>
+                        <Button
+                          variant="outlined"
+                          // onClick={() => submitAnswer(a)}
+                          sx={{
+                            bgcolor:
+                              selectedButton === a ? "primary.main" : "null",
+                            color:
+                              selectedButton === a ? "white" : "primary.main",
+                          }}
+                          onClick={() => submitAnswer(a)}
+                          size="large"
+                          className={styles.answerButton}
+                        >
+                          {a}
+                        </Button>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
               </div>
-            )
-
-          })}s
-          </div>
-          <button onClick={() => console.log(choices)}>stuff</button>
-        </div>
-        <button onClick={() => setShouldGetQuestion(true)}>Submit Question</button>
+              {/* <button onClick={() => console.log(shouldGetQuestion)}>
+              stuff
+            </button> */}
+            </CardContent>
+          </Card>
+          <br></br>
+          <Container sx={{ display: "flex", justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShouldGetQuestion(true)}
+            >
+              Submit Question
+            </Button>
+          </Container>
+        </ThemeProvider>
       </>
     )
   }
   // This will just what people see on page load if they haven't taken this before
   return (
+
     <>
       <Head>
-        <title>Heu</title>
+        <title>Heu Learning</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <main>
         <div>
-        <NavBar/>
-        another question
-        <button onClick={() => startAssessment()}>Start</button> <br></br>
-        <button onClick={() => console.log(assessmentHistory)}>see state</button>
+          <NavBar />
+          <ThemeProvider theme={theme}>
+            <Card sx={{ justifyContent: "center", p: 2 }}>
+              <CardContent>
+                <Typography variant="h5" align="center">
+                  Click to start the diagnostic assessment.
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ justifyContent: "center" }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => startAssessment()}
+                >
+                  Start
+                </Button>
+              </CardActions>
+            </Card>
+          </ThemeProvider>
+
         </div>
       </main>
     </>
