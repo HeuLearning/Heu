@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator 
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
@@ -10,22 +11,37 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
     
-
-class LookupTable(models.Model):
+# using the lookup index will be iff question number is variable
+class LookupIndex(models.Model):
     custom_id = models.IntegerField(null=False)
     format = models.CharField(max_length=2, null=False)
     def __str__(self):
-        return f'{self.pk} {self.customID} {self.format}'
+        return f'{self.pk} {self.custom_id} {self.format}'
 
 class Question(models.Model):
     custom_id = models.IntegerField(primary_key=True)
-    text = models.TextField()
-    audio = models.TextField()
-    image = models.TextField()
+    text = models.TextField(blank=True)
+    audio = models.TextField(blank=True)
+    image = models.TextField(blank=True)
     json = models.JSONField(null=False)
 
+# class Assessment(models.Model):
+#     user_id = models.CharField(null=False, max_length=255)
+#     attempt_number = models.IntegerField(null=False)
+#     questions = models.JSONField()
+
+#     def __str__(self):
+#         return f'{self.user_id} {self.attempt_number}'
+
+#     def __str__(self):
+#         return f'{self.custom_id} {self.json}'
+
+class Assessment(models.Model):
+    user_id = models.CharField(null=False, max_length=255)
+    num_attempts = models.PositiveIntegerField(null=False, validators=[MinValueValidator(1)])
+    questions = models.JSONField(default=dict)
     def __str__(self):
-        return f'{self.custom_id} {self.json}'
+        return f'{self.user_id} {self.num_attempts}'
 
 # class MCText(models.Model):
 #     text = models.TextField(null=False)
