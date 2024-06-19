@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
-# from .serializers import ()
-from .models import CustomUser, Question, MCText
+from .serializers import (AssessmentSerializer, QuestionSerializer)
+from .models import CustomUser, Question, Assessment, LookupIndex
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -24,36 +24,111 @@ def index(request):
 class DemoView(APIView):
     def get(self, request):
         return Response("Whats up?")
-    
-
 
 # check if the user has done this before
 class StartAssessment(APIView):
+    # permission_classes = [IsAuthenticated]
+    def getObject(self, uid):
+        try:
+            all = Assessment.objects.get(user_id=uid)
+            return all
+        except:
+            return None
+
     def get(self, request):
-        pass
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        u = CustomUser.objects.get(user_id=result["sub"])
+        h = self.getObject(u.user_id)
+        print("asdf")
+        # note for future that one might retake this assessment
+        if h is None:
+            h = Assessment()
+            h.user_id = u.user_id
+            h.num_attempts = 0
+            qs = { "questions": [], "scores": [] }
+            h.questions = qs
+            h.save()
+            # return Response({'num_attempts': 0})
+        else:
+            h.num_attempts += 1
+            h.save()
+        h = AssessmentSerializer(h)
+        print(h)
+        return Response(h.data)
 
 class GetQuestion(APIView):
     # permission_classes = [IsAuthenticated]
 
-    def get_object(self, id):
+    def get_lookup(self, id):
         try:
-            return MCText.objects.filter(id=id)
-        except MCText.DoesNotExist:
+            return LookupIndex.objects.get(id=id)
+        except:
             raise Http404
+    
+    def get_question(self, id):
+        try:
+            return Question.objects.get(custom_id=id)
+        except:
+            raise Http404
+        
+    def get_assessment(self, id):
+        try:
+            return Assessment.objects.get(pk=id)
+        except:
+            raise Http404
+    
 
-    def get(self, request):
+    # def get(self, request):
+    #     # save the previous question's answer
+
+    #     # this is the the machine learning would happen
+    #     #######################################
+    #     questions = LookupIndex.objects.all()
+    #     q_ls = list(questions)
+    #     random_q_pk = random.choice(q_ls).pk
+    #     q_id = random_q_pk
+    #     #######################################
+    #     lookup_index = self.get_lookup(q_id)
+    #     question = self.get_question(lookup_index.custom_id)
+    #     question = QuestionSerializer(question)
+    #     return Response({'question': question.data, 'format': lookup_index.format})
+    
+
+    def post(self, request):
+        # save the previous question's answer
+        print('as;dlfkjas;dlfkjas;dlkfj')
+        body = json.loads(request.body)
+        assessment = self.get_assessment(body['assessmentHistory']['id'])
+        qs = assessment.questions
+        if body['assessmentQuestion']:
+            if body['answer'] == 'correct':
+                qs['scores'].append(1)
+            else:
+                qs['scores'].append(0)
+        assessment.save()
+        if len(qs['questions']) >= 2:
+            print("youre doneeeeeeee")
+            return Response({"question": {"text": None, "audio": None, "image": None, "json": None}, "format": None, "done": True})
         # this is the the machine learning would happen
         #######################################
-        questions = Question.objects.all()
+        prev_question_ids = qs['questions']
+        questions = LookupIndex.objects.all()
         q_ls = list(questions)
-        random_q_pk = random.choice(q_ls).pk
-        q_id = random_q_pk
+        random_q = random.choice(q_ls)
+        while random_q.custom_id in prev_question_ids:
+            random_q = random.choice(q_ls)
+        q_id = random_q.pk
         #######################################
-        
-
-        return Response("Whats up")
-
-    
+        qs['questions'].append(q_id)
+        assessment.questions = qs
+        assessment.save()
+        lookup_index = self.get_lookup(q_id)
+        question = self.get_question(lookup_index.custom_id)
+        question = QuestionSerializer(question)
+        return Response({'question': question.data, 'format': lookup_index.format, "done": False})
 
 
 class Assesment(APIView):
@@ -64,6 +139,34 @@ class Assesment(APIView):
     def post(self, request):
         # *ML* and return question
         pass
+
+
+    
+class LoginUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        print(result)
+        try:
+            u = CustomUser.objects.get(user_id=result["sub"])
+            u.save()
+        except CustomUser.DoesNotExist:
+            u = CustomUser.objects.filter(email=result["email"]).first()
+            if u is None:
+                u = CustomUser()
+                u.username=result["nickname"]
+                u.email = result["email"]
+            u.user_id = result["sub"]
+            u.save()
+            return HttpResponse('User Created')
+        return HttpResponse('Existing User')
+        
+
+
 
 # class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
 #     queryset = Author.objects.all()
@@ -179,31 +282,4 @@ class Assesment(APIView):
 #             print("whoops")
 #             return HttpResponse("No Such Comment Exists")
 #         return HttpResponse("Comment Deleted")
-
-
-    
-# class LoginUserView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request, format=None):
-#         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-#         domain = os.environ.get('AUTH0_DOMAIN')
-#         headers = {"Authorization": f'Bearer {bearer_token}'}
-#         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-#         print("as;dlfkjas;dlkfjas;ldkfja;sldkfja;lskdfj;aslkdf")
-#         print(result)
-#         try:
-#             u = CustomUser.objects.get(user_id=result["sub"])
-#             u.save()
-#         except CustomUser.DoesNotExist:
-#             u = CustomUser.objects.filter(email=result["email"]).first()
-#             if u is None:
-#                 u = CustomUser()
-#                 u.username=result["nickname"]
-#                 u.email = result["email"]
-#             u.user_id = result["sub"]
-#             u.save()
-#             return HttpResponse('User Created')
-#         return HttpResponse('Existing User')
-        
 

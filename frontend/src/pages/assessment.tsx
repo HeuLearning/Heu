@@ -313,10 +313,11 @@ export default function Assessment() {
               </CardActions>
             </Card>
           </ThemeProvider>
+
         </div>
       </main>
     </>
   );
 }
 
-// export const getServerSideProps = withPageAuthRequired();
+export const getServerSideProps = withPageAuthRequired();

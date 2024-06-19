@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Question, MCText
+from .models import CustomUser, Question, Assessment
 from .admin import CustomUserAdmin
 
 
@@ -15,16 +15,18 @@ class AdminUserSerializer(serializers.ModelSerializer):
         fields = ('username')
 
 
-class Question(serializers.ModelSerializer):
+class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MCText
-        fields = ('question_type')
+        model = Question
+        fields = ('text', 'audio', 'image', 'json')
 
+        
 
-class MCTextSerializer(serializers.ModelSerializer):
+class AssessmentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MCText
-        fields = ('text', 'blank_index', 'replacements')
+        model = Assessment
+        fields = ['id', 'num_attempts', 'questions']
+
 
 # class AuthorSerializer(serializers.ModelSerializer):
 #     class Meta:

@@ -16,6 +16,7 @@
     "@mui/icons-material": "^5.15.20",
     "@mui/material": "^5.15.20",
     "@t3-oss/env-nextjs": "^0.3.1",
+    "@types/next-auth": "^3.15.0",
     "animate.css": "^4.1.1",
     "aos": "^2.3.4",
     "axios": "^1.5.0",
