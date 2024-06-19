@@ -1,7 +1,59 @@
 .body {
     font-size: 1.5vw;
+    hyphens: none;
 }  
 
 .footnote {
-    color: #AD73CE;
+    color: #000000;
+    font-size: 1vw;
+}
+
+.footnote_link {
+    color: #000000;
+    font-size: 0.8vw;
+    line-height: 1.6;
+}
+
+.boldText {
+    font-variation-settings: 'wght' 600;
+    display: inline;
+}
+
+.link {
+    color: #000000;
+}
+
+@media only screen and (max-width: 500px) {
+    .body {
+        font-size: 4.5vw;
+        padding-top: 2vw;
+    }
+    .footnote {
+        font-size: 3vw;
+    }
+    .footnote_link {
+        font-size: 2.8vw;
+        line-height: 1.5;
+    }
+}
+
+@media only screen and (min-width: 501px) and (max-width: 768px) {
+    .body {
+        font-size: 3vw;
+        padding-top: 1.5vw;
+    }
+    .footnote {
+        font-size: 2vw;
+    }
+    .footnote_link {
+        font-size: 2vw;
+        line-height: 1.6;
+    }
+}
+
+.divider {
+    color: grey;
+    border-width: 0.0001vw;
+    border-color: grey;
+    margin-bottom: 0.5vw;
 }
