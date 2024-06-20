@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Question, Assessment, AdminData, InstructorData, StudentData, HeuStaffData
+from .models import CustomUser, Question, Assessment, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites
 from .admin import CustomUserAdmin
 
 
@@ -17,7 +17,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
 class AdminDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminData
-        fields = ('user_id', 'verified')
+        fields = ('user_id', 'verified', 'learning_center')
 
 class InstructorDataSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,6 +46,31 @@ class AssessmentSerializer(serializers.ModelSerializer):
         model = Assessment
         fields = ['id', 'num_attempts', 'questions']
 
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ['name',]
+
+class LearningOrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LearningOrganization
+        fields = ['name',]
+
+class LearningOrganizationLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LearningOrganizationLocation
+        fields = ['name',]
+
+class SessionPrerequisitesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionPrerequisites
+        fields = ['num_meetings_per_week', 'learning_organization']
+
+class SessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+        fields = ['admin_creator', 'learning_organization']
 
 # class AuthorSerializer(serializers.ModelSerializer):
 #     class Meta:

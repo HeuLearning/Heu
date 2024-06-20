@@ -47,18 +47,69 @@ export const getServerSideProps = withPageAuthRequired({
         },
       };
     }
-    return {
-      props: {
-        role: roleType || null,
+    // if verified then get schedules and stuff
+
+    if (!roleType.verified) {
+      return {
+        props: {
+          role: roleType || null,
+          sessions: null,
+        },
+      };
+    }
+
+    // if the user is verified then get the related sessions
+    const sessionOptions = {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.accessToken}`, // Include the access token
       },
     };
+
+    let sessionResponse = await fetch('http://localhost:8000/api/sessions', sessionOptions);
+    sessionResponse = await sessionResponse.json();
+    console.log(sessionResponse);
+    return {
+        props: {
+          role: roleType || null,
+          sessions: sessionResponse || null,
+        },
+      };
   }
 });
 
 
-export default function Home({ role }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Home({ role, sessions }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
-
+  if (role.verified === false) {
+    return (
+      <>
+        <Head>
+          <title>Heu Learning</title>
+          <meta name="description" content="Teach more English better" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <link rel="icon" href="/icon.ico" />
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+        </Head>
+        <div>
+          You are currently unverified. 
+        </div>
+    </>
+    )
+  }
+  else if (sessions) {
+    return (
+      <div>
+        <div>{role.role}</div>
+        {sessions.map(session => {
+          return (
+            <div>{session.admin_creator} {session.learning_organization}</div>
+          )
+        })}
+      </div>
+    )
+  }
   return (
     <>
         <Head>

@@ -17,12 +17,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return f'{self.username}, {self.user_type}'
 
-class AdminData(models.Model):
-    user_id = models.CharField(null=False, max_length=255)
-    verified = models.BooleanField(null=False, default=False)
-    def __str__(self):
-        return f'{self.user_id}, {self.verified}'
-    
 class InstructorData(models.Model):
     user_id = models.CharField(null=False, max_length=255)
     verified = models.BooleanField(null=False, default=False)
@@ -54,6 +48,44 @@ class Question(models.Model):
     audio = models.TextField(blank=True)
     image = models.TextField(blank=True)
     json = models.JSONField(null=False)
+
+class LearningOrganization(models.Model):
+    name = models.CharField(blank=False, max_length=255)
+
+class LearningOrganizationLocation(models.Model):
+    name = models.CharField(blank=False, max_length=255)
+    learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.RESTRICT)
+
+class Room(models.Model):
+    name = models.CharField(blank = False, max_length=255)
+    max_capacity = models.IntegerField(null=False)
+    learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.RESTRICT)
+    location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.RESTRICT)
+
+class AdminData(models.Model):
+    user_id = models.CharField(null=False, max_length=255)
+    verified = models.BooleanField(null=False, default=False)
+    learning_center = models.ForeignKey(LearningOrganization, default=1, on_delete=models.RESTRICT)
+    def __str__(self):
+        return f'{self.user_id}, {self.verified} {self.learning_center.name}'
+    
+class SessionPrerequisites(models.Model):
+    num_meetings_per_week = models.IntegerField(default=5)
+    learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.CASCADE)
+    def __str__(self):
+        return f'{self.num_meetings_per_week}'
+    
+class Session(models.Model):
+    admin_creator = models.ForeignKey(AdminData, null=True, on_delete=models.SET_NULL)
+    viewed = models.BooleanField(default=False)
+    approved = models.BooleanField(default=False)
+    learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.CASCADE)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    enrolled_students = models.JSONField()
+    waitlist_students = models.JSONField()
+    def __str__(self):
+        return f'{self.admin_creator} {self.learning_organization.name} {self.viewed} {self.approved}'
 
 # class Assessment(models.Model):
 #     user_id = models.CharField(null=False, max_length=255)

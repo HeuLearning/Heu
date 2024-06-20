@@ -12,11 +12,11 @@ export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
     const { req, res } = ctx;
     const session = await getSession(req, res);
-
+    console.log(session);
     if (!session) {
       return {
         redirect: {
-          destination: '/api/auth/login',
+          destination: '/about',
           permanent: false,
         },
       };
@@ -32,6 +32,20 @@ export const getServerSideProps = withPageAuthRequired({
 
     const response = await fetch('http://localhost:8000/api/get-user-role', options);
     const roleType = await response.json();
+    if (roleType === "no type" ) {
+      return {
+        props: {
+          role: roleType || 'unknown',
+          accessToken: session.accessToken,
+        },
+      };
+      return {
+        redirect: {
+          destination: '/diagnostic',
+          permanent: false,
+        },
+      };
+    }
     const role = roleType.role;
     if (role === "ad") {
       return {

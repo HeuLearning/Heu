@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
-from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer)
-from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData
+from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
+from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -73,7 +73,10 @@ class GetUserRole(APIView):
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {bearer_token}'}
         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-        u = CustomUser.objects.get(user_id=result["sub"])
+        try:
+            u = CustomUser.objects.get(user_id=result["sub"])
+        except: 
+            return Response("no type")
         u = UserSerializer(u)
         role = u.data["user_type"]
         role_data = None
@@ -89,10 +92,13 @@ class GetUserRole(APIView):
             hs_data = HeuStaffData.objects.get(user_id=result["sub"])
             hs_data = HeuStaffDataSerializer(hs_data)
             role_data = hs_data
-        else: 
+        elif role == "st": 
             st_data = StudentData.objects.get(user_id=result["sub"])
             st_data = StudentDataSerializer(st_data)
             role_data = st_data
+        else: 
+            return Response("no type")
+            
         return Response({"role": role, "verified": role_data.data["verified"]})
 
 
@@ -211,7 +217,33 @@ class Assesment(APIView):
         # *ML* and return question
         pass
 
+class SessionsView(APIView):
 
+    def get(self, request):
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        u = CustomUser.objects.get(user_id=result["sub"])
+        admindata = AdminData.objects.get(user_id=result["sub"])
+        lc_id = admindata.learning_center
+        sessions = Session.objects.all().filter(learning_organization=lc_id)
+        sessions_s = SessionSerializer(sessions, many=True)
+        return Response(sessions_s.data)
+
+class UserSessionsView(APIView):
+
+    def get(self, request):
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        u = CustomUser.objects.get(user_id=result["sub"])
+        sessions = Session.objects.all()
+        sessions_s = SessionSerializer(sessions, many=True)
+        return Response(sessions_s.data)
+
+    
     
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]

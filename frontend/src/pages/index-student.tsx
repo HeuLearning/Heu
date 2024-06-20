@@ -31,6 +31,7 @@ export const getServerSideProps = withPageAuthRequired({
 
     const response = await fetch('http://localhost:8000/api/get-user-role', options);
     const roleType = await response.json();
+    console.log(roleType);
     const role = roleType.role;
     if (role === "ad") {
       return {
@@ -47,17 +48,31 @@ export const getServerSideProps = withPageAuthRequired({
         },
       };
     }
-    return {
-      props: {
-        role: role || 'unknown',
+
+     // if the user is verified then get the related sessions
+     const sessionOptions = {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.accessToken}`, // Include the access token
       },
     };
+
+    let sessionResponse = await fetch('http://localhost:8000/api/user-sessions', sessionOptions);
+    sessionResponse = await sessionResponse.json();
+    console.log(sessionResponse);
+    return {
+        props: {
+          role: roleType || null,
+          sessions: sessionResponse || null,
+        },
+      };
   }
 });
 
 
-export default function Home({ role }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  console.log(role);
+export default function Home({ role, sessions }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  console.log(sessions);
   return (
     <>
         <Head>
