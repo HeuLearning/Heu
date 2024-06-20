@@ -7,9 +7,39 @@ class CustomUser(AbstractUser):
     user_id = models.CharField(null=False, max_length=255)
     first_name = models.CharField(null=False, max_length=255)
     last_name = models.CharField(null=False, max_length=255)
-
+    TYPE_CHOICES = [
+        ("ad",'admin'),
+       ( "in", 'instructor'),
+        ("st", 'student'),
+        ("hs", 'heu-staff')
+    ]
+    user_type = models.CharField(null=False, max_length=255, choices=TYPE_CHOICES)
     def __str__(self):
-        return self.username
+        return f'{self.username}, {self.user_type}'
+
+class AdminData(models.Model):
+    user_id = models.CharField(null=False, max_length=255)
+    verified = models.BooleanField(null=False, default=False)
+    def __str__(self):
+        return f'{self.user_id}, {self.verified}'
+    
+class InstructorData(models.Model):
+    user_id = models.CharField(null=False, max_length=255)
+    verified = models.BooleanField(null=False, default=False)
+    def __str__(self):
+        return f'{self.user_id}, {self.verified}'
+
+class StudentData(models.Model):
+    user_id = models.CharField(null=False, max_length=255)
+    verified = models.BooleanField(null=False, default=False)
+    def __str__(self):
+        return f'{self.user_id}, {self.verified}'
+    
+class HeuStaffData(models.Model):
+    user_id = models.CharField(null=False, max_length=255)
+    verified = models.BooleanField(null=False, default=False)
+    def __str__(self):
+        return f'{self.user_id}, {self.verified}'
     
 # using the lookup index will be iff question number is variable
 class LookupIndex(models.Model):

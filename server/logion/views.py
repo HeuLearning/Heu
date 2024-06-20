@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
-from .serializers import (AssessmentSerializer, QuestionSerializer)
-from .models import CustomUser, Question, Assessment, LookupIndex
+from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer)
+from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -21,9 +21,80 @@ from authz.permissions import HasAdminPermission
 def index(request):
     return HttpResponse('Hello, world')
 
-class DemoView(APIView):
+class UserCRUD(APIView):
+    def post(self, request):
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        u = CustomUser.objects.get(user_id=result["sub"])
+        u_s = UserSerializer(u)
+        role = u_s.data['user_type']
+        body = json.loads(request.body)
+        if body["purpose"] == "change role":
+            u.user_type = body["role"]
+            # should maybe add code that deletes the old associations in the other tables
+            if body["role"] == "ad":
+                ad = AdminData(user_id=result["sub"], verified=False)
+                ad.save()
+            elif body["role"] == "in":
+                it = InstructorData(user_id=result["sub"], verified=False)
+                it.save()
+            elif body["role"] == "st":
+                sd = StudentData(user_id=result["sub"], verified=False)
+                sd.save()
+            print("did this happen at least")
+            u.save()
+        print("what")
+        return Response("working on this, please be patient")
+        role_data = None
+        if role == "in":
+            inst_data = InstructorData.objects.get(user_id=result["sub"]) 
+            inst_data = InstructorDataSerializer(inst_data)
+            role_data = inst_data
+        elif role == "ad":
+            admin_data = AdminData.objects.get(user_id=result["sub"])
+            admin_data = AdminDataSerializer(admin_data)
+            role_data = admin_data
+        elif role == "hs":
+            hs_data = HeuStaffData.objects.get(user_id=result["sub"])
+            hs_data = HeuStaffDataSerializer(hs_data)
+            role_data = hs_data
+        else: 
+            st_data = StudentData.objects.get(user_id=result["sub"])
+            st_data = StudentDataSerializer(st_data)
+            role_data = st_data
+        
+        return Response(role_data.data)
+
+class GetUserRole(APIView):
     def get(self, request):
-        return Response("Whats up?")
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        u = CustomUser.objects.get(user_id=result["sub"])
+        u = UserSerializer(u)
+        role = u.data["user_type"]
+        role_data = None
+        if role == "in":
+            inst_data = InstructorData.objects.get(user_id=result["sub"]) 
+            inst_data = InstructorDataSerializer(inst_data)
+            role_data = inst_data
+        elif role == "ad":
+            admin_data = AdminData.objects.get(user_id=result["sub"])
+            admin_data = AdminDataSerializer(admin_data)
+            role_data = admin_data
+        elif role == "hs":
+            hs_data = HeuStaffData.objects.get(user_id=result["sub"])
+            hs_data = HeuStaffDataSerializer(hs_data)
+            role_data = hs_data
+        else: 
+            st_data = StudentData.objects.get(user_id=result["sub"])
+            st_data = StudentDataSerializer(st_data)
+            role_data = st_data
+        return Response({"role": role, "verified": role_data.data["verified"]})
+
 
 # check if the user has done this before
 class StartAssessment(APIView):

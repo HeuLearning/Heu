@@ -6,7 +6,6 @@ import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 import { withPageAuthRequired, getSession } from '@auth0/nextjs-auth0';
 import { getAccessToken } from '@auth0/nextjs-auth0';
 import { redirect } from 'next/navigation'
-import { useRouter } from 'next/navigation'
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -47,56 +46,18 @@ export const getServerSideProps = withPageAuthRequired({
           permanent: false,
         },
       };
-    } else if (role === "st") {
-      return {
-        redirect: {
-          destination: '/index-student',
-          permanent: false,
-        },
-      };
     }
     return {
       props: {
         role: role || 'unknown',
-        accessToken: session.accessToken,
       },
     };
   }
 });
 
 
-export default function Home({ role, accessToken }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter(); 
-  const updateUser = async (newRole: string): Promise<void> => {
-    const options = {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`, // Include the access token
-      },
-      body: JSON.stringify({
-        purpose: "change role",
-        role: newRole,
-      }),
-    };
-
-    await fetch('http://localhost:8000/api/user', options);
-    switch(newRole) {
-      case "ad":
-        router.push("/index-admin");
-        break;
-      case "in":
-        router.push("/index-instructor");
-        break;
-      case "st":
-        router.push("/index-student");
-        break;
-      default:
-        break
-    }
-  }
-
- 
+export default function Home({ role }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  console.log(role);
   return (
     <>
         <Head>
@@ -107,10 +68,8 @@ export default function Home({ role, accessToken }: InferGetServerSidePropsType<
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
         </Head>
         
-        <div>
-          <div><button onClick={() => updateUser("st")}>Register as a Student</button></div>
-          <div><button onClick={() => updateUser("in")}>Register as an Instructor</button></div>
-          <div><button onClick={() => updateUser("ad")}>Request to be a Learning Center Administrator</button></div>
+        <div >
+          Student Stuff
         </div>
     </>
   );

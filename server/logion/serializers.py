@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Question, Assessment
+from .models import CustomUser, Question, Assessment, AdminData, InstructorData, StudentData, HeuStaffData
 from .admin import CustomUserAdmin
 
 
@@ -7,13 +7,32 @@ from .admin import CustomUserAdmin
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'first_name', 'last_name')
+        fields = ('username', 'email', 'first_name', 'last_name', 'user_type')
 
 class AdminUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUserAdmin
         fields = ('username')
 
+class AdminDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdminData
+        fields = ('user_id', 'verified')
+
+class InstructorDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InstructorData
+        fields = ('user_id', 'verified')
+
+class StudentDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentData
+        fields = ('user_id', 'verified')
+
+class HeuStaffDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HeuStaffData
+        fields = ('user_id', 'verified')
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:

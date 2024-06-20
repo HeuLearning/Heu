@@ -7,9 +7,11 @@ router = DefaultRouter()
 # router.register(r'authors', views.AuthorViewSet,basename="authors")
 
 urlpatterns = [
-    path('demo', views.DemoView.as_view()),
     path('get-assessment-question', views.GetQuestion.as_view()),
     path('start-assessment', views.StartAssessment.as_view()),
+    path('get-user-role', views.GetUserRole.as_view()),
+    path('user', views.UserCRUD.as_view()),
+
     # path('text/<int:pk>/<int:offset>', views.TextDetailView.as_view()),
     # path('all_texts/<int:author_pk>', views.TextsByAuthorView.as_view()),
     # path('comments/<int:suggestion_pk>', views.SuggestionCommentsView.as_view()),

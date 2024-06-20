@@ -6,7 +6,6 @@ import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 import { withPageAuthRequired, getSession } from '@auth0/nextjs-auth0';
 import { getAccessToken } from '@auth0/nextjs-auth0';
 import { redirect } from 'next/navigation'
-import { useRouter } from 'next/navigation'
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -33,14 +32,7 @@ export const getServerSideProps = withPageAuthRequired({
     const response = await fetch('http://localhost:8000/api/get-user-role', options);
     const roleType = await response.json();
     const role = roleType.role;
-    if (role === "ad") {
-      return {
-        redirect: {
-          destination: '/index-admin',
-          permanent: false,
-        },
-      };
-    } else if (role === "in") {
+    if (role === "in") {
       return {
         redirect: {
           destination: '/index-instructor',
@@ -57,46 +49,16 @@ export const getServerSideProps = withPageAuthRequired({
     }
     return {
       props: {
-        role: role || 'unknown',
-        accessToken: session.accessToken,
+        role: roleType || null,
       },
     };
   }
 });
 
 
-export default function Home({ role, accessToken }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter(); 
-  const updateUser = async (newRole: string): Promise<void> => {
-    const options = {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`, // Include the access token
-      },
-      body: JSON.stringify({
-        purpose: "change role",
-        role: newRole,
-      }),
-    };
+export default function Home({ role }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  console.log(role);
 
-    await fetch('http://localhost:8000/api/user', options);
-    switch(newRole) {
-      case "ad":
-        router.push("/index-admin");
-        break;
-      case "in":
-        router.push("/index-instructor");
-        break;
-      case "st":
-        router.push("/index-student");
-        break;
-      default:
-        break
-    }
-  }
-
- 
   return (
     <>
         <Head>
@@ -106,11 +68,8 @@ export default function Home({ role, accessToken }: InferGetServerSidePropsType<
           <link rel="icon" href="/icon.ico" />
           <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
         </Head>
-        
         <div>
-          <div><button onClick={() => updateUser("st")}>Register as a Student</button></div>
-          <div><button onClick={() => updateUser("in")}>Register as an Instructor</button></div>
-          <div><button onClick={() => updateUser("ad")}>Request to be a Learning Center Administrator</button></div>
+          Admin Stuff
         </div>
     </>
   );
