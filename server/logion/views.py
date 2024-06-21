@@ -251,7 +251,7 @@ class UserSessionsView(APIView):
             enrolled = s.enrolled_students["enrolled_students"]
             waitlist = s.waitlist_students["waitlist_students"]
 
-            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name })
+            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City" })
         return Response(return_ls)
 
     
