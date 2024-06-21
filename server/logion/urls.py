@@ -13,6 +13,8 @@ urlpatterns = [
     path('user', views.UserCRUD.as_view()),
     path('sessions', views.SessionsView.as_view()),
     path('user-sessions', views.UserSessionsView.as_view()),
+    path('user-session-detail/<int:session_pk>', views.UserSessionsView.as_view()),
+
 
     # path('text/<int:pk>/<int:offset>', views.TextDetailView.as_view()),
     # path('all_texts/<int:author_pk>', views.TextsByAuthorView.as_view()),

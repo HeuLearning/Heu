@@ -232,7 +232,6 @@ class SessionsView(APIView):
         return Response(sessions_s.data)
 
 class UserSessionsView(APIView):
-
     def get(self, request):
         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         domain = os.environ.get('AUTH0_DOMAIN')
@@ -244,7 +243,6 @@ class UserSessionsView(APIView):
         sessions_s = SessionSerializer(sessions, many=True)
         return_ls = []
         for s in sessions:
-            print(s.learning_organization)
             rooms = Room.objects.all().filter(learning_organization=s.learning_organization)
             max_cap = 0
             for r in rooms:
@@ -260,9 +258,61 @@ class UserSessionsView(APIView):
 
             return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted })
         return Response(return_ls)
+    
+class UserSessionDetailView(APIView):
+    def post(self, request, session_pk):
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        u_id = result["sub"]
+        # u = CustomUser.objects.get(user_id=u_id)
+        session = Session.objects.get(id=session_pk)
+        body = json.loads(request.body)
+        task = body["task"]
+        rooms = Room.objects.all().filter(learning_organization=session.learning_organization)
+        max_cap = 0
+        for r in rooms:
+            max_cap += r.max_capacity
+        if task == "enroll":
+            enrolled = session.enrolled_students["enrolled_students"]
+            if u_id in enrolled:
+                return Response("already enrolled")
+            if len(enrolled) >= max_cap:
+                return Response("class filled up")
+            enrolled.append(u_id)
+            session.enrolled_students["enrolled_students"] = enrolled
+            session.save()
+            return Response("successfully enrolled")
+        elif task == "waitlist":
+            waitlist = session.waitlist_students["waitlist_students"]
+            if u_id in waitlist:
+                return Response("already on the waitlist")
+            waitlist.append(u_id)
+            session.waitlist_students["waitlist_students"] = waitlist
+            session.save()
+        elif task == "drop_waitlist":
+            waitlist = session.waitlist_students["waitlist_students"]
+            if u_id not in waitlist:
+                return Response("not on the waitlist")
+            waitlist.remove(u_id)
+            return Response("successfully dropped waitlist")
+        elif task == "unenroll":
+            enrolled = session.enrolled_students["enrolled_students"]
+            if u_id not in enrolled:
+                return Response("not enrolled")
+            enrolled.remove(u_id)
+            waitlist = session.waitlist_students["waitlist_students"]
+            if len(waitlist) > 0:
+                temp = waitlist.pop(0)
+                enrolled.push(temp)
+                session.waitlist_students["waitlist_students"] = waitlist
+            session.enrolled_students["enrolled_students"] = enrolled
+            session.save()
+            return Response("successfully unenrolled")
+        else:
+            return Response("unknown task")
 
-    
-    
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -271,7 +321,6 @@ class LoginUserView(APIView):
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {bearer_token}'}
         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-        print(result)
         try:
             u = CustomUser.objects.get(user_id=result["sub"])
             u.save()
