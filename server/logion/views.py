@@ -232,7 +232,7 @@ class SessionsView(APIView):
         return Response(sessions_s.data)
 
 class UserSessionsView(APIView):
-    def get(self, request):
+    def post(self, request):
         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {bearer_token}'}
@@ -260,7 +260,7 @@ class UserSessionsView(APIView):
         return Response(return_ls)
     
 class UserSessionDetailView(APIView):
-    def post(self, request, session_pk):
+    def post(self, request, session_pk, format=None):
         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {bearer_token}'}
@@ -291,11 +291,14 @@ class UserSessionDetailView(APIView):
             waitlist.append(u_id)
             session.waitlist_students["waitlist_students"] = waitlist
             session.save()
+            return Response("successfully joined waitlist")
         elif task == "drop_waitlist":
             waitlist = session.waitlist_students["waitlist_students"]
             if u_id not in waitlist:
                 return Response("not on the waitlist")
             waitlist.remove(u_id)
+            session.waitlist_students["waitlist_students"] = waitlist
+            session.save()
             return Response("successfully dropped waitlist")
         elif task == "unenroll":
             enrolled = session.enrolled_students["enrolled_students"]
