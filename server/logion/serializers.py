@@ -70,7 +70,8 @@ class SessionPrerequisitesSerializer(serializers.ModelSerializer):
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
-        fields = ['admin_creator', 'learning_organization']
+        fields = ['admin_creator', 'learning_organization', 'start_time', 'end_time', 'enrolled_students', 'waitlist_students']
+
 
 # class AuthorSerializer(serializers.ModelSerializer):
 #     class Meta:
