@@ -256,7 +256,7 @@ class UserSessionsView(APIView):
             if u_id in waitlist:
                 is_waitlisted = True
 
-            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted })
+            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted, "id": s.id })
         return Response(return_ls)
     
 class UserSessionDetailView(APIView):
