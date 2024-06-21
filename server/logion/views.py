@@ -239,6 +239,7 @@ class UserSessionsView(APIView):
         headers = {"Authorization": f'Bearer {bearer_token}'}
         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
         u = CustomUser.objects.get(user_id=result["sub"])
+        u_id = result["sub"]
         sessions = Session.objects.all()
         sessions_s = SessionSerializer(sessions, many=True)
         return_ls = []
@@ -249,9 +250,15 @@ class UserSessionsView(APIView):
             for r in rooms:
                 max_cap += r.max_capacity
             enrolled = s.enrolled_students["enrolled_students"]
+            is_enrolled = False
+            if u_id in enrolled:
+                is_enrolled = True
             waitlist = s.waitlist_students["waitlist_students"]
+            is_waitlisted = False
+            if u_id in waitlist:
+                is_waitlisted = True
 
-            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City" })
+            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted })
         return Response(return_ls)
 
     
