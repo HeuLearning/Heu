@@ -115,19 +115,23 @@ export default function Home({
             <h2>
               Enrolled: {session.num_enrolled}/{session.max_capacity}
             </h2>
-            {session.num_enrolled < session.max_capacity ? (
-              <button>Enroll</button>
-            ) : null}
-            <h2>
-              {session.num_enrolled >= session.max_capacity ? (
-                <>
-                  <h3>Waitlist: {session.num_waitlist}</h3>
-                  <button>Join Waitlist</button>
-                </>
-              ) : null}
-            </h2>
+            <h2>Waitlist: {session.num_waitlist}</h2>
 
-            <p>{session.description}</p>
+            {session.num_enrolled < session.max_capacity ? (
+              !session.isEnrolled ? (
+                <button>Enroll</button>
+              ) : (
+                <h2>Already enrolled</h2>
+              )
+            ) : null}
+
+            {session.num_enrolled >= session.max_capacity ? (
+              !session.isWaitlisted ? (
+                <button>Join Waitlist</button>
+              ) : (
+                <h2>Already in waitlist</h2>
+              )
+            ) : null}
           </div>
         ))}
       </div>
