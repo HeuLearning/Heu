@@ -65,9 +65,9 @@ class Room(models.Model):
 class AdminData(models.Model):
     user_id = models.CharField(null=False, max_length=255)
     verified = models.BooleanField(null=False, default=False)
-    learning_center = models.ForeignKey(LearningOrganization, default=1, on_delete=models.RESTRICT)
+    learning_organization = models.ForeignKey(LearningOrganization, default=1, on_delete=models.RESTRICT)
     def __str__(self):
-        return f'{self.user_id}, {self.verified} {self.learning_center.name}'
+        return f'{self.user_id}, {self.verified} {self.learning_organization.name}'
     
 class SessionPrerequisites(models.Model):
     num_meetings_per_week = models.IntegerField(default=5)

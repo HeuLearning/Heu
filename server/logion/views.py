@@ -492,20 +492,19 @@ class AdminSessionsView(APIView):
             # Get the learning organization
             learning_organization = admin_data.learning_organization
 
-            # Get associated sessions, sorted by approved (True first) and then by start_time
+            # Get associated sessions
             sessions = Session.objects.filter(learning_organization=learning_organization).select_related(
                 'learning_organization'
-            ).prefetch_related(
-                Prefetch('learning_organization__room_set', to_attr='rooms')
-            ).order_by(
-                F('approved').desc(nulls_last=True),  # Approved sessions first
-                'start_time'  # Then sort by start_time
             )
+
+            # Calculate max capacity for the learning organization
+            max_capacity = Room.objects.filter(learning_organization=learning_organization).aggregate(
+                total_capacity=Sum('max_capacity')
+            )['total_capacity'] or 0
 
             # Prepare response data
             sessions_data = []
             for session in sessions:
-                max_capacity = sum(room.max_capacity for room in session.rooms)
                 enrolled = session.enrolled_students.get('enrolled_students', [])
                 waitlisted = session.waitlist_students.get('waitlist_students', [])
 
@@ -517,12 +516,12 @@ class AdminSessionsView(APIView):
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
                     "organization": learning_organization.name,
-                    "approved": session.approved,  # Include the approved status in the response
-                    # Add any other relevant session data here
+                    "approved": session.approved,
+                    "location": "New York City",  # You might want to make this dynamic
                 })
 
             return Response({
-                "admin_name": admin_data.name,  # Assuming AdminData has a name field
+                # "admin_name": admin_data.name,  # Assuming AdminData has a name field
                 "learning_organization": learning_organization.name,
                 "sessions": sessions_data
             })
@@ -535,6 +534,7 @@ class AdminSessionsView(APIView):
             logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
         
+
 
 class AdminSessionDetailView(APIView):
     def get_user_info(self, token):
