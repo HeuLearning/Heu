@@ -8,13 +8,14 @@ from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializ
 from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
-from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError
+from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError, PermissionDenied
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.throttling import UserRateThrottle
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import login
 from django.db.models import Sum, Count, Q
+from django.db.models import Prefetch, F
 
 
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -308,7 +309,7 @@ class UserSessionsView(APIView):
             user_id = user_info['sub']
 
             # Fetch all sessions with related data in a single query
-            sessions = Session.objects.select_related('learning_organization').prefetch_related(
+            sessions = Session.objects.filter(approved=True).select_related('learning_organization').prefetch_related(
                 'learning_organization__room_set'
             ).annotate(
                 max_capacity=Sum('learning_organization__room__max_capacity'),
@@ -384,7 +385,9 @@ class UserSessionDetailView(APIView):
             u_id = user_info['sub']
 
             session, max_cap = self.get_session_and_capacity(session_pk)
-
+            if not session.approved:
+                raise PermissionDenied("This session is not approved for enrollment or waitlisting.")
+            
             body = json.loads(request.body)
             task = body.get("task")
 
@@ -448,48 +451,129 @@ class UserSessionDetailView(APIView):
         session.save()
         return Response({"message": "Successfully unenrolled"})
 # this route actually needs to include the id of the location or of the organization
-class AdminSessionsView(APIView):
     
-    def get_admin_data(u_id):
-        pass
-    # try:
-    #     ad = AdminData.objects.get(user_id=u_id)
-    #     return ad
-    # except AdminData.DoesNotExist:
-    #     # User is not an admin
-    #     raise PermissionDenied("You do not have admin permissions.")
+class AdminSessionsView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
 
-
-
-    def post(self, request):
-        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         domain = os.environ.get('AUTH0_DOMAIN')
-        headers = {"Authorization": f'Bearer {bearer_token}'}
-        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-        u = CustomUser.objects.get(user_id=result["sub"])
-        u_id = result["sub"]
-        # check if the user is an administrator
-        ad = AdminData.objects.filter(user_id=u_id)
-        # if 
-        sessions = Session.objects.all()
-        sessions_s = SessionSerializer(sessions, many=True)
-        return_ls = []
-        for s in sessions:
-            rooms = Room.objects.all().filter(learning_organization=s.learning_organization)
-            max_cap = 0
-            for r in rooms:
-                max_cap += r.max_capacity
-            enrolled = s.enrolled_students["enrolled_students"]
-            is_enrolled = False
-            if u_id in enrolled:
-                is_enrolled = True
-            waitlist = s.waitlist_students["waitlist_students"]
-            is_waitlisted = False
-            if u_id in waitlist:
-                is_waitlisted = True
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
 
-            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted, "id": s.id })
-        return Response(return_ls)
+    def get(self, request):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get AdminData for the user
+            try:
+                admin_data = AdminData.objects.select_related('learning_organization').get(user_id=user_id)
+            except AdminData.DoesNotExist:
+                raise PermissionDenied("User is not an admin")
+
+            # Get the learning organization
+            learning_organization = admin_data.learning_organization
+
+            # Get associated sessions, sorted by approved (True first) and then by start_time
+            sessions = Session.objects.filter(learning_organization=learning_organization).select_related(
+                'learning_organization'
+            ).prefetch_related(
+                Prefetch('learning_organization__room_set', to_attr='rooms')
+            ).order_by(
+                F('approved').desc(nulls_last=True),  # Approved sessions first
+                'start_time'  # Then sort by start_time
+            )
+
+            # Prepare response data
+            sessions_data = []
+            for session in sessions:
+                max_capacity = sum(room.max_capacity for room in session.rooms)
+                enrolled = session.enrolled_students.get('enrolled_students', [])
+                waitlisted = session.waitlist_students.get('waitlist_students', [])
+
+                sessions_data.append({
+                    "id": session.id,
+                    "start_time": session.start_time,
+                    "end_time": session.end_time,
+                    "max_capacity": max_capacity,
+                    "num_enrolled": len(enrolled),
+                    "num_waitlist": len(waitlisted),
+                    "organization": learning_organization.name,
+                    "approved": session.approved,  # Include the approved status in the response
+                    # Add any other relevant session data here
+                })
+
+            return Response({
+                "admin_name": admin_data.name,  # Assuming AdminData has a name field
+                "learning_organization": learning_organization.name,
+                "sessions": sessions_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+# class AdminSessionsView(APIView):
+    
+#     def get_admin_data(u_id):
+#         pass
+#     # try:
+#     #     ad = AdminData.objects.get(user_id=u_id)
+#     #     return ad
+#     # except AdminData.DoesNotExist:
+#     #     # User is not an admin
+#     #     raise PermissionDenied("You do not have admin permissions.")
+
+
+
+#     def post(self, request):
+#         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+#         domain = os.environ.get('AUTH0_DOMAIN')
+#         headers = {"Authorization": f'Bearer {bearer_token}'}
+#         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+#         u = CustomUser.objects.get(user_id=result["sub"])
+#         u_id = result["sub"]
+#         # check if the user is an administrator
+#         ad = AdminData.objects.filter(user_id=u_id)
+#         # if 
+#         sessions = Session.objects.all()
+#         return_ls = []
+#         for s in sessions:
+#             rooms = Room.objects.all().filter(learning_organization=s.learning_organization)
+#             max_cap = 0
+#             for r in rooms:
+#                 max_cap += r.max_capacity
+#             enrolled = s.enrolled_students["enrolled_students"]
+#             is_enrolled = False
+#             if u_id in enrolled:
+#                 is_enrolled = True
+#             waitlist = s.waitlist_students["waitlist_students"]
+#             is_waitlisted = False
+#             if u_id in waitlist:
+#                 is_waitlisted = True
+
+#             return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted, "id": s.id })
+#         return Response(return_ls)
 
 
 class LoginUserView(APIView):
