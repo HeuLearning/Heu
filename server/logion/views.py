@@ -232,7 +232,7 @@ class SessionsView(APIView):
         return Response(sessions_s.data)
 
 class UserSessionsView(APIView):
-    def post(self, request):
+    def get(self, request):
         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {bearer_token}'}
