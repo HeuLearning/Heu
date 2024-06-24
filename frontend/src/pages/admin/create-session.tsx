@@ -32,47 +32,53 @@ export const getServerSideProps = withPageAuthRequired({
     const response = await fetch('http://localhost:8000/api/get-user-role', options);
     const roleType = await response.json();
     const role = roleType.role;
-    if (role === "ad") {
+    if (role === "in") {
       return {
         redirect: {
-          destination: '/index-admin',
+          destination: '/instructor',
           permanent: false,
         },
       };
     } else if (role === "st") {
       return {
         redirect: {
-          destination: '/index-student',
+          destination: '/learner',
           permanent: false,
         },
       };
     }
-    return {
-      props: {
-        role: role || 'unknown',
+    // if verified then get schedules and stuff
+
+    if (!roleType.verified) {
+      return {
+        props: {
+          role: roleType || null,
+          sessions: null,
+        },
+      };
+    }
+
+    // if the user is verified then get the related sessions
+    const sessionOptions = {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.accessToken}`, // Include the access token
       },
     };
+
+    let sessionResponse = await fetch('http://localhost:8000/api/sessions', sessionOptions);
+    sessionResponse = await sessionResponse.json();
+    console.log(sessionResponse);
+    return {
+        props: {
+          role: roleType || null,
+          sessions: sessionResponse || null,
+        },
+      };
   }
 });
 
-
-export default function Home({ role }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  console.log(role);
-  return (
-    <>
-        <Head>
-          <title>Heu Learning</title>
-          <meta name="description" content="Teach more English better" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/icon.ico" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
-        </Head>
-        
-        <div >
-          Instructor Stuff
-        </div>
-    </>
-  );
+export default function CreateSessions() {
+    
 }
-
-
