@@ -40,14 +40,14 @@ export const getServerSideProps = withPageAuthRequired({
     if (role === "ad") {
       return {
         redirect: {
-          destination: "/index-admin",
+          destination: "/admin",
           permanent: false,
         },
       };
     } else if (role === "in") {
       return {
         redirect: {
-          destination: "/index-instructor",
+          destination: "/instructor",
           permanent: false,
         },
       };
