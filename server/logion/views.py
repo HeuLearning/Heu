@@ -312,25 +312,28 @@ class UserSessionsView(APIView):
                 'learning_organization__room_set'
             ).annotate(
                 max_capacity=Sum('learning_organization__room__max_capacity'),
-                num_enrolled=Count('enrolled_students__enrolled_students'),
-                num_waitlist=Count('waitlist_students__waitlist_students')
+                # num_enrolled=Count('enrolled_students__enrolled_students'),
+                # num_waitlist=Count('waitlist_students__waitlist_students')
             )
 
             return_ls = []
             for session in sessions:
-                is_enrolled = user_id in session.enrolled_students.get('enrolled_students', [])
-                is_waitlisted = user_id in session.waitlist_students.get('waitlist_students', [])
+                enrolled = session.enrolled_students.get('enrolled_students', [])
+                waitlisted = session.waitlist_students.get('waitlist_students', [])
+
+                # is_enrolled = user_id in session.enrolled_students.get('enrolled_students', [])
+                # is_waitlisted = user_id in session.waitlist_students.get('waitlist_students', [])
                 
                 return_ls.append({
                     "start_time": session.start_time,
                     "end_time": session.end_time,
                     "max_capacity": session.max_capacity or 0,
-                    "num_enrolled": session.num_enrolled,
-                    "num_waitlist": session.num_waitlist,
+                    "num_enrolled": len(enrolled),
+                    "num_waitlist": len(waitlisted),
                     "organization": session.learning_organization.name,
                     "location": "New York City",  # Consider making this dynamic if needed
-                    "isEnrolled": is_enrolled,
-                    "isWaitlisted": is_waitlisted,
+                    "isEnrolled": user_id in enrolled,
+                    "isWaitlisted": user_id in waitlisted,
                     "id": session.id
                 })
 
