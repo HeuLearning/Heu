@@ -14,8 +14,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.throttling import UserRateThrottle
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import login
-from django.db.models import Sum, Count, Q
-from django.db.models import Prefetch, F
+from django.db.models import Sum, Count, Q, Prefetch, F
+from django.db import transaction
+from django.utils.dateparse import parse_datetime
 
 
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -331,7 +332,7 @@ class UserSessionsView(APIView):
                     "max_capacity": session.max_capacity or 0,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
-                    "organization": session.learning_organization.name,
+                    "learning_organization": session.learning_organization.name,
                     "location": "New York City",  # Consider making this dynamic if needed
                     "isEnrolled": user_id in enrolled,
                     "isWaitlisted": user_id in waitlisted,
@@ -373,7 +374,7 @@ class UserSessionDetailView(APIView):
         except Session.DoesNotExist:
             raise NotFound("Session not found")
 
-    # @transaction.atomic
+    @transaction.atomic
     def post(self, request, session_pk, format=None):
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
@@ -532,6 +533,239 @@ class AdminSessionsView(APIView):
             return Response({"error": str(e)}, status=403)
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+        
+
+class AdminSessionDetailView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get_admin_data(self, user_id):
+        try:
+            return AdminData.objects.select_related('learning_organization').get(user_id=user_id)
+        except AdminData.DoesNotExist:
+            raise PermissionDenied("User is not an admin")
+
+    def get_session(self, session_pk):
+        try:
+            return Session.objects.select_related('learning_organization').get(id=session_pk)
+        except Session.DoesNotExist:
+            raise NotFound("Session not found")
+
+    def check_admin_authorization(self, admin_data, session):
+        if admin_data.learning_organization != session.learning_organization:
+            raise PermissionDenied("Admin is not associated with this session's learning organization")
+
+    @transaction.atomic
+    def put(self, request, session_pk, format=None):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get admin data
+            admin_data = self.get_admin_data(user_id)
+
+            # Get session
+            session = self.get_session(session_pk)
+
+            # Check if admin is authorized
+            self.check_admin_authorization(admin_data, session)
+
+            # Parse request data
+            data = json.loads(request.body)
+            task = data.get('task')
+
+            if task == 'update_start_time':
+                self.update_start_time(session, data)
+            elif task == 'update_end_time':
+                self.update_end_time(session, data)
+            elif task == 'update_enrolled':
+                self.update_enrolled_students(session, data)
+            elif task == 'update_waitlist':
+                self.update_waitlist_students(session, data)
+            elif task == 'enroll_student':
+                self.enroll_student(session, data)
+            elif task == 'unenroll_student':
+                self.unenroll_student(session, data)
+            elif task == 'add_to_waitlist':
+                self.add_to_waitlist(session, data)
+            elif task == 'remove_from_waitlist':
+                self.remove_from_waitlist(session, data)
+            else:
+                raise ValidationError("Invalid task specified")
+
+            session.save()
+            return Response({"message": f"Session successfully updated"}, status=200)
+
+        except (AuthenticationFailed, PermissionDenied, NotFound, ValidationError) as e:
+            return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in AdminSessionDetailView PUT: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+        
+    def enroll_student(self, session, data):
+        student_id = data.get('student_id')
+        if not student_id:
+            raise ValidationError("student_id is required")
+
+        enrolled = session.enrolled_students.get("enrolled_students", [])
+        waitlist = session.waitlist_students.get("waitlist_students", [])
+
+        if student_id in enrolled:
+            raise ValidationError("Student is already enrolled")
+
+        enrolled.append(student_id)
+        session.enrolled_students["enrolled_students"] = enrolled
+
+        # Remove from waitlist if present
+        if student_id in waitlist:
+            waitlist.remove(student_id)
+            session.waitlist_students["waitlist_students"] = waitlist
+
+    def unenroll_student(self, session, data):
+        student_id = data.get('student_id')
+        if not student_id:
+            raise ValidationError("student_id is required")
+
+        enrolled = session.enrolled_students.get("enrolled_students", [])
+
+        if student_id not in enrolled:
+            raise ValidationError("Student is not enrolled")
+
+        enrolled.remove(student_id)
+        session.enrolled_students["enrolled_students"] = enrolled
+
+    def add_to_waitlist(self, session, data):
+        student_id = data.get('student_id')
+        if not student_id:
+            raise ValidationError("student_id is required")
+
+        waitlist = session.waitlist_students.get("waitlist_students", [])
+        enrolled = session.enrolled_students.get("enrolled_students", [])
+
+        if student_id in waitlist:
+            raise ValidationError("Student is already on the waitlist")
+
+        if student_id in enrolled:
+            raise ValidationError("Student is already enrolled")
+
+        waitlist.append(student_id)
+        session.waitlist_students["waitlist_students"] = waitlist
+
+    def remove_from_waitlist(self, session, data):
+        student_id = data.get('student_id')
+        if not student_id:
+            raise ValidationError("student_id is required")
+
+        waitlist = session.waitlist_students.get("waitlist_students", [])
+
+        if student_id not in waitlist:
+            raise ValidationError("Student is not on the waitlist")
+
+        waitlist.remove(student_id)
+        session.waitlist_students["waitlist_students"] = waitlist
+
+    def update_start_time(self, session, data):
+        start_time = data.get('start_time')
+        if not start_time:
+            raise ValidationError("start_time is required")
+
+        parsed_start_time = parse_datetime(start_time)
+        if not parsed_start_time:
+            raise ValidationError("Invalid start_time format")
+
+        if session.end_time and parsed_start_time >= session.end_time:
+            raise ValidationError("Start time must be before end time")
+
+        session.start_time = parsed_start_time
+
+    def update_end_time(self, session, data):
+        end_time = data.get('end_time')
+        if not end_time:
+            raise ValidationError("end_time is required")
+
+        parsed_end_time = parse_datetime(end_time)
+        if not parsed_end_time:
+            raise ValidationError("Invalid end_time format")
+
+        if session.start_time and parsed_end_time <= session.start_time:
+            raise ValidationError("End time must be after start time")
+
+        session.end_time = parsed_end_time
+
+
+    def update_enrolled_students(self, session, data):
+        enrolled_students = data.get('enrolled_students')
+        if enrolled_students is None:
+            raise ValidationError("enrolled_students field is required")
+        if not isinstance(enrolled_students, list):
+            raise ValidationError("enrolled_students must be a list")
+        session.enrolled_students = {"enrolled_students": enrolled_students}
+
+    def update_waitlist_students(self, session, data):
+        waitlist_students = data.get('waitlist_students')
+        if waitlist_students is None:
+            raise ValidationError("waitlist_students field is required")
+        if not isinstance(waitlist_students, list):
+            raise ValidationError("waitlist_students must be a list")
+        session.waitlist_students = {"waitlist_students": waitlist_students}
+
+
+    @transaction.atomic
+    def delete(self, request, session_pk, format=None):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get admin data
+            admin_data = self.get_admin_data(user_id)
+
+            # Get session
+            session = self.get_session(session_pk)
+
+            # Check if admin is associated with the session's learning organization
+            if admin_data.learning_organization != session.learning_organization:
+                raise PermissionDenied("Admin is not associated with this session's learning organization")
+
+            # Delete the session
+            session_name = session.name  # Assuming the session has a name field
+            session.delete()
+
+            logger.info(f"Session '{session_name}' (ID: {session_pk}) deleted by admin {admin_data.name} (ID: {user_id})")
+            return Response({"message": f"Session '{session_name}' successfully deleted"}, status=200)
+
+        except (AuthenticationFailed, PermissionDenied, NotFound) as e:
+            return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in AdminSessionDetailView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
 # class AdminSessionsView(APIView):
     
