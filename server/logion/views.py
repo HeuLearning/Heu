@@ -8,6 +8,13 @@ from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializ
 from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
+from rest_framework.exceptions import AuthenticationFailed, NotFound
+from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.throttling import UserRateThrottle
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import login
+
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
 # from .getcontext import get_context
 import os
@@ -15,6 +22,9 @@ import requests
 import json
 import re
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 from authz.permissions import HasAdminPermission
 
@@ -68,40 +78,74 @@ class UserCRUD(APIView):
         return Response(role_data.data)
 
 class GetUserRole(APIView):
-    def get(self, request):
-        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+    def get_user_info(self, token):
+        # Check cache first
+        cache_key = f'user_info_{token[:10]}'  # Use part of the token as cache key
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+
+        # If not in cache, fetch from Auth0
         domain = os.environ.get('AUTH0_DOMAIN')
-        headers = {"Authorization": f'Bearer {bearer_token}'}
-        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        
+        # Cache the user info
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        
+        return user_info
+
+    def get(self, request):
         try:
-            u = CustomUser.objects.get(user_id=result["sub"])
-        except: 
-            return Response("no type")
-        u = UserSerializer(u)
-        role = u.data["user_type"]
-        role_data = None
-        if role == "in":
-            inst_data = InstructorData.objects.get(user_id=result["sub"]) 
-            inst_data = InstructorDataSerializer(inst_data)
-            role_data = inst_data
-        elif role == "ad":
-            admin_data = AdminData.objects.get(user_id=result["sub"])
-            admin_data = AdminDataSerializer(admin_data)
-            role_data = admin_data
-        elif role == "hs":
-            hs_data = HeuStaffData.objects.get(user_id=result["sub"])
-            hs_data = HeuStaffDataSerializer(hs_data)
-            role_data = hs_data
-        elif role == "st": 
-            st_data = StudentData.objects.get(user_id=result["sub"])
-            st_data = StudentDataSerializer(st_data)
-            role_data = st_data
-        else: 
-            return Response("no type")
-            
-        return Response({"role": role, "verified": role_data.data["verified"]})
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
 
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
 
+            # Assuming CustomUser has these fields
+            user, created = CustomUser.objects.get_or_create(
+                user_id=user_info['sub'],
+                defaults={
+                    'email': user_info.get('email', ''),
+                    'user_type': user_info.get('user_type', '')  # Make sure Auth0 provides this
+                }
+            )
+
+            # Simplified role data retrieval
+            role_data = {
+                'verified': False  # Default value
+            }
+
+            if user.user_type in ['in', 'ad', 'hs', 'st']:
+                role_model = {
+                    'in': InstructorData,
+                    'ad': AdminData,
+                    'hs': HeuStaffData,
+                    'st': StudentData
+                }[user.user_type]
+                
+                role_instance = role_model.objects.filter(user_id=user.user_id).first()
+                if role_instance:
+                    role_data['verified'] = getattr(role_instance, 'verified', False)
+
+            return Response({
+                "role": user.user_type,
+                "verified": role_data['verified']
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except Exception as e:
+            logger.error(f"Unexpected error in GetUserRole: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
 # check if the user has done this before
 class StartAssessment(APIView):
     # permission_classes = [IsAuthenticated]
