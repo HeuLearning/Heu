@@ -50,21 +50,21 @@ export const getServerSideProps = withPageAuthRequired({
     if (role === "ad") {
       return {
         redirect: {
-          destination: '/index-admin',
+          destination: '/admin',
           permanent: false,
         },
       };
     } else if (role === "in") {
       return {
         redirect: {
-          destination: '/index-instructor',
+          destination: '/instructor',
           permanent: false,
         },
       };
     } else if (role === "st") {
       return {
         redirect: {
-          destination: '/index-student',
+          destination: '/learner',
           permanent: false,
         },
       };
@@ -97,13 +97,13 @@ export default function Home({ role, accessToken }: InferGetServerSidePropsType<
     await fetch('http://localhost:8000/api/user', options);
     switch(newRole) {
       case "ad":
-        router.push("/index-admin");
+        router.push("/admin");
         break;
       case "in":
-        router.push("/index-instructor");
+        router.push("/instructor");
         break;
       case "st":
-        router.push("/index-student");
+        router.push("/learner");
         break;
       default:
         break
@@ -122,7 +122,7 @@ export default function Home({ role, accessToken }: InferGetServerSidePropsType<
         </Head>
         
         <div>
-          <div><button onClick={() => updateUser("st")}>Register as a Student</button></div>
+          <div><button onClick={() => updateUser("st")}>Register as a Learner</button></div>
           <div><button onClick={() => updateUser("in")}>Register as an Instructor</button></div>
           <div><button onClick={() => updateUser("ad")}>Request to be a Learning Center Administrator</button></div>
         </div>

@@ -56,7 +56,7 @@ export const getServerSideProps = withPageAuthRequired({
 });
 
 
-export default function Home({ role }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function InstructorHome({ role }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
   return (
     <>
