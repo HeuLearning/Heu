@@ -8,12 +8,14 @@ from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializ
 from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
-from rest_framework.exceptions import AuthenticationFailed, NotFound
+from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.throttling import UserRateThrottle
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import login
+from django.db.models import Sum, Count, Q
+
 
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
 # from .getcontext import get_context
@@ -146,6 +148,7 @@ class GetUserRole(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in GetUserRole: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
+        
 # check if the user has done this before
 class StartAssessment(APIView):
     # permission_classes = [IsAuthenticated]
@@ -276,90 +279,171 @@ class SessionsView(APIView):
         return Response(sessions_s.data)
 
 class UserSessionsView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
     def get(self, request):
-        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-        domain = os.environ.get('AUTH0_DOMAIN')
-        headers = {"Authorization": f'Bearer {bearer_token}'}
-        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-        u = CustomUser.objects.get(user_id=result["sub"])
-        u_id = result["sub"]
-        sessions = Session.objects.all()
-        sessions_s = SessionSerializer(sessions, many=True)
-        return_ls = []
-        for s in sessions:
-            rooms = Room.objects.all().filter(learning_organization=s.learning_organization)
-            max_cap = 0
-            for r in rooms:
-                max_cap += r.max_capacity
-            enrolled = s.enrolled_students["enrolled_students"]
-            is_enrolled = False
-            if u_id in enrolled:
-                is_enrolled = True
-            waitlist = s.waitlist_students["waitlist_students"]
-            is_waitlisted = False
-            if u_id in waitlist:
-                is_waitlisted = True
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
 
-            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted, "id": s.id })
-        return Response(return_ls)
-    
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Fetch all sessions with related data in a single query
+            sessions = Session.objects.select_related('learning_organization').prefetch_related(
+                'learning_organization__room_set'
+            ).annotate(
+                max_capacity=Sum('learning_organization__room__max_capacity'),
+                num_enrolled=Count('enrolled_students__enrolled_students'),
+                num_waitlist=Count('waitlist_students__waitlist_students')
+            )
+
+            return_ls = []
+            for session in sessions:
+                is_enrolled = user_id in session.enrolled_students.get('enrolled_students', [])
+                is_waitlisted = user_id in session.waitlist_students.get('waitlist_students', [])
+                
+                return_ls.append({
+                    "start_time": session.start_time,
+                    "end_time": session.end_time,
+                    "max_capacity": session.max_capacity or 0,
+                    "num_enrolled": session.num_enrolled,
+                    "num_waitlist": session.num_waitlist,
+                    "organization": session.learning_organization.name,
+                    "location": "New York City",  # Consider making this dynamic if needed
+                    "isEnrolled": is_enrolled,
+                    "isWaitlisted": is_waitlisted,
+                    "id": session.id
+                })
+
+            return Response(return_ls)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except Exception as e:
+            logger.error(f"Unexpected error in UserSessionsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
 class UserSessionDetailView(APIView):
-    def post(self, request, session_pk, format=None):
-        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-        domain = os.environ.get('AUTH0_DOMAIN')
-        headers = {"Authorization": f'Bearer {bearer_token}'}
-        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-        u_id = result["sub"]
-        # u = CustomUser.objects.get(user_id=u_id)
-        session = Session.objects.get(id=session_pk)
-        body = json.loads(request.body)
-        task = body["task"]
-        rooms = Room.objects.all().filter(learning_organization=session.learning_organization)
-        max_cap = 0
-        for r in rooms:
-            max_cap += r.max_capacity
-        if task == "enroll":
-            enrolled = session.enrolled_students["enrolled_students"]
-            if u_id in enrolled:
-                return Response("already enrolled")
-            if len(enrolled) >= max_cap:
-                return Response("class filled up")
-            enrolled.append(u_id)
-            session.enrolled_students["enrolled_students"] = enrolled
-            session.save()
-            return Response("successfully enrolled")
-        elif task == "waitlist":
-            waitlist = session.waitlist_students["waitlist_students"]
-            if u_id in waitlist:
-                return Response("already on the waitlist")
-            waitlist.append(u_id)
-            session.waitlist_students["waitlist_students"] = waitlist
-            session.save()
-            return Response("successfully joined waitlist")
-        elif task == "drop_waitlist":
-            waitlist = session.waitlist_students["waitlist_students"]
-            if u_id not in waitlist:
-                return Response("not on the waitlist")
-            waitlist.remove(u_id)
-            session.waitlist_students["waitlist_students"] = waitlist
-            session.save()
-            return Response("successfully dropped waitlist")
-        elif task == "unenroll":
-            enrolled = session.enrolled_students["enrolled_students"]
-            if u_id not in enrolled:
-                return Response("not enrolled")
-            enrolled.remove(u_id)
-            waitlist = session.waitlist_students["waitlist_students"]
-            if len(waitlist) > 0:
-                temp = waitlist.pop(0)
-                enrolled.push(temp)
-                session.waitlist_students["waitlist_students"] = waitlist
-            session.enrolled_students["enrolled_students"] = enrolled
-            session.save()
-            return Response("successfully unenrolled")
-        else:
-            return Response("unknown task")
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
 
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get_session_and_capacity(self, session_pk):
+        try:
+            session = Session.objects.select_related('learning_organization').get(id=session_pk)
+            max_cap = Room.objects.filter(learning_organization=session.learning_organization).aggregate(Sum('max_capacity'))['max_capacity__sum'] or 0
+            return session, max_cap
+        except Session.DoesNotExist:
+            raise NotFound("Session not found")
+
+    # @transaction.atomic
+    def post(self, request, session_pk, format=None):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            u_id = user_info['sub']
+
+            session, max_cap = self.get_session_and_capacity(session_pk)
+
+            body = json.loads(request.body)
+            task = body.get("task")
+
+            if task == "enroll":
+                return self.enroll_user(session, u_id, max_cap)
+            elif task == "waitlist":
+                return self.waitlist_user(session, u_id)
+            elif task == "drop_waitlist":
+                return self.drop_waitlist_user(session, u_id)
+            elif task == "unenroll":
+                return self.unenroll_user(session, u_id)
+            else:
+                raise ValidationError("Unknown task")
+
+        except (AuthenticationFailed, NotFound, ValidationError) as e:
+            return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in UserSessionDetailView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+    def enroll_user(self, session, u_id, max_cap):
+        enrolled = session.enrolled_students.get("enrolled_students", [])
+        if u_id in enrolled:
+            return Response({"message": "Already enrolled"})
+        if len(enrolled) >= max_cap:
+            return Response({"message": "Class filled up"})
+        enrolled.append(u_id)
+        session.enrolled_students["enrolled_students"] = enrolled
+        session.save()
+        return Response({"message": "Successfully enrolled"})
+
+    def waitlist_user(self, session, u_id):
+        waitlist = session.waitlist_students.get("waitlist_students", [])
+        if u_id in waitlist:
+            return Response({"message": "Already on the waitlist"})
+        waitlist.append(u_id)
+        session.waitlist_students["waitlist_students"] = waitlist
+        session.save()
+        return Response({"message": "Successfully joined waitlist"})
+
+    def drop_waitlist_user(self, session, u_id):
+        waitlist = session.waitlist_students.get("waitlist_students", [])
+        if u_id not in waitlist:
+            return Response({"message": "Not on the waitlist"})
+        waitlist.remove(u_id)
+        session.waitlist_students["waitlist_students"] = waitlist
+        session.save()
+        return Response({"message": "Successfully dropped waitlist"})
+
+    def unenroll_user(self, session, u_id):
+        enrolled = session.enrolled_students.get("enrolled_students", [])
+        if u_id not in enrolled:
+            return Response({"message": "Not enrolled"})
+        enrolled.remove(u_id)
+        waitlist = session.waitlist_students.get("waitlist_students", [])
+        if waitlist:
+            temp = waitlist.pop(0)
+            enrolled.append(temp)
+        session.waitlist_students["waitlist_students"] = waitlist
+        session.enrolled_students["enrolled_students"] = enrolled
+        session.save()
+        return Response({"message": "Successfully unenrolled"})
 # this route actually needs to include the id of the location or of the organization
 class AdminSessionsView(APIView):
     
