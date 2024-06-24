@@ -1,11 +1,11 @@
 import Head from "next/head";
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect } from "react";
-// import { useRouter } from 'next/router';
-import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
-import { withPageAuthRequired, getSession } from '@auth0/nextjs-auth0';
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { redirect } from 'next/navigation'
+import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
+import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
+import { getAccessToken } from "@auth0/nextjs-auth0";
+import { redirect } from "next/navigation";
+import { useRouter } from "next/router";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -15,34 +15,37 @@ export const getServerSideProps = withPageAuthRequired({
     if (!session) {
       return {
         redirect: {
-          destination: '/api/auth/login',
+          destination: "/api/auth/login",
           permanent: false,
         },
       };
     }
 
     const options = {
-      method: 'GET',
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.accessToken}`, // Include the access token
+        Authorization: `Bearer ${session.accessToken}`, // Include the access token
       },
     };
 
-    const response = await fetch('http://localhost:8000/api/get-user-role', options);
+    const response = await fetch(
+      "http://localhost:8000/api/get-user-role",
+      options
+    );
     const roleType = await response.json();
     const role = roleType.role;
     if (role === "in") {
       return {
         redirect: {
-          destination: '/instructor',
+          destination: "/instructor",
           permanent: false,
         },
       };
     } else if (role === "st") {
       return {
         redirect: {
-          destination: '/learner',
+          destination: "/learner",
           permanent: false,
         },
       };
@@ -60,27 +63,34 @@ export const getServerSideProps = withPageAuthRequired({
 
     // if the user is verified then get the related sessions
     const sessionOptions = {
-      method: 'GET',
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${session.accessToken}`, // Include the access token
+        Authorization: `Bearer ${session.accessToken}`, // Include the access token
       },
     };
 
-    let sessionResponse = await fetch('http://localhost:8000/api/sessions', sessionOptions);
+    let sessionResponse = await fetch(
+      "http://localhost:8000/api/admin-sessions",
+      sessionOptions
+    );
     sessionResponse = await sessionResponse.json();
     console.log(sessionResponse);
     return {
-        props: {
-          role: roleType || null,
-          sessions: sessionResponse || null,
-        },
-      };
-  }
+      props: {
+        role: roleType || null,
+        sessions: sessionResponse || null,
+      },
+    };
+  },
 });
 
+export default function AdminHome({
+  role,
+  sessions,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const router = useRouter();
 
-export default function Home({ role, sessions }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
   if (role.verified === false) {
     return (
@@ -90,35 +100,42 @@ export default function Home({ role, sessions }: InferGetServerSidePropsType<typ
           <meta name="description" content="Teach more English better" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/icon.ico" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
+            rel="stylesheet"
+          />
         </Head>
-        <div>
-          You are currently unverified. 
-        </div>
-    </>
-    )
-  }
-  else if (sessions) {
+        <div>You are currently unverified.</div>
+      </>
+    );
+  } else if (sessions) {
     return (
       <div>
-        
+        <a href="admin/sessions">
+          <button>Sessions</button>
+        </a>
+        <a href="admin/create-session">
+          <button>Create Sessions</button>
+        </a>
+        <a href="admin/applications">
+          <button>Instructor Applications</button>
+        </a>
       </div>
-    )
+    );
   }
   return (
     <>
-        <Head>
-          <title>Heu Learning</title>
-          <meta name="description" content="Teach more English better" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/icon.ico" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
-        </Head>
-        <div>
-          Admin Stuff
-        </div>
+      <Head>
+        <title>Heu Learning</title>
+        <meta name="description" content="Teach more English better" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/icon.ico" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
+      <div>Admin Stuff</div>
     </>
   );
 }
-
-
