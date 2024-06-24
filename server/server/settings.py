@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = os.environ.get('SECRET_KEY')
-SECRET_KEY = "sdjffds"
+SECRET_KEY = "sdlfkjsdlfkjsdlffoaijxcplvkajerpgoiqher!!!!o2ijr020233823498ta;lbkn34r[98]"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -114,12 +114,32 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 524288000
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+dbname = os.getenv("DATABASE_NAME")
+dbuser = os.getenv("DATABASE_USER")
+dbpassword = os.getenv("DATABASE_PASSWORD")
+dbhost = os.getenv("DATABASE_HOST")
+dbport = os.getenv("DATABASE_PORT")
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "logiondb2",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': dbname,
+        'USER': dbuser,
+        'PASSWORD': dbpassword,
+        'HOST': dbhost,
+        'PORT': dbport,
+        'sslmode': 'require'
     }
 }
+
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": "logiondb2",
+#     }
+# }
 
 # if not DEBUG: 
 #     name = os.environ.get('DATABASE')

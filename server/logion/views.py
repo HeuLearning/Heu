@@ -316,6 +316,51 @@ class UserSessionDetailView(APIView):
         else:
             return Response("unknown task")
 
+# this route actually needs to include the id of the location or of the organization
+class AdminSessionsView(APIView):
+    
+    def get_admin_data(u_id):
+        pass
+    # try:
+    #     ad = AdminData.objects.get(user_id=u_id)
+    #     return ad
+    # except AdminData.DoesNotExist:
+    #     # User is not an admin
+    #     raise PermissionDenied("You do not have admin permissions.")
+
+
+
+    def post(self, request):
+        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        u = CustomUser.objects.get(user_id=result["sub"])
+        u_id = result["sub"]
+        # check if the user is an administrator
+        ad = AdminData.objects.filter(user_id=u_id)
+        # if 
+        sessions = Session.objects.all()
+        sessions_s = SessionSerializer(sessions, many=True)
+        return_ls = []
+        for s in sessions:
+            rooms = Room.objects.all().filter(learning_organization=s.learning_organization)
+            max_cap = 0
+            for r in rooms:
+                max_cap += r.max_capacity
+            enrolled = s.enrolled_students["enrolled_students"]
+            is_enrolled = False
+            if u_id in enrolled:
+                is_enrolled = True
+            waitlist = s.waitlist_students["waitlist_students"]
+            is_waitlisted = False
+            if u_id in waitlist:
+                is_waitlisted = True
+
+            return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted, "id": s.id })
+        return Response(return_ls)
+
+
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]
 

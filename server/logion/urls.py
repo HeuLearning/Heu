@@ -14,8 +14,7 @@ urlpatterns = [
     path('sessions', views.SessionsView.as_view()),
     path('user-sessions', views.UserSessionsView.as_view()),
     path('user-session-detail/<int:session_pk>', views.UserSessionDetailView.as_view()),
-
-
+    path('admin-sessions', views.AdminSessionsView.as_view()),
     # path('text/<int:pk>/<int:offset>', views.TextDetailView.as_view()),
     # path('all_texts/<int:author_pk>', views.TextsByAuthorView.as_view()),
     # path('comments/<int:suggestion_pk>', views.SuggestionCommentsView.as_view()),
