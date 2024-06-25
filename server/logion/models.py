@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator 
 from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 class CustomUser(AbstractUser):
@@ -82,8 +83,16 @@ class Session(models.Model):
     learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    enrolled_students = models.JSONField()
-    waitlist_students = models.JSONField()
+    enrolled_students = ArrayField(
+        models.CharField(max_length=255),  # This will store CustomUser IDs
+        blank=True,
+        default=list
+    )
+    waitlist_students = ArrayField(
+        models.CharField(max_length=255),  # This will store CustomUser IDs
+        blank=True,
+        default=list
+    )
     def __str__(self):
         return f'{self.admin_creator} {self.learning_organization.name} {self.viewed} {self.approved}'
 
