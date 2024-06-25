@@ -408,7 +408,7 @@ class UserSessionDetailView(APIView):
             return Response({"error": "An unexpected error occurred"}, status=500)
 
     def enroll_user(self, session, u_id, max_cap):
-        enrolled = session.enrolled or []
+        enrolled = session.enrolled_students or []
         if u_id in enrolled:
             return Response({"message": "Already enrolled"})
         if len(enrolled) >= max_cap:
