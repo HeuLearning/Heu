@@ -1,13 +1,12 @@
 import Head from "next/head";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect } from "react";
+// import { useRouter } from 'next/router';
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/router";
-import { Session } from "../../../models/session";
-import { string } from "zod";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -35,6 +34,7 @@ export const getServerSideProps = withPageAuthRequired({
       "http://localhost:8000/api/get-user-role",
       options
     );
+
     const roleType = await response.json();
     const role = roleType.role;
     if (role === "in") {
@@ -53,20 +53,18 @@ export const getServerSideProps = withPageAuthRequired({
       };
     }
     // if verified then get schedules and stuff
-
     if (!roleType.verified) {
       return {
         props: {
           role: roleType || null,
-          organization: "",
-          sessions: [],
-          sessionToken: session.accessToken || null,
+          templates: null,
+          sessionToken: null,
         },
       };
     }
 
     // if the user is verified then get the related sessions
-    const sessionOptions = {
+    const applicationTemplates = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -74,54 +72,38 @@ export const getServerSideProps = withPageAuthRequired({
       },
     };
 
-    let sessionResponse = await fetch(
-      "http://localhost:8000/api/admin-sessions",
-      sessionOptions
+    let templateResponse = await fetch(
+      "http://localhost:8000/api/instructor-application-template",
+      applicationTemplates
     );
-    const sessionData: { learning_organization: string; sessions: Session[] } =
-      await sessionResponse.json();
-    console.log(sessionResponse);
+    templateResponse = await templateResponse.json();
+    console.log(templateResponse);
     return {
       props: {
         role: roleType || null,
-        organization: sessionData.learning_organization || "",
-        sessions: sessionData.sessions || [],
+        templates: templateResponse || null,
         sessionToken: session.accessToken || null,
       },
     };
   },
 });
 
-export default function Sessions({
+export default function Applications({
   role,
-  organization,
-  sessions,
+  templates,
   sessionToken,
-}) {
-  console.log(sessions);
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
-
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
-
-  async function handleDelete(sessionId) {
-    const res = await fetch(
-      `http://localhost:8000/api/admin-session-detail/${sessionId}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionToken}`, // Include the access token
-        },
-      }
-    );
-
-    if (res.status < 300) {
-      refreshData();
+  async function handleViewApplicants(templateId) {
+    {
+      router.push(`/admin/applications/${templateId}`);
     }
+    // if (res.status < 300) {
+    //   refreshData();
+    // }
   }
 
+  console.log(role);
   if (role.verified === false) {
     return (
       <>
@@ -140,27 +122,31 @@ export default function Sessions({
     );
   } else
     return (
-      <>
-        <Head>
-          <title>Heu Learning</title>
-          <meta name="description" content="Teach more English better" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/icon.ico" />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
-            rel="stylesheet"
-          />
-        </Head>
-        <div>
-          <form>
-            <label htmlFor="fname">Start time:</label>
-            <input type="text" id="fname" name="fname"></input>
-            <label htmlFor="lname">End time:</label>
-            <input type="text" id="lname" name="lname"></input>
-
-            <input type="submit" value="Submit"></input>
-          </form>
-        </div>
-      </>
+      <div>
+        {Object.entries(templates).map(([orgName, locations]) => (
+          <div key={orgName}>
+            <h1>Learning Organization: {orgName}</h1>
+            {locations.map((location) => (
+              <div key={location.id}>
+                <h2>Applications for {location.location}</h2>
+                {location.templates.map((template) => (
+                  <div>
+                    <h3>Application template ID: {template.id}</h3>
+                    <h3>Status: {template.active ? "Active" : "Inactive"}</h3>
+                    <p>
+                      <a href={template.google_form_link}>Application Link</a>
+                    </p>
+                    <button onClick={() => handleViewApplicants(template.id)}>
+                      View Applicants
+                    </button>
+                    <br />
+                    <br />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     );
 }

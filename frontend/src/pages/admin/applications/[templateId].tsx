@@ -6,12 +6,11 @@ import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/router";
-import { Session } from "../../../models/session";
-import { string } from "zod";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
-    const { req, res } = ctx;
+    const { req, res, query } = ctx;
+    const { templateId } = query;
     const session = await getSession(req, res);
 
     if (!session) {
@@ -58,15 +57,14 @@ export const getServerSideProps = withPageAuthRequired({
       return {
         props: {
           role: roleType || null,
-          organization: "",
-          sessions: [],
-          sessionToken: session.accessToken || null,
+          applicants: null,
+          sessionToken: null,
         },
       };
     }
 
     // if the user is verified then get the related sessions
-    const sessionOptions = {
+    const applicantOptions = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -74,53 +72,50 @@ export const getServerSideProps = withPageAuthRequired({
       },
     };
 
-    let sessionResponse = await fetch(
-      "http://localhost:8000/api/admin-sessions",
-      sessionOptions
+    let applicantResponse = await fetch(
+      `http://localhost:8000/api/instructor-applications-admin/${templateId}`,
+      applicantOptions
     );
-    const sessionData: { learning_organization: string; sessions: Session[] } =
-      await sessionResponse.json();
-    console.log(sessionResponse);
+    const applicantData = await applicantResponse.json();
+    console.log(applicantResponse);
     return {
       props: {
         role: roleType || null,
-        organization: sessionData.learning_organization || "",
-        sessions: sessionData.sessions || [],
+        applicants: applicantData || null,
         sessionToken: session.accessToken || null,
       },
     };
   },
 });
 
-export default function Sessions({
-  role,
-  organization,
-  sessions,
-  sessionToken,
-}) {
-  console.log(sessions);
+export default function Sessions({ role, applicants, sessionToken }) {
   const router = useRouter();
 
   const refreshData = () => {
     router.replace(router.asPath);
   };
+  console.log(applicants);
 
-  async function handleDelete(sessionId) {
+  async function handleChangeStatus(approved, instanceId) {
     const res = await fetch(
-      `http://localhost:8000/api/admin-session-detail/${sessionId}`,
+      `http://localhost:8000/api/instructor-applications-admin`,
       {
-        method: "DELETE",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionToken}`, // Include the access token
         },
+        body: JSON.stringify({
+          instance_id: instanceId,
+          approved: approved,
+        }),
       }
     );
-
     if (res.status < 300) {
       refreshData();
     }
   }
+
   if (role.verified === false) {
     return (
       <>
@@ -150,40 +145,64 @@ export default function Sessions({
             rel="stylesheet"
           />
         </Head>
-        <a href="/admin">
-          <button>Back to admin dashboard</button>
-        </a>
-        <a href="/create-session">
-          <button>Create session</button>
-        </a>
-
-        <h2>Your learning organization: {organization}</h2>
         <div>
-          {sessions.map((session, index) => (
-            <div key={index}>
-              <h1>
-                {session.start_time.substring(5, 7)}
-                {"/"}
-                {session.start_time.substring(8, 10)}
-                {"/"}
-                {session.start_time.substring(0, 4)}{" "}
-                {session.start_time.substring(11, 16)}
-                {" to "}
-                {session.end_time.substring(11, 16)}
-                {" at "}
-                {session.learning_organization}
-                {" in "}
-                {session.location}
-              </h1>
-              <h2>
-                Enrolled: {session.num_enrolled}/{session.max_capacity}
-              </h2>
-              <h2>Waitlist: {session.num_waitlist}</h2>
-              <button onClick={() => handleDelete(session.id)}>
-                Delete Session
-              </button>
-            </div>
-          ))}
+          <h1>
+            Instructor Applications for {applicants.learning_organization} in{" "}
+            {applicants.learning_organization_location}
+          </h1>
+          <h2>Application Template ID: {applicants.template_id}</h2>
+          <h3>
+            Application Link:{" "}
+            <a href={applicants.google_form_link}>
+              {applicants.google_form_link}
+            </a>
+          </h3>
+          <h3>
+            New:{" "}
+            {applicants.unreviewed_instances.map((newApplicant) => (
+              <div>
+                {newApplicant.instructor_id}
+                <button
+                  onClick={() => handleChangeStatus(true, newApplicant.id)}
+                >
+                  Accept
+                </button>
+                <button
+                  onClick={() => handleChangeStatus(false, newApplicant.id)}
+                >
+                  Reject
+                </button>
+              </div>
+            ))}
+          </h3>
+          <h3>
+            Accepted:{" "}
+            {applicants.accepted_instances.map((acceptedApplicant) => (
+              <div>
+                {acceptedApplicant.instructor_id}
+                <button
+                  onClick={() =>
+                    handleChangeStatus(false, acceptedApplicant.id)
+                  }
+                >
+                  Reject
+                </button>
+              </div>
+            ))}
+          </h3>
+          <h3>
+            Rejected:{" "}
+            {applicants.rejected_instances.map((rejectedApplicant) => (
+              <div>
+                {rejectedApplicant.instructor_id}
+                <button
+                  onClick={() => handleChangeStatus(true, rejectedApplicant.id)}
+                >
+                  Accept
+                </button>
+              </div>
+            ))}
+          </h3>
         </div>
       </>
     );

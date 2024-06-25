@@ -108,14 +108,14 @@ export default function AdminHome({
         <div>You are currently unverified.</div>
       </>
     );
-  } else if (sessions) {
+  } else {
     return (
       <div>
         <a href="admin/sessions">
           <button>Sessions</button>
         </a>
         <a href="admin/create-session">
-          <button>Create Sessions</button>
+          <button>Create Session</button>
         </a>
         <a href="admin/applications">
           <button>Instructor Applications</button>
@@ -123,19 +123,4 @@ export default function AdminHome({
       </div>
     );
   }
-  return (
-    <>
-      <Head>
-        <title>Heu Learning</title>
-        <meta name="description" content="Teach more English better" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/icon.ico" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
-      <div>Admin Stuff</div>
-    </>
-  );
 }
