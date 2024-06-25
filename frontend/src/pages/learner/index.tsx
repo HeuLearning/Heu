@@ -6,7 +6,7 @@ import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -78,7 +78,7 @@ export const getServerSideProps = withPageAuthRequired({
   },
 });
 
-export default function Home({
+export default function LearnerHome({
   role,
   sessions,
   sessionToken,
@@ -89,7 +89,7 @@ export default function Home({
 
   const refreshData = () => {
     router.replace(router.asPath);
-  }
+  };
 
   async function handleChange(taskString, sessionId) {
     const res = await fetch(
@@ -100,14 +100,14 @@ export default function Home({
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionToken}`, // Include the access token
         },
-        body: JSON.stringify({ "task": `${taskString}` }),
+        body: JSON.stringify({ task: `${taskString}` }),
       }
     );
 
     if (res.status < 300) {
       refreshData();
     }
-  };
+  }
 
   return (
     <>
@@ -135,7 +135,7 @@ export default function Home({
               {" to "}
               {session.end_time.substring(11, 16)}
               {" at "}
-              {session.organization}
+              {session.learning_organization}
               {" in "}
               {session.location}
             </h1>
@@ -146,22 +146,32 @@ export default function Home({
 
             {session.num_enrolled < session.max_capacity ? (
               !session.isEnrolled ? (
-                <button onClick={() => handleChange("enroll", session.id)}>Enroll</button>
+                <button onClick={() => handleChange("enroll", session.id)}>
+                  Enroll
+                </button>
               ) : (
                 <div>
                   <h2>Already enrolled</h2>
-                  <button onClick={() => handleChange("unenroll", session.id)}>Unenroll</button>
+                  <button onClick={() => handleChange("unenroll", session.id)}>
+                    Unenroll
+                  </button>
                 </div>
               )
             ) : null}
-            
+
             {session.num_enrolled >= session.max_capacity ? (
               !session.isWaitlisted ? (
-                <button onClick={() => handleChange("waitlist", session.id)}>Join Waitlist</button>
+                <button onClick={() => handleChange("waitlist", session.id)}>
+                  Join Waitlist
+                </button>
               ) : (
                 <div>
                   <h2>Already in waitlist</h2>
-                  <button onClick={() => handleChange("drop_waitlist", session.id)}>Leave waitlist</button>
+                  <button
+                    onClick={() => handleChange("drop_waitlist", session.id)}
+                  >
+                    Leave waitlist
+                  </button>
                 </div>
               )
             ) : null}
