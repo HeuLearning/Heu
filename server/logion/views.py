@@ -944,7 +944,7 @@ class InstructorApplicationInstanceAdminView(APIView):
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         return user_info
 
-    def get(self, request):
+    def get(self, request, template_id):
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
@@ -954,54 +954,56 @@ class InstructorApplicationInstanceAdminView(APIView):
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
-            # Get all AdminData objects for this user
-            admin_data = AdminData.objects.filter(user_id=user_id)
-            
-            if not admin_data.exists():
-                return Response({"error": "User does not have admin permissions"}, status=403)
+            # Get the InstructorApplicationTemplate
+            template = get_object_or_404(InstructorApplicationTemplate, id=template_id)
 
-            # Get all learning organization locations where the user is an admin
-            learning_org_locations = LearningOrganizationLocation.objects.filter(
-                learning_organization__in=admin_data.values('learning_organization')
-            ).prefetch_related(
-                Prefetch(
-                    'instructorapplicationtemplate_set__instructorapplicationinstance_set',
-                    queryset=InstructorApplicationInstance.objects.select_related('instructor_id'),
-                    to_attr='application_instances'
-                )
-            )
+            # Check if the user has admin permissions for this template's learning organization location
+            admin_data = AdminData.objects.filter(
+                user_id=user_id,
+                learning_organization=template.learning_organization_location.learning_organization
+            ).first()
 
-            return_data = defaultdict(lambda: defaultdict(lambda: {'approved': [], 'not_approved': []}))
+            if not admin_data:
+                raise PermissionDenied("You don't have admin permissions for this learning organization")
 
-            for location in learning_org_locations:
-                location_key = f"{location.learning_organization.name} - {location.name}"
-                
-                for template in location.instructorapplicationtemplate_set.all():
-                    for instance in template.application_instances:
-                        instance_data = {
-                            "id": instance.id,
-                            "instructor_id": instance.instructor_id.user_id,
-                            "template_id": template.id,
-                            "google_form_link": template.google_form_link,
-                        }
-                        
-                        if instance.accepted:
-                            return_data[location_key]['approved'].append(instance_data)
-                        else:
-                            return_data[location_key]['not_approved'].append(instance_data)
+            # Get all InstructorApplicationInstances for this template
+            instances = InstructorApplicationInstance.objects.filter(template=template).select_related('instructor_id', 'approver')
 
-            # Convert defaultdict to regular dict for JSON serialization
-            formatted_return_data = {
-                location: dict(status_dict) 
-                for location, status_dict in return_data.items()
+            # Sort instances by acceptance status
+            accepted_instances = []
+            not_accepted_instances = []
+
+            for instance in instances:
+                instance_data = {
+                    "id": instance.id,
+                    "instructor_id": instance.instructor_id.user_id,
+                    "accepted": instance.accepted,
+                    "approver": instance.approver.user_id if instance.approver else None
+                }
+                if instance.accepted:
+                    accepted_instances.append(instance_data)
+                else:
+                    not_accepted_instances.append(instance_data)
+
+            return_data = {
+                "template_id": template.id,
+                "google_form_link": template.google_form_link,
+                "learning_organization_location": template.learning_organization_location.name,
+                "learning_organization": template.learning_organization_location.learning_organization.name,
+                "accepted_instances": accepted_instances,
+                "not_accepted_instances": not_accepted_instances
             }
 
-            return Response(formatted_return_data)
+            return Response(return_data)
 
         except AuthenticationFailed as e:
             return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except InstructorApplicationTemplate.DoesNotExist:
+            return Response({"error": "Invalid instructor application template ID"}, status=404)
         except Exception as e:
-            logger.error(f"Unexpected error in InstructorApplicationInstanceView GET: {str(e)}")
+            logger.error(f"Unexpected error in InstructorApplicationInstanceTemplateView GET: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
 
 
