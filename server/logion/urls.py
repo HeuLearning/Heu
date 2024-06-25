@@ -19,8 +19,6 @@ urlpatterns = [
     path('instructor-application-template', views.InstructorApplicationTemplateView.as_view()),
     path('instructor-applications-admin/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
     path('instructor-applications-admin', views.InstructorApplicationInstanceAdminView.as_view()),
-
-
     # path('text/<int:pk>/<int:offset>', views.TextDetailView.as_view()),
     # path('all_texts/<int:author_pk>', views.TextsByAuthorView.as_view()),
     # path('comments/<int:suggestion_pk>', views.SuggestionCommentsView.as_view()),
