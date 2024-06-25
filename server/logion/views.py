@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
 from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
-from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance
+from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError, PermissionDenied
@@ -19,6 +19,7 @@ from django.db import transaction
 from django.utils.dateparse import parse_datetime
 from collections import defaultdict
 from django.shortcuts import get_object_or_404
+from datetime import timedelta, datetime
 
 
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -269,19 +270,165 @@ class Assesment(APIView):
         pass
 
 class SessionsView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
 
     def get(self, request):
-        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-        domain = os.environ.get('AUTH0_DOMAIN')
-        headers = {"Authorization": f'Bearer {bearer_token}'}
-        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-        u = CustomUser.objects.get(user_id=result["sub"])
-        admindata = AdminData.objects.get(user_id=result["sub"])
-        lc_id = admindata.learning_center
-        sessions = Session.objects.all().filter(learning_organization=lc_id)
-        sessions_s = SessionSerializer(sessions, many=True)
-        return Response(sessions_s.data)
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
 
+            # Get all AdminData objects for this user
+            admin_data = AdminData.objects.filter(user_id=user_id)
+            
+            if not admin_data.exists():
+                return Response({"error": "User does not have admin permissions"}, status=403)
+
+            # Get all learning organization locations where the user is an admin
+            learning_org_locations = LearningOrganizationLocation.objects.filter(
+                learning_organization__in=admin_data.values('learning_organization')
+            )
+
+            # Get all sessions for these locations
+            sessions = Session.objects.filter(
+                learning_organization__in=learning_org_locations.values('learning_organization')
+            )
+
+            # Serialize the sessions
+            sessions_serialized = SessionSerializer(sessions, many=True)
+
+            return Response(sessions_serialized.data)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except Exception as e:
+            logger.error(f"Unexpected error in SessionsView GET: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+        
+    def post(self, request):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            location_id = request.data.get('location_id')
+            sessions_data = request.data.get('sessions', [])
+
+            if not location_id or not sessions_data:
+                return Response({"error": "Missing required fields"}, status=400)
+
+            # Verify admin status
+            admin_data = AdminData.objects.filter(user_id=user_id, learning_organization_location_id=location_id).first()
+            if not admin_data:
+                return Response({"error": "You don't have admin permissions for this location"}, status=403)
+
+            # Get SessionRequirements for this location
+            try:
+                session_requirements = SessionRequirements.objects.get(learning_organization_location_id=location_id)
+            except SessionRequirements.DoesNotExist:
+                return Response({"error": "Session requirements not found for this location"}, status=400)
+
+            # Prepare sessions for validation
+            sessions = []
+            for session_data in sessions_data:
+                start_time = datetime.fromisoformat(session_data['start_time'])
+                end_time = datetime.fromisoformat(session_data['end_time'])
+                
+                # Check session length
+                session_length = (end_time - start_time).total_seconds() / 3600  # Convert to hours
+                if session_length < session_requirements.session_length_hours:
+                    return Response({
+                        "error": f"Session length must be at least {session_requirements.session_length_hours} hours. "
+                                 f"Session starting at {start_time} is only {session_length:.2f} hours long."
+                    }, status=400)
+                
+                sessions.append({
+                    'start_time': start_time,
+                    'end_time': end_time
+                })
+            # Sort sessions by start time
+            sessions.sort(key=lambda x: x['start_time'])
+
+            # Validate density and total sessions requirements for each session
+            density_window = timedelta(weeks=session_requirements.num_weeks_for_density_sliding_window)
+            total_window = timedelta(weeks=session_requirements.num_weeks_for_total_sessions_sliding_window)
+            required_sessions_in_density_window = session_requirements.num_weeks_for_density_sliding_window * session_requirements.average_sessions_per_week_in_density_window
+            required_weeks_with_session = session_requirements.num_of_weeks_with_at_least_one_session_in_total_window
+
+            for i, current_session in enumerate(sessions):
+                # Check density requirement
+                density_window_start = current_session['start_time'] - density_window / 2
+                density_window_end = current_session['start_time'] + density_window / 2
+                sessions_in_density_window = [s for s in sessions if density_window_start <= s['start_time'] < density_window_end]
+                
+                if len(sessions_in_density_window) < required_sessions_in_density_window:
+                    return Response({
+                        "error": f"Density requirement not met for session starting at {current_session['start_time']}. "
+                                f"Found {len(sessions_in_density_window)} sessions in the window, "
+                                f"but {required_sessions_in_density_window} are required."
+                    }, status=400)
+
+                # Check total sessions requirement
+                total_window_start = current_session['start_time'] - total_window / 2
+                total_window_end = current_session['start_time'] + total_window / 2
+                sessions_in_total_window = [s for s in sessions if total_window_start <= s['start_time'] < total_window_end]
+                
+                weeks_with_session = set()
+                for s in sessions_in_total_window:
+                    weeks_with_session.add(s['start_time'].isocalendar()[1])  # Get week number
+                
+                if len(weeks_with_session) < required_weeks_with_session:
+                    return Response({
+                        "error": f"Total sessions requirement not met for session starting at {current_session['start_time']}. "
+                                f"Found sessions in {len(weeks_with_session)} weeks, "
+                                f"but sessions in {required_weeks_with_session} weeks are required."
+                    }, status=400)
+
+                        
+            # If all validations pass, create the sessions
+            created_sessions = []
+            for session_data in sessions_data:
+                session = Session.objects.create(
+                    admin_creator=admin_data,
+                    learning_organization_location_id=location_id,
+                    start_time=session_data['start_time'],
+                    end_time=session_data['end_time']
+                )
+                created_sessions.append(session)
+
+            serializer = SessionSerializer(created_sessions, many=True)
+            return Response(serializer.data, status=201)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except Exception as e:
+            logger.error(f"Unexpected error in SessionsView POST: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+    
 class UserSessionsView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
@@ -331,8 +478,8 @@ class UserSessionsView(APIView):
                     "max_capacity": session.max_capacity or 0,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
-                    "learning_organization": session.learning_organization.name,
-                    "location": "New York City",  # Consider making this dynamic if needed
+                    "learning_organization": session.learning_organization_location.learning_organization.name,
+                    "location": session.learning_organization_location.name,  # Consider making this dynamic if needed
                     "isEnrolled": user_id in enrolled,
                     "isWaitlisted": user_id in waitlisted,
                     "id": session.id
@@ -533,8 +680,6 @@ class AdminSessionsView(APIView):
             logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
         
-
-
 class AdminSessionDetailView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
@@ -977,6 +1122,7 @@ class InstructorApplicationInstanceAdminView(APIView):
                 instance_data = {
                     "id": instance.id,
                     "instructor_id": instance.instructor_id.user_id,
+                    "reviewed": instance.reviewed,
                     "accepted": instance.accepted,
                     "approver": instance.approver.user_id if instance.approver else None
                 }
@@ -1040,6 +1186,7 @@ class InstructorApplicationInstanceAdminView(APIView):
                 raise PermissionDenied("You don't have admin permissions for this learning organization")
 
             # Update the instance
+            instance.reviewed = True
             instance.accepted = approved
             instance.approver = admin_data  # Set the approver to the admin who made the change
             instance.save()
@@ -1049,6 +1196,7 @@ class InstructorApplicationInstanceAdminView(APIView):
                 "id": instance.id,
                 "instructor_id": instance.instructor_id.user_id,
                 "template_id": instance.template.id,
+                "reviewed": instance.reviewed,
                 "accepted": instance.accepted,
                 "approver": admin_data.user_id
             }, status=200)
@@ -1061,4 +1209,70 @@ class InstructorApplicationInstanceAdminView(APIView):
             return Response({"error": "Invalid instructor application instance ID"}, status=404)
         except Exception as e:
             logger.error(f"Unexpected error in InstructorApplicationInstanceView POST: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+class SessionRequirementsView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get all AdminData objects for this user
+            admin_data = AdminData.objects.filter(user_id=user_id)
+            
+            if not admin_data.exists():
+                return Response({"error": "User does not have admin permissions"}, status=403)
+
+            # Get all learning organization locations where the user is an admin
+            learning_org_locations = LearningOrganizationLocation.objects.filter(
+                learning_organization__in=admin_data.values('learning_organization')
+            ).prefetch_related('sessionrequirements_set')
+
+            requirements_data = []
+
+            for location in learning_org_locations:
+                for requirement in location.sessionrequirements_set.all():
+                    requirements_data.append({
+                        "location_id": location.id,
+                        "location_name": location.name,
+                        "learning_organization": location.learning_organization.name,
+                        "requirement_id": requirement.id,
+                        "num_weeks_for_density_sliding_window": requirement.num_weeks_for_density_sliding_window,
+                        "num_weeks_for_total_sessions_sliding_window": requirement.num_weeks_for_total_sessions_sliding_window,
+                        "average_sessions_per_week_in_density_window": requirement.average_sessions_per_week_in_density_window,
+                        "num_of_weeks_with_at_least_one_session_in_total_window": requirement.num_of_weeks_with_at_least_one_session_in_total_window,
+                    })
+
+            # Sort the requirements_data by location name
+            requirements_data.sort(key=lambda x: x['location_name'])
+
+            return Response(requirements_data)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except Exception as e:
+            logger.error(f"Unexpected error in SessionRequirementsView GET: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
