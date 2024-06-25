@@ -70,6 +70,13 @@ class AdminData(models.Model):
     def __str__(self):
         return f'{self.user_id}, {self.verified} {self.learning_organization.name}'
     
+class Assessment(models.Model):
+    user_id = models.CharField(null=False, max_length=255)
+    num_attempts = models.PositiveIntegerField(null=False, validators=[MinValueValidator(1)])
+    questions = models.JSONField(default=dict)
+    def __str__(self):
+        return f'{self.user_id} {self.num_attempts}'
+
 class SessionPrerequisites(models.Model):
     num_meetings_per_week = models.IntegerField(default=5)
     learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.CASCADE)
@@ -96,23 +103,21 @@ class Session(models.Model):
     def __str__(self):
         return f'{self.admin_creator} {self.learning_organization.name} {self.viewed} {self.approved}'
 
-# class Assessment(models.Model):
-#     user_id = models.CharField(null=False, max_length=255)
-#     attempt_number = models.IntegerField(null=False)
-#     questions = models.JSONField()
-
-#     def __str__(self):
-#         return f'{self.user_id} {self.attempt_number}'
-
-#     def __str__(self):
-#         return f'{self.custom_id} {self.json}'
-
-class Assessment(models.Model):
-    user_id = models.CharField(null=False, max_length=255)
-    num_attempts = models.PositiveIntegerField(null=False, validators=[MinValueValidator(1)])
-    questions = models.JSONField(default=dict)
+class InstructorApplicationTemplate(models.Model):
+    admin_creator = models.ForeignKey(AdminData, null=True,on_delete=models.SET_NULL)
+    learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.CASCADE) 
+    google_form_link = models.URLField(blank=False, null=False)
+    active = models.BooleanField(default=True)
     def __str__(self):
-        return f'{self.user_id} {self.num_attempts}'
+        return f'{self.id} {self.google_form_link}'
+
+class InstructorApplicationInstance(models.Model):
+    template = models.ForeignKey(InstructorApplicationTemplate, on_delete=models.CASCADE)
+    instructor_id = models.ForeignKey(InstructorData, on_delete=models.CASCADE)
+    accepted = models.BooleanField(default=False)
+    def __str__(self):
+        return f'{self.id} {self.instructor_id} {self.accepted}'
+
 
 # class MCText(models.Model):
 #     text = models.TextField(null=False)

@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
 from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
-from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites
+from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError, PermissionDenied
@@ -17,6 +17,7 @@ from django.contrib.auth import login
 from django.db.models import Sum, Count, Q, Prefetch, F
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
+from collections import defaultdict
 
 
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -320,7 +321,6 @@ class UserSessionsView(APIView):
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
-
                 # is_enrolled = user_id in session.enrolled_students.get('enrolled_students', [])
                 # is_waitlisted = user_id in session.waitlist_students.get('waitlist_students', [])
                 
@@ -796,4 +796,130 @@ class LoginUserView(APIView):
             return HttpResponse('User Created')
         return HttpResponse('Existing User')
         
+class InstructorApplicationTemplateView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
 
+    def get(self, request):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get all AdminData objects for this user
+            admin_data = AdminData.objects.filter(user_id=user_id)
+            
+            if not admin_data.exists():
+                return Response({"error": "User does not have admin permissions"}, status=403)
+
+            # Get all learning organization locations where the user is an admin
+            learning_org_locations = LearningOrganizationLocation.objects.filter(
+                learning_organization__in=admin_data.values('learning_organization')
+            ).prefetch_related(
+                Prefetch(
+                    'instructorapplicationtemplate_set',
+                    queryset=InstructorApplicationTemplate.objects.select_related('admin_creator'),
+                    to_attr='templates'
+                )
+            )
+
+            return_data = defaultdict(list)
+
+            for location in learning_org_locations:
+                location_data = {
+                    "id": location.id,
+                    "name": location.name,
+                    "learning_organization": location.learning_organization.name,
+                    "templates": []
+                }
+
+                for template in location.templates:
+                    template_data = {
+                        "id": template.id,
+                        "google_form_link": template.google_form_link,
+                        "active": template.active,
+                        "admin_creator": template.admin_creator.user_id
+                    }
+                    location_data["templates"].append(template_data)
+
+                return_data[location.learning_organization.name].append(location_data)
+
+            # Convert defaultdict to regular dict for JSON serialization
+            formatted_return_data = dict(return_data)
+
+            return Response(formatted_return_data)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorApplicationTemplateView GET: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+    def post(self, request):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            location_id = request.data.get('learning_organization_location')
+            google_form_link = request.data.get('google_form_link')
+            active = request.data.get('active', True)
+
+            if not location_id or not google_form_link:
+                return Response({"error": "Missing required fields"}, status=400)
+
+            location = LearningOrganizationLocation.objects.get(id=location_id)
+            
+            admin_data = AdminData.objects.filter(
+                user_id=user_id, 
+                learning_organization=location.learning_organization
+            ).first()
+
+            if not admin_data:
+                return Response({"error": "You don't have admin permissions for this learning organization"}, status=403)
+
+            template = InstructorApplicationTemplate.objects.create(
+                admin_creator=admin_data,
+                learning_organization_location=location,
+                google_form_link=google_form_link,
+                active=active
+            )
+
+            return Response({
+                "message": "Template created successfully",
+                "id": template.id,
+                "learning_organization_location": template.learning_organization_location.name,
+                "google_form_link": template.google_form_link,
+                "active": template.active
+            }, status=201)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except LearningOrganizationLocation.DoesNotExist:
+            return Response({"error": "Invalid learning organization location"}, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorApplicationTemplateView POST: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
