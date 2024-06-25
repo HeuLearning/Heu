@@ -314,14 +314,12 @@ class UserSessionsView(APIView):
                 'learning_organization__room_set'
             ).annotate(
                 max_capacity=Sum('learning_organization__room__max_capacity'),
-                # num_enrolled=Count('enrolled_students__enrolled_students'),
-                # num_waitlist=Count('waitlist_students__waitlist_students')
             )
 
             return_ls = []
             for session in sessions:
-                enrolled = session.enrolled_students.get('enrolled_students', [])
-                waitlisted = session.waitlist_students.get('waitlist_students', [])
+                enrolled = session.enrolled_students or []
+                waitlisted = session.waitlist_students or []
 
                 # is_enrolled = user_id in session.enrolled_students.get('enrolled_students', [])
                 # is_waitlisted = user_id in session.waitlist_students.get('waitlist_students', [])
@@ -410,45 +408,45 @@ class UserSessionDetailView(APIView):
             return Response({"error": "An unexpected error occurred"}, status=500)
 
     def enroll_user(self, session, u_id, max_cap):
-        enrolled = session.enrolled_students.get("enrolled_students", [])
+        enrolled = session.enrolled or []
         if u_id in enrolled:
             return Response({"message": "Already enrolled"})
         if len(enrolled) >= max_cap:
             return Response({"message": "Class filled up"})
         enrolled.append(u_id)
-        session.enrolled_students["enrolled_students"] = enrolled
+        session.enrolled_students = enrolled
         session.save()
         return Response({"message": "Successfully enrolled"})
 
     def waitlist_user(self, session, u_id):
-        waitlist = session.waitlist_students.get("waitlist_students", [])
+        waitlist = session.waitlist_students or []
         if u_id in waitlist:
             return Response({"message": "Already on the waitlist"})
         waitlist.append(u_id)
-        session.waitlist_students["waitlist_students"] = waitlist
+        session.waitlist_students = waitlist
         session.save()
         return Response({"message": "Successfully joined waitlist"})
 
     def drop_waitlist_user(self, session, u_id):
-        waitlist = session.waitlist_students.get("waitlist_students", [])
+        waitlist = session.waitlist_students or []
         if u_id not in waitlist:
             return Response({"message": "Not on the waitlist"})
         waitlist.remove(u_id)
-        session.waitlist_students["waitlist_students"] = waitlist
+        session.waitlist_students = waitlist
         session.save()
         return Response({"message": "Successfully dropped waitlist"})
 
     def unenroll_user(self, session, u_id):
-        enrolled = session.enrolled_students.get("enrolled_students", [])
+        enrolled = session.enrolled_students or []
         if u_id not in enrolled:
             return Response({"message": "Not enrolled"})
         enrolled.remove(u_id)
-        waitlist = session.waitlist_students.get("waitlist_students", [])
+        waitlist = session.waitlist_students or []
         if waitlist:
             temp = waitlist.pop(0)
             enrolled.append(temp)
-        session.waitlist_students["waitlist_students"] = waitlist
-        session.enrolled_students["enrolled_students"] = enrolled
+        session.waitlist_students = waitlist
+        session.enrolled_students = enrolled
         session.save()
         return Response({"message": "Successfully unenrolled"})
 # this route actually needs to include the id of the location or of the organization
@@ -505,8 +503,8 @@ class AdminSessionsView(APIView):
             # Prepare response data
             sessions_data = []
             for session in sessions:
-                enrolled = session.enrolled_students.get('enrolled_students', [])
-                waitlisted = session.waitlist_students.get('waitlist_students', [])
+                enrolled = session.enrolled_students or []
+                waitlisted = session.waitlist_students or []
 
                 sessions_data.append({
                     "id": session.id,
@@ -636,40 +634,40 @@ class AdminSessionDetailView(APIView):
         if not student_id:
             raise ValidationError("student_id is required")
 
-        enrolled = session.enrolled_students.get("enrolled_students", [])
-        waitlist = session.waitlist_students.get("waitlist_students", [])
+        enrolled = session.enrolled_students or []
+        waitlist = session.waitlist_students or []
 
         if student_id in enrolled:
             raise ValidationError("Student is already enrolled")
 
         enrolled.append(student_id)
-        session.enrolled_students["enrolled_students"] = enrolled
+        session.enrolled_students = enrolled
 
         # Remove from waitlist if present
         if student_id in waitlist:
             waitlist.remove(student_id)
-            session.waitlist_students["waitlist_students"] = waitlist
+            session.waitlist_students = waitlist
 
     def unenroll_student(self, session, data):
         student_id = data.get('student_id')
         if not student_id:
             raise ValidationError("student_id is required")
 
-        enrolled = session.enrolled_students.get("enrolled_students", [])
+        enrolled = session.enrolled_students or []
 
         if student_id not in enrolled:
             raise ValidationError("Student is not enrolled")
 
         enrolled.remove(student_id)
-        session.enrolled_students["enrolled_students"] = enrolled
+        session.enrolled_students = enrolled
 
     def add_to_waitlist(self, session, data):
         student_id = data.get('student_id')
         if not student_id:
             raise ValidationError("student_id is required")
 
-        waitlist = session.waitlist_students.get("waitlist_students", [])
-        enrolled = session.enrolled_students.get("enrolled_students", [])
+        waitlist = session.waitlist_students or []
+        enrolled = session.enrolled_students or []
 
         if student_id in waitlist:
             raise ValidationError("Student is already on the waitlist")
@@ -678,20 +676,20 @@ class AdminSessionDetailView(APIView):
             raise ValidationError("Student is already enrolled")
 
         waitlist.append(student_id)
-        session.waitlist_students["waitlist_students"] = waitlist
+        session.waitlist_students = waitlist
 
     def remove_from_waitlist(self, session, data):
         student_id = data.get('student_id')
         if not student_id:
             raise ValidationError("student_id is required")
 
-        waitlist = session.waitlist_students.get("waitlist_students", [])
+        waitlist = session.waitlist_students or []
 
         if student_id not in waitlist:
             raise ValidationError("Student is not on the waitlist")
 
         waitlist.remove(student_id)
-        session.waitlist_students["waitlist_students"] = waitlist
+        session.waitlist_students = waitlist
 
     def update_start_time(self, session, data):
         start_time = data.get('start_time')
@@ -728,7 +726,7 @@ class AdminSessionDetailView(APIView):
             raise ValidationError("enrolled_students field is required")
         if not isinstance(enrolled_students, list):
             raise ValidationError("enrolled_students must be a list")
-        session.enrolled_students = {"enrolled_students": enrolled_students}
+        session.enrolled_students = enrolled_students
 
     def update_waitlist_students(self, session, data):
         waitlist_students = data.get('waitlist_students')
@@ -736,7 +734,7 @@ class AdminSessionDetailView(APIView):
             raise ValidationError("waitlist_students field is required")
         if not isinstance(waitlist_students, list):
             raise ValidationError("waitlist_students must be a list")
-        session.waitlist_students = {"waitlist_students": waitlist_students}
+        session.waitlist_students = waitlist_students
 
 
     @transaction.atomic
@@ -775,48 +773,6 @@ class AdminSessionDetailView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionDetailView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-# class AdminSessionsView(APIView):
-    
-#     def get_admin_data(u_id):
-#         pass
-#     # try:
-#     #     ad = AdminData.objects.get(user_id=u_id)
-#     #     return ad
-#     # except AdminData.DoesNotExist:
-#     #     # User is not an admin
-#     #     raise PermissionDenied("You do not have admin permissions.")
-
-
-
-#     def post(self, request):
-#         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-#         domain = os.environ.get('AUTH0_DOMAIN')
-#         headers = {"Authorization": f'Bearer {bearer_token}'}
-#         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-#         u = CustomUser.objects.get(user_id=result["sub"])
-#         u_id = result["sub"]
-#         # check if the user is an administrator
-#         ad = AdminData.objects.filter(user_id=u_id)
-#         # if 
-#         sessions = Session.objects.all()
-#         return_ls = []
-#         for s in sessions:
-#             rooms = Room.objects.all().filter(learning_organization=s.learning_organization)
-#             max_cap = 0
-#             for r in rooms:
-#                 max_cap += r.max_capacity
-#             enrolled = s.enrolled_students["enrolled_students"]
-#             is_enrolled = False
-#             if u_id in enrolled:
-#                 is_enrolled = True
-#             waitlist = s.waitlist_students["waitlist_students"]
-#             is_waitlisted = False
-#             if u_id in waitlist:
-#                 is_waitlisted = True
-
-#             return_ls.append({ "start_time": s.start_time, "end_time": s.end_time, "max_capacity": max_cap, "num_enrolled": len(enrolled), "num_waitlist": len(waitlist), "organization": s.learning_organization.name, "location": "New York City", "isEnrolled": is_enrolled, "isWaitlisted": is_waitlisted, "id": s.id })
-#         return Response(return_ls)
-
 
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]
@@ -840,121 +796,4 @@ class LoginUserView(APIView):
             return HttpResponse('User Created')
         return HttpResponse('Existing User')
         
-
-
-
-# class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
-#     queryset = Author.objects.all()
-#     serializer_class = AuthorSerializer
-#     permission_classes = [HasAdminPermission]
-
-
-# class TextsByAuthorView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get_object(self, author_pk):
-#         try:
-#             return Text.objects.filter(author=author_pk)
-#         except Text.DoesNotExist:
-#             raise Http404
-             
-
-#     def get(self, request, author_pk, format=None):
-#         texts = self.get_object(author_pk)
-#         texts = TextTitleSerializer(texts, many=True)
-#         return Response(texts.data)
-    
-
-# class TextDetailView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     def get_object(self, pk, offset):
-#         try:
-#             text_detail = Text.objects.get(pk=pk)
-#             suggestions_detials = Suggestion.objects.filter(text=pk).filter(chunk=offset)
-#             return [text_detail, suggestions_detials]
-#         except Text.DoesNotExist or Suggestion.DoesNotExist:
-#             raise Http404
-             
-
-#     def get(self, request, pk, offset, format=None):
-#         text, suggestions = self.get_object(pk, offset)
-#         text_serializer = TextSerializer(text)
-#         suggestions_serializer = SuggestionSerializer(suggestions, many=True)
-#         chunks = text_serializer.data['body'].split("***")
-#         updated_body = chunks[offset]
-#         dummy = { 'id' : text_serializer.data['id'], 'body': updated_body, 'chunks': len(chunks), 'title': text_serializer.data['title'] }
-#         return Response([dummy, suggestions_serializer.data])
-    
-
-# class SuggestionCommentsView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     def get_object(self, suggestion_pk):
-#         try:
-#             return Comment.objects.filter(suggestion=suggestion_pk)
-#         except Comment.DoesNotExist:
-#             raise Http404
-
-#     def get(self, request, suggestion_pk, format=None):
-#         comments = self.get_object(suggestion_pk)
-#         serializer = CommentSerializer(comments, many=True)
-#         return Response(serializer.data)
-    
-
-
-# class SaveSuggestionView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, format=None):
-#         print(request.data['words'])
-#         words = request.data['words']
-#         words_string = ''
-#         for word in words:
-#             words_string += f'{word} '
-#         s = Suggestion()
-#         s.text = Text.objects.get(id = request.data['text_id'])
-#         s.chunk = request.data['chunk']
-#         s.suggested_text = request.data['suggestion']['word']
-#         s.probability = request.data['suggestion']['probability']
-#         s.start_index = request.data['start_index']
-#         s.end_index = request.data['end_index']
-#         s.original_text = words_string
-#         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-#         domain = os.environ.get('AUTH0_DOMAIN')
-#         headers = {"Authorization": f'Bearer {bearer_token}'}
-#         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-#         u = CustomUser.objects.get(user_id=result["sub"])
-#         s.submitter = u
-#         s.save()
-#         return HttpResponse("Suggestion Saved")
-
-
-# class SaveCommentView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, format=None):
-#         c = Comment()
-#         c.suggestion = Suggestion.objects.get(id = request.data['suggestion_id'])
-#         c.body = request.data['comment']
-#         bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
-#         domain = os.environ.get('AUTH0_DOMAIN')
-#         headers = {"Authorization": f'Bearer {bearer_token}'}
-#         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
-#         u = CustomUser.objects.get(user_id=result["sub"])
-#         c.commenter = u
-#         c.save()
-#         return HttpResponse("Suggestion Saved")
-    
-
-# class DeleteComentView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def post(self, request, format=None):
-#         print(request.data)
-#         try:
-#             c = Comment.objects.get(id = request.data['comment']['id'])
-#             c.delete()
-#         except Comment.DoesNotExist:
-#             print("whoops")
-#             return HttpResponse("No Such Comment Exists")
-#         return HttpResponse("Comment Deleted")
 
