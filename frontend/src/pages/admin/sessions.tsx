@@ -6,6 +6,8 @@ import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/router";
+import { Session } from "../../../models/session";
+import { string } from "zod";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -56,7 +58,8 @@ export const getServerSideProps = withPageAuthRequired({
       return {
         props: {
           role: roleType || null,
-          sessions: null,
+          organization: "",
+          sessions: [],
           sessionToken: session.accessToken || null,
         },
       };
@@ -75,12 +78,14 @@ export const getServerSideProps = withPageAuthRequired({
       "http://localhost:8000/api/admin-sessions",
       sessionOptions
     );
-    sessionResponse = await sessionResponse.json();
+    const sessionData: { learning_organization: string; sessions: Session[] } =
+      await sessionResponse.json();
     console.log(sessionResponse);
     return {
       props: {
         role: roleType || null,
-        sessions: sessionResponse || null,
+        organization: sessionData.learning_organization || "",
+        sessions: sessionData.sessions || [],
         sessionToken: session.accessToken || null,
       },
     };
@@ -89,27 +94,26 @@ export const getServerSideProps = withPageAuthRequired({
 
 export default function Sessions({
   role,
+  organization,
   sessions,
   sessionToken,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+}) {
   console.log(sessions);
-  const sessions_data = Object.values(sessions);
   const router = useRouter();
 
   const refreshData = () => {
     router.replace(router.asPath);
   };
 
-  async function handleChange(taskString, sessionId) {
+  async function handleDelete(sessionId) {
     const res = await fetch(
-      `http://localhost:8000/api/user-session-detail/${sessionId}`,
+      `http://localhost:8000/api/admin-session-detail/${sessionId}`,
       {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionToken}`, // Include the access token
         },
-        body: JSON.stringify({ task: `${taskString}` }),
       }
     );
 
@@ -130,10 +134,10 @@ export default function Sessions({
           rel="stylesheet"
         />
       </Head>
-
+      <div>{organization}</div>
       <div>
-        {sessions_data.map((session) => (
-          <div key={session.index}>
+        {sessions.map((session, index) => (
+          <div key={index}>
             <h1>
               {session.start_time.substring(5, 7)}
               {"/"}
@@ -149,11 +153,12 @@ export default function Sessions({
               {session.location}
             </h1>
             <h2>
-              Enrolled: {session.enrolled_students.length}/
-              {session.max_capacity}
+              Enrolled: {session.num_enrolled}/{session.max_capacity}
             </h2>
-            <h2>Waitlist: {session.waitlist_students.length}</h2>
-            <button>DELETE SESSION</button>
+            <h2>Waitlist: {session.num_waitlist}</h2>
+            <button onClick={() => handleDelete(session.id)}>
+              Delete Session
+            </button>
           </div>
         ))}
       </div>
