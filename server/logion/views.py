@@ -1116,7 +1116,8 @@ class InstructorApplicationInstanceAdminView(APIView):
 
             # Sort instances by acceptance status
             accepted_instances = []
-            not_accepted_instances = []
+            rejected_instances = []
+            unreviewed_instances = []
 
             for instance in instances:
                 instance_data = {
@@ -1126,10 +1127,12 @@ class InstructorApplicationInstanceAdminView(APIView):
                     "accepted": instance.accepted,
                     "approver": instance.approver.user_id if instance.approver else None
                 }
-                if instance.accepted:
+                if not instance.reviewed:
+                    unreviewed_instances.append(instance_data)
+                elif instance.accepted:
                     accepted_instances.append(instance_data)
                 else:
-                    not_accepted_instances.append(instance_data)
+                    rejected_instances.append(instance_data)
 
             return_data = {
                 "template_id": template.id,
@@ -1137,7 +1140,8 @@ class InstructorApplicationInstanceAdminView(APIView):
                 "learning_organization_location": template.learning_organization_location.name,
                 "learning_organization": template.learning_organization_location.learning_organization.name,
                 "accepted_instances": accepted_instances,
-                "not_accepted_instances": not_accepted_instances
+                "rejected_instances": rejected_instances,
+                "unreviewed_instances": unreviewed_instances
             }
 
             return Response(return_data)
