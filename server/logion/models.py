@@ -115,6 +115,7 @@ class InstructorApplicationInstance(models.Model):
     template = models.ForeignKey(InstructorApplicationTemplate, on_delete=models.CASCADE)
     instructor_id = models.ForeignKey(InstructorData, on_delete=models.CASCADE)
     accepted = models.BooleanField(default=False)
+    approver = models.ForeignKey(AdminData, null=True,on_delete=models.SET_NULL)
     def __str__(self):
         return f'{self.id} {self.instructor_id} {self.accepted}'
 

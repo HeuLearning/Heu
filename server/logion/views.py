@@ -18,6 +18,7 @@ from django.db.models import Sum, Count, Q, Prefetch, F
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
 from collections import defaultdict
+from django.shortcuts import get_object_or_404
 
 
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -922,4 +923,140 @@ class InstructorApplicationTemplateView(APIView):
             return Response({"error": "Invalid learning organization location"}, status=400)
         except Exception as e:
             logger.error(f"Unexpected error in InstructorApplicationTemplateView POST: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+        
+class InstructorApplicationInstanceAdminView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get all AdminData objects for this user
+            admin_data = AdminData.objects.filter(user_id=user_id)
+            
+            if not admin_data.exists():
+                return Response({"error": "User does not have admin permissions"}, status=403)
+
+            # Get all learning organization locations where the user is an admin
+            learning_org_locations = LearningOrganizationLocation.objects.filter(
+                learning_organization__in=admin_data.values('learning_organization')
+            ).prefetch_related(
+                Prefetch(
+                    'instructorapplicationtemplate_set__instructorapplicationinstance_set',
+                    queryset=InstructorApplicationInstance.objects.select_related('instructor_id'),
+                    to_attr='application_instances'
+                )
+            )
+
+            return_data = defaultdict(lambda: defaultdict(lambda: {'approved': [], 'not_approved': []}))
+
+            for location in learning_org_locations:
+                location_key = f"{location.learning_organization.name} - {location.name}"
+                
+                for template in location.instructorapplicationtemplate_set.all():
+                    for instance in template.application_instances:
+                        instance_data = {
+                            "id": instance.id,
+                            "instructor_id": instance.instructor_id.user_id,
+                            "template_id": template.id,
+                            "google_form_link": template.google_form_link,
+                        }
+                        
+                        if instance.accepted:
+                            return_data[location_key]['approved'].append(instance_data)
+                        else:
+                            return_data[location_key]['not_approved'].append(instance_data)
+
+            # Convert defaultdict to regular dict for JSON serialization
+            formatted_return_data = {
+                location: dict(status_dict) 
+                for location, status_dict in return_data.items()
+            }
+
+            return Response(formatted_return_data)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorApplicationInstanceView GET: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+
+    def post(self, request):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get the instance id and new approval status from the request data
+            instance_id = request.data.get('instance_id')
+            approved = request.data.get('approved')
+
+            if instance_id is None or approved is None:
+                return Response({"error": "Missing instance_id or approved status"}, status=400)
+
+            # Get the InstructorApplicationInstance
+            instance = get_object_or_404(InstructorApplicationInstance, id=instance_id)
+
+            # Get the associated LearningOrganizationLocation
+            location = instance.template.learning_organization_location
+
+            # Check if the user is an admin for this learning organization
+            admin_data = AdminData.objects.filter(
+                user_id=user_id,
+                learning_organization=location.learning_organization
+            ).first()
+
+            if not admin_data:
+                raise PermissionDenied("You don't have admin permissions for this learning organization")
+
+            # Update the instance
+            instance.accepted = approved
+            instance.approver = admin_data  # Set the approver to the admin who made the change
+            instance.save()
+
+            return Response({
+                "message": "Application instance updated successfully",
+                "id": instance.id,
+                "instructor_id": instance.instructor_id.user_id,
+                "template_id": instance.template.id,
+                "accepted": instance.accepted,
+                "approver": admin_data.user_id
+            }, status=200)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except InstructorApplicationInstance.DoesNotExist:
+            return Response({"error": "Invalid instructor application instance ID"}, status=404)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorApplicationInstanceView POST: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
