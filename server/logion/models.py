@@ -109,7 +109,6 @@ class SessionRequirements(models.Model):
     session_length_hours = models.IntegerField(default=1)
     def __str__(self):
         return f'{self.num_meetings_per_week}'
-    
 
 class Session(models.Model):
     admin_creator = models.ForeignKey(AdminData, null=True, on_delete=models.SET_NULL)
@@ -131,94 +130,3 @@ class Session(models.Model):
 
     def __str__(self):
         return f'{self.admin_creator} {self.learning_organization_location.learning_organization.name} @ {self.learning_organization_location.name} {self.viewed} {self.approved}'
-
-
-# class MCText(models.Model):
-#     text = models.TextField(null=False)
-#     blank_index = models.IntegerField(null=False)
-#     replacements = models.JSONField(null=False)
-#     question_id = models.OneToOneField(
-#         Question,
-#         on_delete=models.CASCADE,
-#         primary_key=True,
-#     )
-#     def __str__(self):
-#         return f'{self.text}, remove: {self.text.split()[self.blank_index]}: alternatives:{self.replacements}'
-
-# class Author(models.Model):
-#     first_name = models.CharField(null=True, blank=True, max_length=200)
-#     last_name = models.CharField(null=False, max_length=200)
-#     birth_year = models.IntegerField(null=True, blank=True,)
-#     death_year = models.IntegerField(null=True, blank=True)
-#     genre = models.CharField(null=True, blank=True, max_length=200)
-
-#     def __str__(self):
-#         return f'{self.last_name}, {self.first_name}. from {self.birth_year} to {self.death_year}. genre: {self.genre}'
-
-# class Text(models.Model):
-#     title = models.TextField(null=False)
-#     body = models.TextField(null=False)
-#     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-#     publish_date = models.DateField(null=True, blank=True)
-
-#     def __str__(self):
-#         return f'{self.title} {self.pk} by {self.author.first_name} {self.author.last_name}. body: {self.body[0:20]}'
-
-# class Suggestion(models.Model):
-#     text = models.ForeignKey(Text, on_delete=models.CASCADE)
-#     number_good = models.IntegerField(default=0)
-#     number_ok = models.IntegerField(default=0)
-#     number_bad = models.IntegerField(default=0)
-#     suggested_text = models.TextField(null=False)
-#     probability = models.FloatField(null=False)
-#     start_index = models.IntegerField(null=False)
-#     end_index = models.IntegerField(null=False)
-#     chunk = models.IntegerField(null = False)
-#     original_text = models.TextField(null=False)
-#     submitter = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-
-#     def __str__(self):
-#         return f'{self.text.title} suggestion: {self.suggested_text}'
-
-# class Comment(models.Model):
-#     suggestion = models.ForeignKey(Suggestion, on_delete=models.CASCADE)
-#     body = models.TextField(null=False)
-#     number_good = models.IntegerField(default=0)
-#     number_ok = models.IntegerField(default=0)
-#     number_bad = models.IntegerField(default=0)
-#     commenter = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-
-#     def __str__(self):
-#         return f're: {self.suggestion.suggested_text}. {self.body}'
-
-# class Response(models.Model):
-#     comment = models.ForeignKey(Comment, on_delete=models.DO_NOTHING)
-#     body = models.TextField(null=False)
-#     number_good = models.IntegerField(default=0)
-#     number_ok = models.IntegerField(default=0)
-#     number_bad = models.IntegerField(default=0)
-#     commenter = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-
-#     def __str__(self):
-#         return f're: {self.comment.body}. {self.body}'
-    
-# class Rating(models.Model):
-#     RATING_CHOICES = [
-#         ('G', 'GOOD'),
-#         ('O', 'OK'),
-#         ('B', 'BAD')
-#     ]
-#     rating = models.CharField(max_length=20, choices=RATING_CHOICES)
-
-# class Sentence(models.Model):
-#     text = models.TextField(null=False)
-
-# class QuestionFormat(models.Model):
-#     FORMATS = [
-#         'Fill In The Blank',
-#         'Multiple Choice'
-#     ]
-#     form = models.CharField(max_length=20, choices=FORMATS)
-
-# class Module(models.Model):
-#     # pass
