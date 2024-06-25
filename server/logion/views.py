@@ -515,7 +515,7 @@ class AdminSessionsView(APIView):
                     "max_capacity": max_capacity,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
-                    "organization": learning_organization.name,
+                    "learning_organization": learning_organization.name,
                     "approved": session.approved,
                     "location": "New York City",  # You might want to make this dynamic
                 })
@@ -554,6 +554,12 @@ class AdminSessionDetailView(APIView):
         user_info = response.json()
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         return user_info
+    
+    def get_user_django_info(self, user_id):
+        try:
+            return CustomUser.objects.get(user_id=user_id)
+        except CustomUser.DoesNotExist:
+            raise PermissionDenied("User does not exist")
 
     def get_admin_data(self, user_id):
         try:
@@ -751,16 +757,18 @@ class AdminSessionDetailView(APIView):
             # Get session
             session = self.get_session(session_pk)
 
+            # get the admin's name
+            user_data = self.get_user_django_info(user_id=user_id)
+
             # Check if admin is associated with the session's learning organization
             if admin_data.learning_organization != session.learning_organization:
                 raise PermissionDenied("Admin is not associated with this session's learning organization")
 
             # Delete the session
-            session_name = session.name  # Assuming the session has a name field
             session.delete()
 
-            logger.info(f"Session '{session_name}' (ID: {session_pk}) deleted by admin {admin_data.name} (ID: {user_id})")
-            return Response({"message": f"Session '{session_name}' successfully deleted"}, status=200)
+            logger.info(f"Session '{session.id}' deleted by admin {user_data.first_name} {user_data.last_name} ID: {user_id}")
+            return Response({"message": f"Session '{session.id}' successfully deleted"}, status=200)
 
         except (AuthenticationFailed, PermissionDenied, NotFound) as e:
             return Response({"error": str(e)}, status=400)
