@@ -848,7 +848,7 @@ class InstructorApplicationTemplateView(APIView):
             for location in learning_org_locations:
                 location_data = {
                     "id": location.id,
-                    "name": location.name,
+                    "location": location.name,
                     "learning_organization": location.learning_organization.name,
                     "templates": []
                 }
