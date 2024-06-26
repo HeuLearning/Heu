@@ -488,6 +488,7 @@ class UserSessionsView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in UserSessionsView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
+
 class UserSessionDetailView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
@@ -509,8 +510,11 @@ class UserSessionDetailView(APIView):
 
     def get_session_and_capacity(self, session_pk):
         try:
-            session = Session.objects.select_related('learning_organization').get(id=session_pk)
-            max_cap = Room.objects.filter(learning_organization=session.learning_organization).aggregate(Sum('max_capacity'))['max_capacity__sum'] or 0
+            session = Session.objects.select_related('learning_organization_location__learning_organization').get(id=session_pk)
+            max_cap = Room.objects.filter(
+                learning_organization=session.learning_organization_location.learning_organization,
+                location=session.learning_organization_location
+            ).aggregate(Sum('max_capacity'))['max_capacity__sum'] or 0
             return session, max_cap
         except Session.DoesNotExist:
             raise NotFound("Session not found")
@@ -544,12 +548,12 @@ class UserSessionDetailView(APIView):
             else:
                 raise ValidationError("Unknown task")
 
-        except (AuthenticationFailed, NotFound, ValidationError) as e:
+        except (AuthenticationFailed, NotFound, ValidationError, PermissionDenied) as e:
             return Response({"error": str(e)}, status=400)
         except Exception as e:
             logger.error(f"Unexpected error in UserSessionDetailView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-
+        
     def enroll_user(self, session, u_id, max_cap):
         enrolled = session.enrolled_students or []
         if u_id in enrolled:
