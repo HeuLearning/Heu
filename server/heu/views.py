@@ -622,6 +622,75 @@ class AdminSessionsView(APIView):
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
                 raise AuthenticationFailed("Invalid authorization header")
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get AdminData for the user
+            try:
+                admin_data = AdminData.objects.select_related('learning_organization').get(user_id=user_id)
+            except AdminData.DoesNotExist:
+                raise PermissionDenied("User is not an admin")
+
+            # Get the learning organization
+            learning_organization = admin_data.learning_organization
+
+            # Get all locations for this learning organization
+            locations = LearningOrganizationLocation.objects.filter(learning_organization=learning_organization)
+
+            all_sessions_data = []
+
+            for location in locations:
+                # Get associated sessions for this location
+                sessions = Session.objects.filter(learning_organization_location=location).select_related(
+                    'learning_organization_location__learning_organization'
+                )
+
+                # Calculate max capacity for this location
+                max_capacity = Room.objects.filter(
+                    learning_organization=learning_organization,
+                    location=location
+                ).aggregate(total_capacity=Sum('max_capacity'))['total_capacity'] or 0
+
+                # Prepare sessions data for this location
+                sessions_data = []
+                for session in sessions:
+                    enrolled = session.enrolled_students or []
+                    waitlisted = session.waitlist_students or []
+                    sessions_data.append({
+                        "id": session.id,
+                        "start_time": session.start_time,
+                        "end_time": session.end_time,
+                        "max_capacity": max_capacity,
+                        "num_enrolled": len(enrolled),
+                        "num_waitlist": len(waitlisted),
+                        "learning_organization": learning_organization.name,
+                        "location": location.name,
+                        "approved": session.approved,
+                    })
+
+                all_sessions_data.append({
+                    "location": location.name,
+                    "sessions": sessions_data
+                })
+
+            return Response({
+                "learning_organization": learning_organization.name,
+                "locations": all_sessions_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
 
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
