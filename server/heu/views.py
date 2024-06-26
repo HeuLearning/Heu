@@ -1107,24 +1107,40 @@ class AdminSessionDetailView(APIView):
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
-        bearer_token = request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+    def get_user_info(self, bearer_token):
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {bearer_token}'}
-        result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        return response.json()
+
+    def get(self, request, format=None):
         try:
-            u = CustomUser.objects.get(user_id=result["sub"])
-            u.save()
-        except CustomUser.DoesNotExist:
-            u = CustomUser.objects.filter(email=result["email"]).first()
-            if u is None:
-                u = CustomUser()
-                u.username=result["nickname"]
-                u.email = result["email"]
-            u.user_id = result["sub"]
-            u.save()
-            return HttpResponse('User Created')
-        return HttpResponse('Existing User')
+            bearer_token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
+            user_info = self.get_user_info(bearer_token)
+
+            with transaction.atomic():
+                user, created = CustomUser.objects.update_or_create(
+                    user_id=user_info["sub"],
+                    defaults={
+                        "username": user_info.get("nickname", ""),
+                        "email": user_info.get("email", ""),
+                        "first_name": user_info.get("given_name", ""),
+                        "last_name": user_info.get("family_name", ""),
+                    }
+                )
+
+            if created:
+                return Response({"message": "User created", "user_id": user.user_id}, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"message": "User updated", "user_id": user.user_id}, status=status.HTTP_200_OK)
+
+        except requests.RequestException as e:
+            return Response({"error": "Failed to retrieve user info from Auth0"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class InstructorApplicationTemplateView(APIView):
     def get_user_info(self, token):
