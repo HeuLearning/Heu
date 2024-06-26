@@ -453,25 +453,23 @@ class UserSessionsView(APIView):
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
                 raise AuthenticationFailed("Invalid authorization header")
-
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
-            # Fetch all sessions with related data in a single query
-            sessions = Session.objects.filter(approved=True).select_related('learning_organization').prefetch_related(
-                'learning_organization__room_set'
+            # Corrected query
+            sessions = Session.objects.filter(approved=True).select_related(
+                'learning_organization_location__learning_organization'
+            ).prefetch_related(
+                'learning_organization_location__learning_organization__room_set'
             ).annotate(
-                max_capacity=Sum('learning_organization__room__max_capacity'),
+                max_capacity=Sum('learning_organization_location__learning_organization__room__max_capacity'),
             )
 
             return_ls = []
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
-                # is_enrolled = user_id in session.enrolled_students.get('enrolled_students', [])
-                # is_waitlisted = user_id in session.waitlist_students.get('waitlist_students', [])
-                
                 return_ls.append({
                     "start_time": session.start_time,
                     "end_time": session.end_time,
@@ -479,20 +477,17 @@ class UserSessionsView(APIView):
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
                     "learning_organization": session.learning_organization_location.learning_organization.name,
-                    "location": session.learning_organization_location.name,  # Consider making this dynamic if needed
+                    "location": session.learning_organization_location.name,
                     "isEnrolled": user_id in enrolled,
                     "isWaitlisted": user_id in waitlisted,
                     "id": session.id
                 })
-
             return Response(return_ls)
-
         except AuthenticationFailed as e:
             return Response({"error": str(e)}, status=401)
         except Exception as e:
             logger.error(f"Unexpected error in UserSessionsView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-
 class UserSessionDetailView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
