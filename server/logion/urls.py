@@ -14,7 +14,8 @@ urlpatterns = [
     path('sessions', views.SessionsView.as_view()),
     path('user-sessions', views.UserSessionsView.as_view()),
     path('user-session-detail/<int:session_pk>', views.UserSessionDetailView.as_view()),
-    path('admin-sessions', views.AdminSessionsView.as_view()),
+    path('admin-sessions/<int:loc_id>', views.AdminSessionsView.as_view()),
+    path('admin-sessions/', views.AdminSessionsView.as_view()), # post request
     path('admin-session-detail/<int:session_pk>', views.AdminSessionDetailView.as_view()),
     path('instructor-application-template', views.InstructorApplicationTemplateView.as_view()),
     path('instructor-applications-admin/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
@@ -22,6 +23,7 @@ urlpatterns = [
     path('session-requirements', views.SessionRequirementsView.as_view()),
     path('instructor-applications-instructor/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
     path('instructor-applications-instructor', views.InstructorApplicationInstanceAdminView.as_view()),
+    # path('', views.InstructorApplicationInstanceAdminView.as_view()),
     # path('text/<int:pk>/<int:offset>', views.TextDetailView.as_view()),
     # path('all_texts/<int:author_pk>', views.TextsByAuthorView.as_view()),
     # path('comments/<int:suggestion_pk>', views.SuggestionCommentsView.as_view()),

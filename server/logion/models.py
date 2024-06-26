@@ -102,13 +102,12 @@ class InstructorApplicationInstance(models.Model):
 
 class SessionRequirements(models.Model):
     learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.CASCADE)
-    num_weeks_for_density_sliding_window = models.IntegerField(null=False)
-    num_weeks_for_total_sessions_sliding_window = models.IntegerField(null=False)
-    average_sessions_per_week_in_density_window = models.IntegerField(null=False)
-    num_of_weeks_with_at_least_one_session_in_total_window = models.IntegerField(null=False)
-    session_length_hours = models.IntegerField(default=1)
+    minimum_session_hours = models.IntegerField(default=1)
+    minmum_num_weeks_consecutive = models.IntegerField(default=8)
+    minimum_avg_days_per_week = models.IntegerField(default=2)
+    num_exempt_weeks = models.IntegerField(default=2)
     def __str__(self):
-        return f'{self.num_meetings_per_week}'
+        return f'{self.id} {self.minimum_session_hours} {self.minmum_num_weeks_consecutive} {self.minimum_avg_days_per_week} {self.num_exempt_weeks}'
 
 class Session(models.Model):
     admin_creator = models.ForeignKey(AdminData, null=True, on_delete=models.SET_NULL)

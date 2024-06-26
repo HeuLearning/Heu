@@ -605,7 +605,7 @@ class AdminSessionsView(APIView):
         cached_info = cache.get(cache_key)
         if cached_info:
             return cached_info
-
+        
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {token}'}
         response = requests.get(f'https://{domain}/userinfo', headers=headers)
@@ -618,33 +618,42 @@ class AdminSessionsView(APIView):
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         return user_info
 
-    def get(self, request):
+    def get(self, request, loc_id):
         try:
             # Authenticate user
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
                 raise AuthenticationFailed("Invalid authorization header")
-
+            
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
-            # Get AdminData for the user
-            try:
-                admin_data = AdminData.objects.select_related('learning_organization').get(user_id=user_id)
-            except AdminData.DoesNotExist:
-                raise PermissionDenied("User is not an admin")
+            # Get learning_organization_location_id from query params
+            location_id = loc_id
+            # location_id = request.query_params.get('learning_organization_location_id')
+            if not location_id:
+                return Response({"error": "learning_organization_location_id is required"}, status=400)
 
-            # Get the learning organization
-            learning_organization = admin_data.learning_organization
+            # Check if user has admin rights for this location
+            try:
+                admin_data = AdminData.objects.get(
+                    user_id=user_id,
+                    learning_organization__learningorganizationlocation__id=location_id
+                )
+            except AdminData.DoesNotExist:
+                raise PermissionDenied("User is not an admin for this location")
+
+            # Get the learning organization location
+            location = LearningOrganizationLocation.objects.get(id=location_id)
 
             # Get associated sessions
-            sessions = Session.objects.filter(learning_organization=learning_organization).select_related(
-                'learning_organization'
+            sessions = Session.objects.filter(learning_organization_location=location).select_related(
+                'learning_organization_location__learning_organization'
             )
 
-            # Calculate max capacity for the learning organization
-            max_capacity = Room.objects.filter(learning_organization=learning_organization).aggregate(
+            # Calculate max capacity for the location
+            max_capacity = Room.objects.filter(learning_organization_location=location).aggregate(
                 total_capacity=Sum('max_capacity')
             )['total_capacity'] or 0
 
@@ -653,7 +662,6 @@ class AdminSessionsView(APIView):
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
-
                 sessions_data.append({
                     "id": session.id,
                     "start_time": session.start_time,
@@ -661,14 +669,14 @@ class AdminSessionsView(APIView):
                     "max_capacity": max_capacity,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
-                    "learning_organization": learning_organization.name,
+                    "learning_organization": session.learning_organization_location.learning_organization.name,
+                    "location_name": session.learning_organization_location.name,
                     "approved": session.approved,
-                    "location": "New York City",  # You might want to make this dynamic
                 })
 
             return Response({
-                # "admin_name": admin_data.name,  # Assuming AdminData has a name field
-                "learning_organization": learning_organization.name,
+                "learning_organization": location.learning_organization.name,
+                "location_name": location.name,
                 "sessions": sessions_data
             })
 
@@ -676,8 +684,107 @@ class AdminSessionsView(APIView):
             return Response({"error": str(e)}, status=401)
         except PermissionDenied as e:
             return Response({"error": str(e)}, status=403)
+        except LearningOrganizationLocation.DoesNotExist:
+            return Response({"error": "Invalid learning_organization_location_id"}, status=400)
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+        
+    def post(self, request):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get session_requirement_id and proposed sessions from request data
+            session_requirement_id = request.data.get('session_requirement_id')
+            proposed_sessions = request.data.get('sessions', [])
+
+            if not session_requirement_id or not proposed_sessions:
+                return Response({"error": "Missing required fields"}, status=400)
+
+            # Get the SessionRequirements object
+            try:
+                session_requirements = SessionRequirements.objects.get(id=session_requirement_id)
+            except SessionRequirements.DoesNotExist:
+                return Response({"error": "Invalid session requirement id"}, status=400)
+
+            # Check if user has admin rights for this location
+            admin_data = AdminData.objects.filter(
+                user_id=user_id,
+                learning_organization__learningorganizationlocation=session_requirements.learning_organization_location
+            ).first()
+
+            if not admin_data:
+                raise PermissionDenied("User is not an admin for this location")
+
+            # Check session lengths
+            for session in proposed_sessions:
+                start_time = datetime.fromisoformat(session['start_time'])
+                end_time = datetime.fromisoformat(session['end_time'])
+                session_length = (end_time - start_time).total_seconds() / 3600
+                if session_length < session_requirements.minimum_session_hours:
+                    return Response({
+                        "error": f"Session starting at {start_time} is shorter than the minimum required length of {session_requirements.minimum_session_hours} hours"
+                    }, status=400)
+
+            # Check if sessions cover the minimum number of consecutive weeks
+            start_dates = [datetime.fromisoformat(session['start_time']).date() for session in proposed_sessions]
+            end_dates = [datetime.fromisoformat(session['end_time']).date() for session in proposed_sessions]
+            total_weeks = (max(end_dates) - min(start_dates)).days // 7 + 1
+            if total_weeks < session_requirements.minmum_num_weeks_consecutive:
+                return Response({
+                    "error": f"Sessions do not cover the minimum of {session_requirements.minmum_num_weeks_consecutive} consecutive weeks"
+                }, status=400)
+
+            # Organize sessions into weeks and count distinct days
+            weeks = defaultdict(set)
+            for session in proposed_sessions:
+                start_time = datetime.fromisoformat(session['start_time'])
+                week_number = start_time.isocalendar()[1]
+                weeks[week_number].add(start_time.date())
+
+            # Calculate average days per week, excluding exempt weeks
+            sorted_weeks = sorted(weeks.items(), key=lambda x: len(x[1]))
+            non_exempt_weeks = sorted_weeks[len(sorted_weeks) - session_requirements.num_exempt_weeks:] # maybe wrong
+            
+            if len(non_exempt_weeks) == 0:
+                return Response({"error": "Not enough weeks with sessions after exemptions"}, status=400)
+
+            avg_days_per_week = sum(len(days) for _, days in non_exempt_weeks) / len(non_exempt_weeks)
+
+            if avg_days_per_week < session_requirements.minimum_avg_days_per_week:
+                return Response({
+                    "error": f"Average of {avg_days_per_week:.2f} days per week is less than the required {session_requirements.minimum_avg_days_per_week} days"
+                }, status=400)
+
+            # If all checks pass, create the sessions
+            created_sessions = []
+            for session_data in proposed_sessions:
+                session = Session.objects.create(
+                    admin_creator=admin_data,
+                    learning_organization_location=session_requirements.learning_organization_location,
+                    start_time=session_data['start_time'],
+                    end_time=session_data['end_time']
+                )
+                created_sessions.append(session)
+
+            return Response({
+                "message": f"Successfully created {len(created_sessions)} sessions",
+                "session_ids": [session.id for session in created_sessions]
+            }, status=201)
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in AdminSessionsView POST: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
         
 class AdminSessionDetailView(APIView):
@@ -1156,7 +1263,6 @@ class InstructorApplicationInstanceAdminView(APIView):
             logger.error(f"Unexpected error in InstructorApplicationInstanceTemplateView GET: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
 
-
     def post(self, request):
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
@@ -1260,14 +1366,15 @@ class SessionRequirementsView(APIView):
             for location in learning_org_locations:
                 for requirement in location.sessionrequirements_set.all():
                     requirements_data.append({
-                        "location_id": location.id,
                         "location_name": location.name,
-                        "learning_organization": location.learning_organization.name,
+                        "location_id": location.id,
+                        "learning_organization_name": location.learning_organization.name,
+                        "learning_organization_id": location.learning_organization.id,
                         "requirement_id": requirement.id,
-                        "num_weeks_for_density_sliding_window": requirement.num_weeks_for_density_sliding_window,
-                        "num_weeks_for_total_sessions_sliding_window": requirement.num_weeks_for_total_sessions_sliding_window,
-                        "average_sessions_per_week_in_density_window": requirement.average_sessions_per_week_in_density_window,
-                        "num_of_weeks_with_at_least_one_session_in_total_window": requirement.num_of_weeks_with_at_least_one_session_in_total_window,
+                        "minimum_session_hours": requirement.minimum_session_hours,
+                        "minmum_num_weeks_consecutive": requirement.minmum_num_weeks_consecutive,
+                        "minimum_avg_days_per_week": requirement.minimum_avg_days_per_week,
+                        "num_exempt_weeks": requirement.num_exempt_weeks
                     })
 
             # Sort the requirements_data by location name
