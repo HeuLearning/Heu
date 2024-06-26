@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'logion.apps.LogionConfig',
+    'heu.apps.HeuConfig',
     'server',
     'corsheaders',
     'rest_framework',
@@ -205,7 +205,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = ['https://logion-princeton.vercel.app', 'http://localhost:3000', 'http://127.0.0.1:3000', 'https://localhost:3000', 'https://127.0.0.1:3000']
 
 
-AUTH_USER_MODEL = 'logion.CustomUser'
+AUTH_USER_MODEL = 'heu.CustomUser'
 
 
 # DATABASES = {
