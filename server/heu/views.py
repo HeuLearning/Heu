@@ -668,6 +668,7 @@ class AdminSessionsView(APIView):
                         "learning_organization": learning_organization.name,
                         "location": location.name,
                         "approved": session.approved,
+                        "viewed": session.viewed
                     })
 
                 all_sessions_data.append({
