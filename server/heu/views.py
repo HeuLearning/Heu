@@ -1539,7 +1539,6 @@ class SessionRequirementsView(APIView):
 
             # Get all AdminData objects for this user
             admin_data = AdminData.objects.filter(user_id=user_id)
-            
             if not admin_data.exists():
                 return Response({"error": "User does not have admin permissions"}, status=403)
 
@@ -1549,7 +1548,6 @@ class SessionRequirementsView(APIView):
             ).prefetch_related('sessionrequirements_set')
 
             requirements_data = []
-
             for location in learning_org_locations:
                 for requirement in location.sessionrequirements_set.all():
                     requirements_data.append({
@@ -1566,6 +1564,12 @@ class SessionRequirementsView(APIView):
 
             # Sort the requirements_data by location name
             requirements_data.sort(key=lambda x: x['location_name'])
+
+            # Debug logging
+            logger.debug(f"User ID: {user_id}")
+            logger.debug(f"Admin Data Count: {admin_data.count()}")
+            logger.debug(f"Learning Org Locations Count: {learning_org_locations.count()}")
+            logger.debug(f"Requirements Data Count: {len(requirements_data)}")
 
             return Response(requirements_data)
 
