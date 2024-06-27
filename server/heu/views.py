@@ -762,6 +762,7 @@ class AdminSessionsByLocationView(APIView):
                     "learning_organization": session.learning_organization_location.learning_organization.name,
                     "location_name": session.learning_organization_location.name,
                     "approved": session.approved,
+                    "viewed": session.viewed,
                 })
 
             return Response({
