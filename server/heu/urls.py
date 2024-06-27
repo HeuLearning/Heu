@@ -16,6 +16,7 @@ urlpatterns = [
     path('user-session-detail/<int:session_pk>', views.UserSessionDetailView.as_view()),
     path('admin-sessions/', views.AdminSessionsView.as_view()),
     path('admin-sessions-location/<int:loc_id>', views.AdminSessionsByLocationView.as_view()),
+    path('admin-sessions-location', views.AdminSessionsByLocationView.as_view()),
     path('admin-session-detail/<int:session_pk>', views.AdminSessionDetailView.as_view()),
     path('instructor-application-template', views.InstructorApplicationTemplateView.as_view()),
     path('instructor-applications-admin/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
