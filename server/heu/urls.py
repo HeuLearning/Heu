@@ -21,8 +21,11 @@ urlpatterns = [
     path('instructor-applications-admin/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
     path('instructor-applications-admin', views.InstructorApplicationInstanceAdminView.as_view()),
     path('session-requirements', views.SessionRequirementsView.as_view()),
+    path('instructor-application-instance/<int:template_id>/', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-detail'),
+    path('instructor-application-instance/delete/', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-delete'),
     path('instructor-applications-instructor/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
     path('instructor-applications-instructor', views.InstructorApplicationInstanceAdminView.as_view()),
+    
     # path('', views.InstructorApplicationInstanceAdminView.as_view()),
     # path('text/<int:pk>/<int:offset>', views.TextDetailView.as_view()),
     # path('all_texts/<int:author_pk>', views.TextsByAuthorView.as_view()),
