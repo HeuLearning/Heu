@@ -6,12 +6,13 @@ import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/router";
-import { Session } from "../../../models/session";
+import { Session } from "../../../../../models/session";
 import { string } from "zod";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
-    const { req, res } = ctx;
+    const { req, res, query } = ctx;
+    const { locationId } = query;
     const session = await getSession(req, res);
 
     if (!session) {
@@ -58,15 +59,14 @@ export const getServerSideProps = withPageAuthRequired({
       return {
         props: {
           role: roleType || null,
-          organization: "",
-          sessions: [],
+          sessionsInfo: null,
           sessionToken: session.accessToken || null,
         },
       };
     }
 
     // if the user is verified then get the related sessions
-    const sessionOptions = {
+    const sessionsOptions = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -74,25 +74,34 @@ export const getServerSideProps = withPageAuthRequired({
       },
     };
 
-    let sessionResponse = await fetch(
-      "http://localhost:8000/api/admin-sessions",
-      sessionOptions
+    let sessionsResponse = await fetch(
+      `http://localhost:8000/api/admin-sessions-location/${locationId}`,
+      sessionsOptions
     );
-    const sessionData: { learning_organization: string; sessions: Session[] } =
-      await sessionResponse.json();
-    console.log(sessionResponse);
+    const sessionsData: {
+      learning_organization: string;
+      locations: { locaion: string; sesssions: Session[] };
+    } = await sessionsResponse.json();
+
+    let sessionRequirementsResponse = await fetch(
+      "http://localhost:8000/api/session-requirements",
+      sessionsOptions
+    );
+    const sessionRequirementsData = await sessionRequirementsResponse.json();
+    console.log(sessionRequirementsData);
+    console.log("blah");
+
     return {
       props: {
         role: roleType || null,
-        organization: sessionData.learning_organization || "",
-        sessions: sessionData.sessions || [],
+        sessionsInfo: sessionsData || null,
         sessionToken: session.accessToken || null,
       },
     };
   },
 });
 
-export default function Sessions({
+export default function CreateSession({
   role,
   organization,
   sessions,
@@ -134,33 +143,15 @@ export default function Sessions({
           rel="stylesheet"
         />
       </Head>
-      <div>{organization}</div>
       <div>
-        {sessions.map((session, index) => (
-          <div key={index}>
-            <h1>
-              {session.start_time.substring(5, 7)}
-              {"/"}
-              {session.start_time.substring(8, 10)}
-              {"/"}
-              {session.start_time.substring(0, 4)}{" "}
-              {session.start_time.substring(11, 16)}
-              {" to "}
-              {session.end_time.substring(11, 16)}
-              {" at "}
-              {session.learning_organization}
-              {" in "}
-              {session.location}
-            </h1>
-            <h2>
-              Enrolled: {session.num_enrolled}/{session.max_capacity}
-            </h2>
-            <h2>Waitlist: {session.num_waitlist}</h2>
-            <button onClick={() => handleDelete(session.id)}>
-              Delete Session
-            </button>
-          </div>
-        ))}
+        <form>
+          <label htmlFor="fname">Start time:</label>
+          <input type="text" id="fname" name="fname"></input>
+          <label htmlFor="lname">End time:</label>
+          <input type="text" id="lname" name="lname"></input>
+
+          <input type="submit" value="Submit"></input>
+        </form>
       </div>
     </>
   );

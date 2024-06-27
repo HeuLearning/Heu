@@ -114,9 +114,12 @@ export default function AdminHome({
         <a href="admin/sessions">
           <button>Sessions</button>
         </a>
+<<<<<<< Updated upstream
         <a href="admin/create-session">
           <button>Create Sessions</button>
         </a>
+=======
+>>>>>>> Stashed changes
         <a href="admin/applications">
           <button>Instructor Applications</button>
         </a>
