@@ -1425,6 +1425,87 @@ class InstructorApplicationInstanceAdminView(APIView):
             logger.error(f"Unexpected error in InstructorApplicationInstanceView POST: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
 
+class InstructorApplicationInstanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        # Check if the user has any associated InstructorData
+        instructor_data = InstructorData.objects.filter(user_id=user.user_id).first()
+
+        if not instructor_data:
+            return Response({"error": "User is not an instructor"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Get all active InstructorApplicationTemplates
+        active_templates = InstructorApplicationTemplate.objects.filter(active=True)
+
+        # Prepare the response data
+        template_data = []
+        for template in active_templates:
+            template_data.append({
+                "learning_organization_location": template.learning_organization_location.name,
+                "google_form_link": template.google_form_link,
+                "id": template.id
+            })
+
+        return Response({
+            "instructor_id": user.user_id,
+            "active_templates": template_data
+        }, status=status.HTTP_200_OK)
+
+class InstructorApplicationInstanceDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, template_id):
+        user = request.user
+
+        # Verify that the user has an associated InstructorData
+        instructor_data = get_object_or_404(InstructorData, user_id=user.user_id)
+
+        # Get the InstructorApplicationTemplate
+        template = get_object_or_404(InstructorApplicationTemplate, id=template_id)
+
+        # Check if an InstructorApplicationInstance already exists for this user and template
+        instance, created = InstructorApplicationInstance.objects.get_or_create(
+            template=template,
+            instructor_id=instructor_data,
+            defaults={'reviewed': False, 'accepted': False}
+        )
+
+        response_data = {
+            'id': instance.id,
+            'template_id': instance.template.id,
+            'instructor_id': instance.instructor_id.user_id,
+            'reviewed': instance.reviewed,
+            'accepted': instance.accepted,
+            'approver': instance.approver.user_id if instance.approver else None,
+            'created': created
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        user = request.user
+
+        # Verify that the user has an associated InstructorData
+        instructor_data = get_object_or_404(InstructorData, user_id=user.user_id)
+
+        # Check if the request body contains 'delete' and an 'id'
+        if request.data.get('action') == 'delete' and 'id' in request.data:
+            instance_id = request.data['id']
+
+            # Get the InstructorApplicationInstance
+            instance = get_object_or_404(InstructorApplicationInstance, id=instance_id, instructor_id=instructor_data)
+
+            # Delete the instance
+            instance.delete()
+
+            return Response({'message': 'InstructorApplicationInstance deleted successfully'}, status=status.HTTP_200_OK)
+        
+        return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class SessionRequirementsView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'

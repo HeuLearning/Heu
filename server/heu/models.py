@@ -61,7 +61,7 @@ class Room(models.Model):
     name = models.CharField(blank = False, max_length=255)
     max_capacity = models.IntegerField(null=False)
     learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.RESTRICT)
-    location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.RESTRICT)
+    learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.RESTRICT)
 
 class AdminData(models.Model):
     user_id = models.CharField(null=False, max_length=255)
