@@ -1,13 +1,13 @@
 import Head from "next/head";
-import Header from "../../components/header"
-import { withPageAuthRequired } from '@auth0/nextjs-auth0';
+import Header from "../../components/header";
+import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { useStartAssessment } from "./api/services/use-start-assessment";
 import { useAssessmentQuestion } from "./api/services/use-assessment-question";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { NavBar } from "components/navigation/nav-bar";
 import Link from "next/link";
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect } from "react";
 import { after, before } from "node:test";
 import getAssessmentQuestion from "./api/data/get-assessment-question";
@@ -32,17 +32,20 @@ import Item from "@mui/material/Grid";
 import styles from "./assessment.module.css";
 
 import "@fontsource/inter";
-// as opposed to the Assessment, this just automatically starts someone on the 
+// as opposed to the Assessment, this just automatically starts someone on the
 // exam
 export default function Diagnostic() {
   // const { user, isAuthenticated, loginWithRedirect, logout } = useAuth0();
   const { user, error, isLoading } = useUser();
-  const [shouldGetAssessmentHistory, setShouldGetAssessmentHistory] = useState<boolean>(true);
+  const [shouldGetAssessmentHistory, setShouldGetAssessmentHistory] =
+    useState<boolean>(true);
   const [shouldGetQuestion, setShouldGetQuestion] = useState<boolean>(false);
-  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentHistory>();
-  const [assessmentQuestion, setAssessmentQuestion] = useState<AssessmentQuestion>();
-  const [choices, setChoices] = useState<Array<string>>(['']);
-  const [answer, setAnswer] = useState<string>('');
+  const [assessmentHistory, setAssessmentHistory] =
+    useState<AssessmentHistory>();
+  const [assessmentQuestion, setAssessmentQuestion] =
+    useState<AssessmentQuestion>();
+  const [choices, setChoices] = useState<Array<string>>([""]);
+  const [answer, setAnswer] = useState<string>("");
   const isFirstRender = useRef<boolean>(true); // Ref to keep track of the first render
   const [selectedButton, setSelectedButton] = useState<string>(null);
 
@@ -52,14 +55,18 @@ export default function Diagnostic() {
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
     return arr;
-  }
+  };
 
-  const getQuestion = (answer: string, assessmentHistory: AssessmentHistory, assessmentQuestion: AssessmentQuestion): void => {
+  const getQuestion = (
+    answer: string,
+    assessmentHistory: AssessmentHistory,
+    assessmentQuestion: AssessmentQuestion
+  ): void => {
     console.log("Fetching assessment data...");
     const fetchData = async () => {
       try {
         const postOptions = {
-          method: 'POST',
+          method: "POST",
           headers: {
             "content-type": "application/json",
           },
@@ -67,49 +74,60 @@ export default function Diagnostic() {
             assessmentHistory,
             assessmentQuestion,
             answer,
-          })
+          }),
         };
-        console.log("well am I here?")
-        const questionResponse = await fetch('http://localhost:3000/api/data/get-assessment-question/', postOptions);
-        const questionData = await questionResponse.json() as AssessmentQuestion;
+        console.log("well am I here?");
+        const questionResponse = await fetch(
+          "http://localhost:3000/api/data/get-assessment-question/",
+          postOptions
+        );
+        const questionData =
+          (await questionResponse.json()) as AssessmentQuestion;
         setAssessmentQuestion(questionData);
-        let cs = [...questionData.question.json.wordbank, questionData.question.json.answer];
+        let cs = [
+          ...questionData.question.json.wordbank,
+          questionData.question.json.answer,
+        ];
         cs = fisherYatesShuffle(cs);
         setChoices(cs);
       } catch (error) {
         console.error("Error fetching assessment data:", error);
       }
     };
-      void fetchData();
-  }
+    void fetchData();
+  };
 
   const startAssessment = (): void => {
     console.log("Fetching assessment data...");
     const fetchData = async () => {
       try {
         const getOptions = {
-          method: 'GET',
+          method: "GET",
           headers: {
             "content-type": "application/json",
           },
         };
-        const assessmentResponse = await fetch('http://localhost:3000/api/data/start-assessment', getOptions);
-        const assessmentData = await assessmentResponse.json() as AssessmentHistory;
+        const assessmentResponse = await fetch(
+          "http://localhost:3000/api/data/start-assessment",
+          getOptions
+        );
+        const assessmentData =
+          (await assessmentResponse.json()) as AssessmentHistory;
         setAssessmentHistory(assessmentData);
         console.log("Data fetched:", assessmentData);
         const postOptions = {
-          method: 'POST',
+          method: "POST",
           headers: {
             "content-type": "application/json",
           },
           body: JSON.stringify({
-            "assessmentHistory": assessmentData,
+            assessmentHistory: assessmentData,
             assessmentQuestion,
             answer,
-          })
+          }),
         };
-        console.log("well am I here?")
-        getQuestion('', assessmentData as AssessmentHistory, null);
+        console.log("well am I here?");
+        getQuestion("", assessmentData as AssessmentHistory, null);
         // const questionResponse = await fetch('http://localhost:3000/api/data/get-assessment-question/', postOptions);
         // const questionData = await questionResponse.json() as AssessmentQuestion;
         // setAssessmentQuestion(questionData);
@@ -118,21 +136,24 @@ export default function Diagnostic() {
       }
     };
 
-      void fetchData();
-  }
+    void fetchData();
+  };
 
   // const handleButtonClick = (buttonValue: string) => {
   //   setSelectedButton(buttonValue);
   // };
 
-  const submitAnswer = (answer: string): void  =>  {
+  const submitAnswer = (answer: string): void => {
     setSelectedButton(answer);
-    let isRight = 'wrong';
-    if (assessmentQuestion.question && answer === assessmentQuestion.question.json.answer) {
-      isRight = 'correct'
+    let isRight = "wrong";
+    if (
+      assessmentQuestion.question &&
+      answer === assessmentQuestion.question.json.answer
+    ) {
+      isRight = "correct";
     }
     getQuestion(isRight, assessmentHistory, assessmentQuestion);
-  }
+  };
   // code to start the assessment
   // useEffect(() => {
   //   if (isFirstRender.current) {
@@ -162,32 +183,32 @@ export default function Diagnostic() {
   // }, []);
 
   if (assessmentQuestion && assessmentQuestion.done) {
-    return(
+    return (
       <>
-      <Head>
-        <title>Heu Learning</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-      <main>
-        <NavBar />
-        <ThemeProvider theme={theme}>
-          <Card sx={{ justifyContent: "center", p: 2 }}>
-            <CardContent>
-              <Typography align="center" variant="h6">
-                You're done!
-              </Typography>
-            </CardContent>
-          </Card>
-          <br></br>
-        </ThemeProvider>
-      </main>
-    </>
-    )
+        <Head>
+          <title>Heu Learning</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </Head>
+        <main>
+          <NavBar />
+          <ThemeProvider theme={theme}>
+            <Card sx={{ justifyContent: "center", p: 2 }}>
+              <CardContent>
+                <Typography align="center" variant="h6">
+                  You're done!
+                </Typography>
+              </CardContent>
+            </Card>
+            <br></br>
+          </ThemeProvider>
+        </main>
+      </>
+    );
   }
 
   // else if (assessmentHistory && assessmentHistory.num_attempts > 0 && !assessmentQuestion) {
   //   return (
-  //     <>  
+  //     <>
   //       <Head>
   //         <title>Heu</title>
   //       </Head>
@@ -202,7 +223,9 @@ export default function Diagnostic() {
   //     </>
   //   )
   else if (assessmentQuestion) {
-    const blank_id: number = parseInt(assessmentQuestion.question.json.blank_id);
+    const blank_id: number = parseInt(
+      assessmentQuestion.question.json.blank_id
+    );
     const textParts = assessmentQuestion.question.text.split(" ");
     const beforeBlank: string = textParts.slice(0, blank_id).join(" ");
     const afterBlank: string = textParts.slice(blank_id + 1).join(" ");
@@ -269,11 +292,10 @@ export default function Diagnostic() {
           </Container>
         </ThemeProvider>
       </>
-    )
+    );
   }
   // This will just what people see on page load if they haven't taken this before
   return (
-
     <>
       <Head>
         <title>Heu Learning</title>
@@ -300,12 +322,10 @@ export default function Diagnostic() {
               </CardActions>
             </Card>
           </ThemeProvider>
-
         </div>
       </main>
     </>
   );
 }
-
 
 export const getServerSideProps = withPageAuthRequired();
