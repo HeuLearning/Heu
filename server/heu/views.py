@@ -687,68 +687,6 @@ class AdminSessionsView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-        try:
-            # Authenticate user
-            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-            if not auth_header.startswith('Bearer '):
-                raise AuthenticationFailed("Invalid authorization header")
-
-            token = auth_header.split(' ')[1]
-            user_info = self.get_user_info(token)
-            user_id = user_info['sub']
-
-            # Get AdminData for the user
-            try:
-                admin_data = AdminData.objects.select_related('learning_organization').get(user_id=user_id)
-            except AdminData.DoesNotExist:
-                raise PermissionDenied("User is not an admin")
-
-            # Get the learning organization
-            learning_organization = admin_data.learning_organization
-
-            # Get associated sessions
-            sessions = Session.objects.filter(learning_organization=learning_organization).select_related(
-                'learning_organization'
-            )
-
-            # Calculate max capacity for the learning organization
-            max_capacity = Room.objects.filter(learning_organization=learning_organization).aggregate(
-                total_capacity=Sum('max_capacity')
-            )['total_capacity'] or 0
-
-            # Prepare response data
-            sessions_data = []
-            for session in sessions:
-                enrolled = session.enrolled_students or []
-                waitlisted = session.waitlist_students or []
-
-                sessions_data.append({
-                    "id": session.id,
-                    "start_time": session.start_time,
-                    "end_time": session.end_time,
-                    "max_capacity": max_capacity,
-                    "num_enrolled": len(enrolled),
-                    "num_waitlist": len(waitlisted),
-                    "learning_organization": learning_organization.name,
-                    "approved": session.approved,
-                    "location": "New York City",  # You might want to make this dynamic
-                })
-
-            return Response({
-                # "admin_name": admin_data.name,  # Assuming AdminData has a name field
-                "learning_organization": learning_organization.name,
-                "sessions": sessions_data
-            })
-
-        except AuthenticationFailed as e:
-            return Response({"error": str(e)}, status=401)
-        except PermissionDenied as e:
-            return Response({"error": str(e)}, status=403)
-        except Exception as e:
-            logger.error(f"Unexpected error in AdminSessionsView: {str(e)}")
-            return Response({"error": "An unexpected error occurred"}, status=500)
-
-
 
 class AdminSessionsByLocationView(APIView):
     def get_user_info(self, token):
@@ -1031,7 +969,6 @@ class AdminSessionDetailView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionDetailView PUT: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-
         
     def enroll_student(self, session, data):
         student_id = data.get('student_id')
