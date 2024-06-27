@@ -596,6 +596,7 @@ class UserSessionDetailView(APIView):
         session.enrolled_students = enrolled
         session.save()
         return Response({"message": "Successfully unenrolled"})
+
 # this route actually needs to include the id of the location or of the organization
 class AdminSessionsView(APIView):
     def get_user_info(self, token):
@@ -670,7 +671,7 @@ class AdminSessionsView(APIView):
                     })
 
                 all_sessions_data.append({
-                    "location": location.name,
+                    "location": {"name": location.name, "id": location.id},
                     "sessions": sessions_data
                 })
 
