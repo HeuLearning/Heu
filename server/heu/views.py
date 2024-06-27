@@ -1079,6 +1079,8 @@ class AdminSessionDetailView(APIView):
             raise ValidationError("waitlist_students must be a list")
         session.waitlist_students = waitlist_students
 
+    # def get_user_django_info(self, user_id):
+    #     return get_object_or_404(CustomUser, user_id=user_id)
 
     @transaction.atomic
     def delete(self, request, session_pk, format=None):
@@ -1087,36 +1089,39 @@ class AdminSessionDetailView(APIView):
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
                 raise AuthenticationFailed("Invalid authorization header")
-
+            
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
             # Get admin data
-            admin_data = self.get_admin_data(user_id)
+            admin_data_queryset = self.get_admin_data(user_id)
+
+            if not admin_data_queryset.exists():
+                raise PermissionDenied("User is not an admin")
 
             # Get session
             session = self.get_session(session_pk)
 
-            # get the admin's name
+            # Get the admin's name
             user_data = self.get_user_django_info(user_id=user_id)
 
             # Check if admin is associated with the session's learning organization
-            if admin_data.learning_organization != session.learning_organization:
+            session_learning_org = session.learning_organization_location.learning_organization
+            if not admin_data_queryset.filter(learning_organization=session_learning_org).exists():
                 raise PermissionDenied("Admin is not associated with this session's learning organization")
 
             # Delete the session
             session.delete()
 
-            logger.info(f"Session '{session.id}' deleted by admin {user_data.first_name} {user_data.last_name} ID: {user_id}")
-            return Response({"message": f"Session '{session.id}' successfully deleted"}, status=200)
+            logger.info(f"Session '{session_pk}' deleted by admin {user_data.first_name} {user_data.last_name} ID: {user_id}")
+            return Response({"message": f"Session '{session_pk}' successfully deleted"}, status=200)
 
         except (AuthenticationFailed, PermissionDenied, NotFound) as e:
             return Response({"error": str(e)}, status=400)
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionDetailView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]
 
