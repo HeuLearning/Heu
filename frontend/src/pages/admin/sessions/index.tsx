@@ -81,9 +81,13 @@ export const getServerSideProps = withPageAuthRequired({
     );
     const sessionData: {
       learning_organization: string;
-      locations: { locaion: string; sesssions: Session[] };
+      locations: {
+        location: { name: string; id: number };
+        sesssions: Session[];
+      };
     } = await sessionResponse.json();
     console.log(sessionData);
+    console.log("hi");
     return {
       props: {
         role: roleType || null,
@@ -112,24 +116,6 @@ export default function Sessions({
     router.push(`/admin/sessions/${locationId}`);
   }
 
-  async function handleDelete(sessionId) {
-    const res = await fetch(
-      `http://localhost:8000/api/admin-session-detail/${sessionId}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionToken}`, // Include the access token
-        },
-      }
-    );
-
-    if (res.status < 300) {
-      refreshData();
-    }
-  }
-<<<<<<< Updated upstream:frontend/src/pages/admin/sessions.tsx
-
   return (
     <>
       <Head>
@@ -142,83 +128,22 @@ export default function Sessions({
           rel="stylesheet"
         />
       </Head>
-      <div>{organization}</div>
       <div>
-        {sessions.map((session, index) => (
-          <div key={index}>
-            <h1>
-              {session.start_time.substring(5, 7)}
-              {"/"}
-              {session.start_time.substring(8, 10)}
-              {"/"}
-              {session.start_time.substring(0, 4)}{" "}
-              {session.start_time.substring(11, 16)}
-              {" to "}
-              {session.end_time.substring(11, 16)}
-              {" at "}
-              {session.learning_organization}
-              {" in "}
-              {session.location}
-            </h1>
-            <h2>
-              Enrolled: {session.num_enrolled}/{session.max_capacity}
-            </h2>
-            <h2>Waitlist: {session.num_waitlist}</h2>
-            <button onClick={() => handleDelete(session.id)}>
-              Delete Session
-            </button>
-          </div>
-        ))}
-      </div>
-    </>
-  );
-=======
-  if (role.verified === false) {
-    return (
-      <>
-        <Head>
-          <title>Heu Learning</title>
-          <meta name="description" content="Teach more English better" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/icon.ico" />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
-            rel="stylesheet"
-          />
-        </Head>
-        <div>You are currently unverified.</div>
-      </>
-    );
-  } else
-    return (
-      <>
-        <Head>
-          <title>Heu Learning</title>
-          <meta name="description" content="Teach more English better" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/icon.ico" />
-          <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
-            rel="stylesheet"
-          />
-        </Head>
         <a href="/admin">
           <button>Back to admin dashboard</button>
         </a>
-
-        <h2>Your learning organization: {learning_organization}</h2>
+        <h1>Your learning organization: {learning_organization}</h1>
         <div>
           {locations.map((location, index) => (
-            <div key={index}>
-              <button
-                onClick={() => handleLocationSessions(location.location.id)}
-              >
-                {location.location.name}
-              </button>
-            </div>
+            <button
+              key={index}
+              onClick={() => handleLocationSessions(location.location.id)}
+            >
+              {location.location.name}
+            </button>
           ))}
         </div>
-      </>
-    );
->>>>>>> Stashed changes:frontend/src/pages/admin/sessions/index.tsx
+      </div>
+    </>
+  );
 }

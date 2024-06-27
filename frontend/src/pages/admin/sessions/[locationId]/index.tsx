@@ -106,21 +106,18 @@ export default function Sessions({
   };
   console.log(sessionsInfo);
 
-  async function handleChangeStatus(approved, instanceId) {
+  async function handleDelete(sessionId) {
     const res = await fetch(
-      `http://localhost:8000/api/instructor-applications-admin`,
+      `http://localhost:8000/api/admin-session-detail/${sessionId}`,
       {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${sessionToken}`, // Include the access token
         },
-        body: JSON.stringify({
-          instance_id: instanceId,
-          approved: approved,
-        }),
       }
     );
+
     if (res.status < 300) {
       refreshData();
     }
@@ -193,6 +190,7 @@ export default function Sessions({
                 ) : !session.approved ? (
                   <p>Pending Approval</p>
                 ) : null}
+                <button onClick={() => handleDelete(session.id)}>Delete</button>
               </div>
             ))}
           </div>
