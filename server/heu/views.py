@@ -513,7 +513,7 @@ class UserSessionDetailView(APIView):
             session = Session.objects.select_related('learning_organization_location__learning_organization').get(id=session_pk)
             max_cap = Room.objects.filter(
                 learning_organization=session.learning_organization_location.learning_organization,
-                location=session.learning_organization_location
+                learning_organization_location=session.learning_organization_location
             ).aggregate(Sum('max_capacity'))['max_capacity__sum'] or 0
             return session, max_cap
         except Session.DoesNotExist:
@@ -650,7 +650,7 @@ class AdminSessionsView(APIView):
                 # Calculate max capacity for this location
                 max_capacity = Room.objects.filter(
                     learning_organization=learning_organization,
-                    location=location
+                    learning_organization_location=location
                 ).aggregate(total_capacity=Sum('max_capacity'))['total_capacity'] or 0
 
                 # Prepare sessions data for this location
