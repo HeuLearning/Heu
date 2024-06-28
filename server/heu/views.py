@@ -115,6 +115,7 @@ class GetUserRole(APIView):
                 raise AuthenticationFailed("Invalid authorization header")
 
             token = auth_header.split(' ')[1]
+            print(token)
             user_info = self.get_user_info(token)
 
             # Assuming CustomUser has these fields
@@ -905,13 +906,13 @@ class AdminSessionDetailView(APIView):
 
     def get_admin_data(self, user_id):
         try:
-            return AdminData.objects.select_related('learning_organization').get(user_id=user_id)
+            return AdminData.objects.select_related('learning_organization').filter(user_id=user_id)
         except AdminData.DoesNotExist:
             raise PermissionDenied("User is not an admin")
 
     def get_session(self, session_pk):
         try:
-            return Session.objects.select_related('learning_organization').get(id=session_pk)
+            return Session.objects.select_related('learning_organization_location').get(id=session_pk)
         except Session.DoesNotExist:
             raise NotFound("Session not found")
 
@@ -1096,7 +1097,7 @@ class AdminSessionDetailView(APIView):
 
             # Get admin data
             admin_data_queryset = self.get_admin_data(user_id)
-
+            print(admin_data_queryset)
             if not admin_data_queryset.exists():
                 raise PermissionDenied("User is not an admin")
 
@@ -1105,12 +1106,12 @@ class AdminSessionDetailView(APIView):
 
             # Get the admin's name
             user_data = self.get_user_django_info(user_id=user_id)
-
+            
             # Check if admin is associated with the session's learning organization
             session_learning_org = session.learning_organization_location.learning_organization
             if not admin_data_queryset.filter(learning_organization=session_learning_org).exists():
                 raise PermissionDenied("Admin is not associated with this session's learning organization")
-
+           
             # Delete the session
             session.delete()
 
@@ -1122,6 +1123,7 @@ class AdminSessionDetailView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionDetailView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
+        
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -1512,6 +1514,76 @@ class InstructorApplicationInstanceDetailView(APIView):
         
         return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
+# class SessionRequirementsView(APIView):
+    # def get_user_info(self, token):
+    #     cache_key = f'user_info_{token[:10]}'
+    #     cached_info = cache.get(cache_key)
+    #     if cached_info:
+    #         return cached_info
+        
+    #     domain = os.environ.get('AUTH0_DOMAIN')
+    #     headers = {"Authorization": f'Bearer {token}'}
+    #     response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+    #     if response.status_code != 200:
+    #         logger.error(f"Auth0 returned status code {response.status_code}")
+    #         raise AuthenticationFailed("Failed to retrieve user info")
+        
+    #     user_info = response.json()
+    #     cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+    #     return user_info
+
+    # def get(self, request):
+    #     try:
+    #         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    #         if not auth_header.startswith('Bearer '):
+    #             raise AuthenticationFailed("Invalid authorization header")
+            
+    #         token = auth_header.split(' ')[1]
+    #         user_info = self.get_user_info(token)
+    #         user_id = user_info['sub']
+
+    #         # Get all AdminData objects for this user
+    #         admin_data = AdminData.objects.filter(user_id=user_id)
+    #         if not admin_data.exists():
+    #             return Response({"error": "User does not have admin permissions"}, status=403)
+
+    #         # Get all learning organization locations where the user is an admin
+    #         learning_org_locations = LearningOrganizationLocation.objects.filter(
+    #             learning_organization__in=admin_data.values('learning_organization')
+    #         ).prefetch_related('sessionrequirements_set')
+
+    #         requirements_data = []
+    #         for location in learning_org_locations:
+    #             for requirement in location.sessionrequirements_set.all():
+    #                 requirements_data.append({
+    #                     "location_name": location.name,
+    #                     "location_id": location.id,
+    #                     "learning_organization_name": location.learning_organization.name,
+    #                     "learning_organization_id": location.learning_organization.id,
+    #                     "requirement_id": requirement.id,
+    #                     "minimum_session_hours": requirement.minimum_session_hours,
+    #                     "minmum_num_weeks_consecutive": requirement.minmum_num_weeks_consecutive,
+    #                     "minimum_avg_days_per_week": requirement.minimum_avg_days_per_week,
+    #                     "num_exempt_weeks": requirement.num_exempt_weeks
+    #                 })
+
+    #         # Sort the requirements_data by location name
+    #         requirements_data.sort(key=lambda x: x['location_name'])
+
+    #         # Debug logging
+    #         logger.debug(f"User ID: {user_id}")
+    #         logger.debug(f"Admin Data Count: {admin_data.count()}")
+    #         logger.debug(f"Learning Org Locations Count: {learning_org_locations.count()}")
+    #         logger.debug(f"Requirements Data Count: {len(requirements_data)}")
+
+    #         return Response(requirements_data)
+
+    #     except AuthenticationFailed as e:
+    #         return Response({"error": str(e)}, status=401)
+    #     except Exception as e:
+    #         logger.error(f"Unexpected error in SessionRequirementsView GET: {str(e)}")
+    #         return Response({"error": "An unexpected error occurred"}, status=500)
 
 class SessionRequirementsView(APIView):
     def get_user_info(self, token):
@@ -1519,67 +1591,63 @@ class SessionRequirementsView(APIView):
         cached_info = cache.get(cache_key)
         if cached_info:
             return cached_info
-        
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {token}'}
         response = requests.get(f'https://{domain}/userinfo', headers=headers)
-        
         if response.status_code != 200:
             logger.error(f"Auth0 returned status code {response.status_code}")
             raise AuthenticationFailed("Failed to retrieve user info")
-        
         user_info = response.json()
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         return user_info
 
-    def get(self, request):
+    def get(self, request, location_id):
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
                 raise AuthenticationFailed("Invalid authorization header")
-            
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
-            # Get all AdminData objects for this user
-            admin_data = AdminData.objects.filter(user_id=user_id)
+            # Get the location
+            location = get_object_or_404(LearningOrganizationLocation, id=location_id)
+
+            # Check if the admin is associated with the location's learning organization
+            admin_data = AdminData.objects.filter(
+                user_id=user_id,
+                learning_organization=location.learning_organization
+            )
             if not admin_data.exists():
-                return Response({"error": "User does not have admin permissions"}, status=403)
+                raise PermissionDenied("User does not have admin permissions for this location")
+                        # Get the session requirements for the location
+            session_requirements = get_object_or_404(SessionRequirements, learning_organization_location=location)
 
-            # Get all learning organization locations where the user is an admin
-            learning_org_locations = LearningOrganizationLocation.objects.filter(
-                learning_organization__in=admin_data.values('learning_organization')
-            ).prefetch_related('sessionrequirements_set')
-
-            requirements_data = []
-            for location in learning_org_locations:
-                for requirement in location.sessionrequirements_set.all():
-                    requirements_data.append({
-                        "location_name": location.name,
-                        "location_id": location.id,
-                        "learning_organization_name": location.learning_organization.name,
-                        "learning_organization_id": location.learning_organization.id,
-                        "requirement_id": requirement.id,
-                        "minimum_session_hours": requirement.minimum_session_hours,
-                        "minmum_num_weeks_consecutive": requirement.minmum_num_weeks_consecutive,
-                        "minimum_avg_days_per_week": requirement.minimum_avg_days_per_week,
-                        "num_exempt_weeks": requirement.num_exempt_weeks
-                    })
-
-            # Sort the requirements_data by location name
-            requirements_data.sort(key=lambda x: x['location_name'])
+            requirements_data = {
+                "location_name": location.name,
+                "location_id": location.id,
+                "learning_organization_name": location.learning_organization.name,
+                "learning_organization_id": location.learning_organization.id,
+                "requirement_id": session_requirements.id,
+                "minimum_session_hours": session_requirements.minimum_session_hours,
+                "minmum_num_weeks_consecutive": session_requirements.minmum_num_weeks_consecutive,
+                "minimum_avg_days_per_week": session_requirements.minimum_avg_days_per_week,
+                "num_exempt_weeks": session_requirements.num_exempt_weeks
+            }
 
             # Debug logging
             logger.debug(f"User ID: {user_id}")
-            logger.debug(f"Admin Data Count: {admin_data.count()}")
-            logger.debug(f"Learning Org Locations Count: {learning_org_locations.count()}")
-            logger.debug(f"Requirements Data Count: {len(requirements_data)}")
+            logger.debug(f"Location ID: {location_id}")
+            logger.debug(f"Session Requirements ID: {session_requirements.id}")
 
             return Response(requirements_data)
 
         except AuthenticationFailed as e:
             return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except NotFound as e:
+            return Response({"error": str(e)}, status=404)
         except Exception as e:
             logger.error(f"Unexpected error in SessionRequirementsView GET: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)

@@ -21,7 +21,7 @@ urlpatterns = [
     path('instructor-application-template', views.InstructorApplicationTemplateView.as_view()),
     path('instructor-applications-admin/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
     path('instructor-applications-admin', views.InstructorApplicationInstanceAdminView.as_view()),
-    path('session-requirements', views.SessionRequirementsView.as_view()),
+    path('session-requirements/<int:location_id>', views.SessionRequirementsView.as_view()),
     path('instructor-application-instance/<int:template_id>/', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-detail'),
     path('instructor-application-instance/delete/', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-delete'),
     path('instructor-applications-instructor/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),

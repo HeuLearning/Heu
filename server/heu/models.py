@@ -52,11 +52,15 @@ class Question(models.Model):
 
 class LearningOrganization(models.Model):
     name = models.CharField(blank=False, max_length=255)
+    def __str__(self):
+        return f'{self.id} {self.name}'
 
 class LearningOrganizationLocation(models.Model):
     name = models.CharField(blank=False, max_length=255)
     learning_organization = models.ForeignKey(LearningOrganization, on_delete=models.RESTRICT)
-
+    def __str__(self):
+        return f'{self.id} {self.name} {self.learning_organization.name}' 
+    
 class Room(models.Model):
     name = models.CharField(blank = False, max_length=255)
     max_capacity = models.IntegerField(null=False)
