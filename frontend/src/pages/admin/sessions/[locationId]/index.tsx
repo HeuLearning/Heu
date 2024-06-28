@@ -158,7 +158,7 @@ export default function Sessions({
             {sessionsInfo.location_name}
           </h1>
           <a href={`/admin/sessions/${locationId}/create-session`}>
-            <button>Create Session</button>
+            <button>Create Sessions</button>
           </a>
           <div>
             {sessionsInfo.sessions.map((session, index) => (
