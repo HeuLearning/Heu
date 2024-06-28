@@ -115,7 +115,6 @@ class GetUserRole(APIView):
                 raise AuthenticationFailed("Invalid authorization header")
 
             token = auth_header.split(' ')[1]
-            print(token)
             user_info = self.get_user_info(token)
 
             # Assuming CustomUser has these fields
@@ -1514,6 +1513,75 @@ class InstructorApplicationInstanceDetailView(APIView):
         
         return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
+class LocationsView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Check if the user exists
+            try:
+                user = CustomUser.objects.get(user_id=user_id)
+            except CustomUser.DoesNotExist:
+                raise PermissionDenied("User does not exist")
+
+            # Get all locations
+            locations = LearningOrganizationLocation.objects.select_related('learning_organization').all()
+            
+            locations_data = []
+            for location in locations:
+                # Calculate max capacity for this location
+                max_capacity = Room.objects.filter(
+                    learning_organization=location.learning_organization,
+                    learning_organization_location=location
+                ).aggregate(total_capacity=Sum('max_capacity'))['total_capacity'] or 0
+
+                locations_data.append({
+                    "id": location.id,
+                    "name": location.name,
+                    "learning_organization": {
+                        "id": location.learning_organization.id,
+                        "name": location.learning_organization.name
+                    },
+                    "max_capacity": max_capacity
+                })
+
+            return Response({
+                "locations": locations_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in LocationsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
 # class SessionRequirementsView(APIView):
     # def get_user_info(self, token):
     #     cache_key = f'user_info_{token[:10]}'
@@ -1614,13 +1682,13 @@ class SessionRequirementsView(APIView):
             location = get_object_or_404(LearningOrganizationLocation, id=location_id)
 
             # Check if the admin is associated with the location's learning organization
-            admin_data = AdminData.objects.filter(
-                user_id=user_id,
-                learning_organization=location.learning_organization
-            )
-            if not admin_data.exists():
-                raise PermissionDenied("User does not have admin permissions for this location")
-                        # Get the session requirements for the location
+            # admin_data = AdminData.objects.filter(
+            #     user_id=user_id,
+            #     learning_organization=location.learning_organization
+            # )
+            # if not admin_data.exists():
+            #     raise PermissionDenied("User does not have admin permissions for this location")
+            #             # Get the session requirements for the location
             session_requirements = get_object_or_404(SessionRequirements, learning_organization_location=location)
 
             requirements_data = {
@@ -1630,7 +1698,7 @@ class SessionRequirementsView(APIView):
                 "learning_organization_id": location.learning_organization.id,
                 "requirement_id": session_requirements.id,
                 "minimum_session_hours": session_requirements.minimum_session_hours,
-                "minmum_num_weeks_consecutive": session_requirements.minmum_num_weeks_consecutive,
+                "minimum_num_weeks_consecutive": session_requirements.minmum_num_weeks_consecutive,
                 "minimum_avg_days_per_week": session_requirements.minimum_avg_days_per_week,
                 "num_exempt_weeks": session_requirements.num_exempt_weeks
             }

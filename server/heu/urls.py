@@ -26,6 +26,7 @@ urlpatterns = [
     path('instructor-application-instance/delete/', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-delete'),
     path('instructor-applications-instructor/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
     path('instructor-applications-instructor', views.InstructorApplicationInstanceAdminView.as_view()),
+    path('locations', views.LocationsView.as_view()),
     
     # path('', views.InstructorApplicationInstanceAdminView.as_view()),
     # path('text/<int:pk>/<int:offset>', views.TextDetailView.as_view()),
