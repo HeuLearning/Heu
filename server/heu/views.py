@@ -814,7 +814,8 @@ class AdminSessionsByLocationView(APIView):
             if not admin_data:
                 raise PermissionDenied("User is not an admin for this location")
 
-            # Check session lengths
+            # Check session lengths and store session times
+            session_times = []
             for session in proposed_sessions:
                 start_time = datetime.fromisoformat(session['start_time'])
                 end_time = datetime.fromisoformat(session['end_time'])
@@ -822,6 +823,15 @@ class AdminSessionsByLocationView(APIView):
                 if session_length < session_requirements.minimum_session_hours:
                     return Response({
                         "error": f"Session starting at {start_time} is shorter than the minimum required length of {session_requirements.minimum_session_hours} hours"
+                    }, status=400)
+                session_times.append((start_time, end_time))
+
+            # Check for overlapping sessions
+            session_times.sort(key=lambda x: x[0])  # Sort by start time
+            for i in range(1, len(session_times)):
+                if session_times[i][0] < session_times[i-1][1]:
+                    return Response({
+                        "error": f"Sessions overlap: {session_times[i-1]} and {session_times[i]}"
                     }, status=400)
 
             # Check if sessions cover the minimum number of consecutive weeks
@@ -1463,55 +1473,136 @@ class InstructorApplicationInstanceView(APIView):
         }, status=status.HTTP_200_OK)
 
 class InstructorApplicationInstanceDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        if not domain:
+            logger.error("AUTH0_DOMAIN environment variable is not set")
+            raise AuthenticationFailed("Authentication service misconfigured")
+
+        headers = {"Authorization": f'Bearer {token}'}
+        try:
+            response = requests.get(f'https://{domain}/userinfo', headers=headers)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Error fetching user info from Auth0: {str(e)}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
 
     def get(self, request, template_id):
-        user = request.user
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info.get('sub')
+            if not user_id:
+                raise AuthenticationFailed("User ID not found in token")
 
-        # Verify that the user has an associated InstructorData
-        instructor_data = get_object_or_404(InstructorData, user_id=user.user_id)
+            instructor_data = get_object_or_404(InstructorData, user_id=user_id)
+            template = get_object_or_404(InstructorApplicationTemplate, id=template_id)
 
-        # Get the InstructorApplicationTemplate
-        template = get_object_or_404(InstructorApplicationTemplate, id=template_id)
+            instance, created = InstructorApplicationInstance.objects.get_or_create(
+                template=template,
+                instructor_id=instructor_data,
+                defaults={'reviewed': False, 'accepted': False, 'completed': False}
+            )
 
-        # Check if an InstructorApplicationInstance already exists for this user and template
-        instance, created = InstructorApplicationInstance.objects.get_or_create(
-            template=template,
-            instructor_id=instructor_data,
-            defaults={'reviewed': False, 'accepted': False}
-        )
+            response_data = {
+                'id': instance.id,
+                'template_id': instance.template.id,
+                'instructor_id': instance.instructor_id.user_id,
+                'reviewed': instance.reviewed,
+                'accepted': instance.accepted,
+                'completed': instance.completed,
+                'approver': instance.approver.user_id if instance.approver else None,
+                'created': created
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
 
-        response_data = {
-            'id': instance.id,
-            'template_id': instance.template.id,
-            'instructor_id': instance.instructor_id.user_id,
-            'reviewed': instance.reviewed,
-            'accepted': instance.accepted,
-            'approver': instance.approver.user_id if instance.approver else None,
-            'created': created
-        }
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except PermissionDenied as e:
+            return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist as e:
+            return Response({'error': f"Not found: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Unexpected error in get method: {str(e)}")
+            return Response({'error': "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response(response_data, status=status.HTTP_200_OK)
+    def put(self, request, instance_id):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info.get('sub')
+            if not user_id:
+                raise AuthenticationFailed("User ID not found in token")
 
-    def post(self, request):
-        user = request.user
+            instructor_data = get_object_or_404(InstructorData, user_id=user_id)
+            instance = get_object_or_404(
+                InstructorApplicationInstance,
+                id=instance_id,
+                instructor_id=instructor_data
+            )
 
-        # Verify that the user has an associated InstructorData
-        instructor_data = get_object_or_404(InstructorData, user_id=user.user_id)
+            if request.data.get('completed') is True:
+                instance.completed = True
+                instance.save()
+                return Response({
+                    'message': 'Application marked as completed successfully',
+                    'id': instance.id,
+                    'completed': instance.completed,
+                    'template_id': instance.template.id,
+                    'instructor_id': instance.instructor_id.user_id
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'error': 'Invalid request. Only setting completed to True is allowed.'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if the request body contains 'delete' and an 'id'
-        if request.data.get('action') == 'delete' and 'id' in request.data:
-            instance_id = request.data['id']
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except PermissionDenied as e:
+            return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist as e:
+            return Response({'error': f"Not found: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Unexpected error in put method: {str(e)}")
+            return Response({'error': "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            # Get the InstructorApplicationInstance
-            instance = get_object_or_404(InstructorApplicationInstance, id=instance_id, instructor_id=instructor_data)
+    # def post(self, request):
+    #     user = request.user
 
-            # Delete the instance
-            instance.delete()
+    #     # Verify that the user has an associated InstructorData
+    #     instructor_data = get_object_or_404(InstructorData, user_id=user.user_id)
 
-            return Response({'message': 'InstructorApplicationInstance deleted successfully'}, status=status.HTTP_200_OK)
+    #     # Check if the request body contains 'delete' and an 'id'
+    #     if request.data.get('action') == 'delete' and 'id' in request.data:
+    #         instance_id = request.data['id']
+
+    #         # Get the InstructorApplicationInstance
+    #         instance = get_object_or_404(InstructorApplicationInstance, id=instance_id, instructor_id=instructor_data)
+
+    #         # Delete the instance
+    #         instance.delete()
+
+    #         return Response({'message': 'InstructorApplicationInstance deleted successfully'}, status=status.HTTP_200_OK)
         
-        return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
+    #     return Response({'error': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
 
 class LocationsView(APIView):
     def get_user_info(self, token):

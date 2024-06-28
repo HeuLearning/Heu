@@ -98,6 +98,7 @@ class InstructorApplicationTemplate(models.Model):
 class InstructorApplicationInstance(models.Model):
     template = models.ForeignKey(InstructorApplicationTemplate, on_delete=models.CASCADE)
     instructor_id = models.ForeignKey(InstructorData, on_delete=models.CASCADE)
+    completed = models.BooleanField(default=False)
     reviewed = models.BooleanField(default=False)
     accepted = models.BooleanField(default=False)
     approver = models.ForeignKey(AdminData, null=True, blank=True, on_delete=models.SET_NULL)
