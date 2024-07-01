@@ -1489,6 +1489,7 @@ class InstructorApplicationInstanceView(APIView):
             for template in active_templates:
                 template_data.append({
                     "learning_organization_location_name": template.learning_organization_location.name,
+                    "learning_organization_name": template.learning_organization_location.learning_organization.name,
                     "google_form_link": template.google_form_link,
                     "id": template.id
                 })
