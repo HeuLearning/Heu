@@ -1222,8 +1222,8 @@ class InstructorApplicationTemplateView(APIView):
             for location in learning_org_locations:
                 location_data = {
                     "id": location.id,
-                    "location": location.name,
-                    "learning_organization": location.learning_organization.name,
+                    "location_name": location.name,
+                    "learning_organization_name": location.learning_organization.name,
                     "templates": []
                 }
 
@@ -1462,7 +1462,7 @@ class InstructorApplicationInstanceView(APIView):
         template_data = []
         for template in active_templates:
             template_data.append({
-                "learning_organization_location": template.learning_organization_location.name,
+                "learning_organization_location_name": template.learning_organization_location.name,
                 "google_form_link": template.google_form_link,
                 "id": template.id
             })

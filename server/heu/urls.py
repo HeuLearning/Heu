@@ -25,8 +25,8 @@ urlpatterns = [
     path('instructor-application-instance/<int:template_id>/', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-detail'),
     path('instructor-application-instance/put/<int:instance_id>', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-delete'),
     path('instructor-application-instance/delete/', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-delete'),
-    path('instructor-applications-instructor/<int:template_id>', views.InstructorApplicationInstanceAdminView.as_view()),
-    path('instructor-applications-instructor', views.InstructorApplicationInstanceAdminView.as_view()),
+    # path('instructor-applications-instructor/<int:template_id>', views.InstructorApplicationInstanceView.as_view()),
+    path('instructor-applications-instructor', views.InstructorApplicationInstanceView.as_view()),
     path('locations', views.LocationsView.as_view()),
     path('check_user', views.LoginUserView.as_view()), # this path is for auth0
     path("", views.index, name="index"),
