@@ -1444,33 +1444,69 @@ class InstructorApplicationInstanceAdminView(APIView):
             return Response({"error": "An unexpected error occurred"}, status=500)
 
 class InstructorApplicationInstanceView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
 
     def get(self, request):
-        user = request.user
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
 
-        # Check if the user has any associated InstructorData
-        instructor_data = InstructorData.objects.filter(user_id=user.user_id).first()
 
-        if not instructor_data:
-            return Response({"error": "User is not an instructor"}, status=status.HTTP_403_FORBIDDEN)
+            # Check if the user has any associated InstructorData
+            instructor_data = InstructorData.objects.filter(user_id=user_id).first()
 
-        # Get all active InstructorApplicationTemplates
-        active_templates = InstructorApplicationTemplate.objects.filter(active=True)
+            if not instructor_data:
+                return Response({"error": "User is not an instructor"}, status=status.HTTP_403_FORBIDDEN)
 
-        # Prepare the response data
-        template_data = []
-        for template in active_templates:
-            template_data.append({
-                "learning_organization_location_name": template.learning_organization_location.name,
-                "google_form_link": template.google_form_link,
-                "id": template.id
-            })
+            # Get all active InstructorApplicationTemplates
+            active_templates = InstructorApplicationTemplate.objects.filter(active=True)
 
-        return Response({
-            "instructor_id": user.user_id,
-            "active_templates": template_data
-        }, status=status.HTTP_200_OK)
+            # Prepare the response data
+            template_data = []
+            for template in active_templates:
+                template_data.append({
+                    "learning_organization_location_name": template.learning_organization_location.name,
+                    "google_form_link": template.google_form_link,
+                    "id": template.id
+                })
+
+            return Response({
+                "instructor_id": user_id,
+                "active_templates": template_data
+            }, status=status.HTTP_200_OK)
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except PermissionDenied as e:
+            return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist as e:
+            return Response({'error': f"Not found: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Unexpected error in get method: {str(e)}")
+            return Response({'error': "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class InstructorApplicationInstanceDetailView(APIView):
     # permission_classes = [IsAuthenticated]
