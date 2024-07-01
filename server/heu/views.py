@@ -1,3 +1,4 @@
+from pytz import utc
 from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,6 +21,7 @@ from django.utils.dateparse import parse_datetime
 from collections import defaultdict
 from django.shortcuts import get_object_or_404
 from datetime import timedelta, datetime
+from django.core.mail import send_mail
 
 
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
@@ -1558,6 +1560,7 @@ class InstructorApplicationInstanceDetailView(APIView):
             response_data = {
                 'id': instance.id,
                 'template_id': instance.template.id,
+                'google_form_link': instance.template.google_form_link,
                 'instructor_id': instance.instructor_id.user_id,
                 'reviewed': instance.reviewed,
                 'accepted': instance.accepted,
@@ -1847,3 +1850,11 @@ class SessionRequirementsView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in SessionRequirementsView GET: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
+        
+class EmailView(APIView):
+    def send(self):
+        send_mail('Subject here', 'Here is the message.', 'desi.devaul@gmail.com', ['ddevaul@princeton.edu', 'francis@heulearning.com'], fail_silently=False)
+
+    def get(self, request):
+        self.send()
+        return Response("sent an email we hope")
