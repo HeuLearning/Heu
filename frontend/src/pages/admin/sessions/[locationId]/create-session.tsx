@@ -142,10 +142,13 @@ export default function CreateSession({
   };
 
   function getWeekNumber(date: Date): number {
-    const yearStart = new Date(date.getFullYear(), 0, 1);
-    const diff =
-      (date.getTime() - yearStart.getTime()) / (7 * 24 * 60 * 60 * 1000);
-    return Math.ceil(diff) + 1;
+    const d = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   }
 
   async function handleSubmitAll() {
@@ -156,10 +159,12 @@ export default function CreateSession({
     let lastSessionDate = new Date();
 
     sessions.forEach((session, index) => {
-      const startDateString = session.date + "T" + session.start_time;
-      const endDateString = session.date + "T" + session.end_time;
-      const startDate = new Date(startDateString);
-      const endDate = new Date(endDateString);
+      console.log(session.start_time);
+      console.log(session.end_time);
+      const startDate = new Date(session.start_time);
+      const endDate = new Date(session.end_time);
+      console.log(startDate);
+      console.log(endDate);
 
       if (endDate < startDate) {
         alert(`Session ${index + 1} end time is before start time`);
@@ -167,6 +172,7 @@ export default function CreateSession({
       }
 
       const durationHrs = (endDate.getTime() - startDate.getTime()) / 3600000;
+      console.log(durationHrs);
 
       if (durationHrs < sessionRequirements.minimum_session_hours) {
         alert(
@@ -199,6 +205,7 @@ export default function CreateSession({
       }
 
       const weekNumber = getWeekNumber(startDate);
+      console.log(weekNumber);
       if (sessionsPerWeekMap.has(weekNumber)) {
         sessionsPerWeekMap.set(
           weekNumber,
@@ -231,14 +238,11 @@ export default function CreateSession({
       );
       return;
     }
-    console.log("hello");
-    console.log(weeksCovered);
 
     // sort weeks by most sessions to least
     const sortedWeeks = Array.from(sessionsPerWeekMap.values()).sort(
       (a, b) => b - a
     );
-    console.log(sortedWeeks);
     // leave out exempt weeks
     const weeksToKeep = sortedWeeks.slice(
       0,
@@ -265,15 +269,9 @@ export default function CreateSession({
     // if all checks pass, submit all sessions
 
     sessions.forEach((session, index) => {
-      const startDateString = session.date + "T" + session.start_time;
-      const endDateString = session.date + "T" + session.end_time;
-      const startDate = new Date(startDateString);
-      const endDate = new Date(endDateString);
-      const formattedStartTime = formatDateForAPI(startDate);
-      const formattedEndTime = formatDateForAPI(endDate);
       const sessionObject = {
-        start_time: formattedStartTime,
-        end_time: formattedEndTime,
+        start_time: session.start_time,
+        end_time: session.end_time,
       };
       finalSessions.push(sessionObject);
     });
@@ -305,10 +303,6 @@ export default function CreateSession({
       console.error("Error creating sessions:", error);
       alert("Failed to create all sessions. Please try again.");
     }
-  }
-
-  function formatDateForAPI(date) {
-    return date.toISOString().split(".")[0] + "Z";
   }
 
   return (
