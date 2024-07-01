@@ -22,7 +22,7 @@ class InstructorData(models.Model):
     user_id = models.CharField(null=False, max_length=255)
     verified = models.BooleanField(null=False, default=False)
     def __str__(self):
-        return f'{self.user_id}, {self.verified}'
+        return f'{self.user_id} {self.verified}'
 
 class StudentData(models.Model):
     user_id = models.CharField(null=False, max_length=255)
