@@ -297,7 +297,9 @@ export default function CreateSession({
       if (res.status < 300) {
         refreshData();
         alert("All sessions have been successfully created.");
-        router.push(`/admin/sessions/${locationId}`);
+        setTimeout(() => {
+          router.push(`/admin/sessions/${locationId}`);
+        }, 1000);
       }
     } catch (error) {
       console.error("Error creating sessions:", error);

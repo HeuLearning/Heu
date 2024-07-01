@@ -50,15 +50,44 @@ export const getServerSideProps = withPageAuthRequired({
         },
       };
     }
+    // if verified then get schedules and stuff
+
+    if (!roleType.verified) {
+      return {
+        props: {
+          role: roleType || null,
+          applicants: null,
+          sessionToken: null,
+        },
+      };
+    }
+
+    // if the user is verified then get the related sessions
+    const applicantOptions = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`, // Include the access token
+      },
+    };
+
+    let applicantResponse = await fetch(
+      `http://localhost:8000/api/instructor-applications-admin/${templateId}`,
+      applicantOptions
+    );
+    const applicantData = await applicantResponse.json();
+    console.log(applicantResponse);
     return {
       props: {
-        role: role || "unknown",
+        role: roleType || null,
+        applicants: applicantData || null,
+        sessionToken: session.accessToken || null,
       },
     };
   },
 });
 
-export default function InstructorHome({
+export default function InstructorApplications({
   role,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
@@ -75,13 +104,7 @@ export default function InstructorHome({
         />
       </Head>
 
-      <div>
-        <a href="/instructor/applications">
-          <button>Applications</button>
-        </a>
-        <button>Schedule</button>
-        <button>Class Mode</button>
-      </div>
+      <div></div>
     </>
   );
 }
