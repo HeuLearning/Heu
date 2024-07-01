@@ -1562,7 +1562,8 @@ class InstructorApplicationInstanceDetailView(APIView):
                 'template_id': instance.template.id,
                 'google_form_link': instance.template.google_form_link,
                 'instructor_id': instance.instructor_id.user_id,
-                'reviewed': instance.reviewed,
+                'learning_organization_name': instance.template.learning_organization_location.learning_organization.name,
+                'learning_organization_location_name': instance.template.learning_organization_location.name,
                 'accepted': instance.accepted,
                 'completed': instance.completed,
                 'approver': instance.approver.user_id if instance.approver else None,
@@ -1853,7 +1854,7 @@ class SessionRequirementsView(APIView):
         
 class EmailView(APIView):
     def send(self):
-        send_mail('Subject here', 'Here is the message.', 'desi.devaul@gmail.com', ['ddevaul@princeton.edu', 'francis@heulearning.com'], fail_silently=False)
+        send_mail('Subject here', 'Here is the message.', 'desi.devaul@gmail.com', ['ddevaul@princeton.edu', 'francis@heulearning.org'], fail_silently=False)
 
     def get(self, request):
         self.send()
