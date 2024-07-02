@@ -1790,7 +1790,49 @@ class InstructorApplicationInstanceDetailView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in put method: {str(e)}")
             return Response({'error': "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def delete(self, request, instance_id):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info.get('sub')
+            if not user_id:
+                raise AuthenticationFailed("User ID not found in token")
 
+            instructor_data = get_object_or_404(InstructorData, user_id=user_id)
+            instance = get_object_or_404(
+                InstructorApplicationInstance,
+                id=instance_id,
+                instructor_id=instructor_data
+            )
+
+            # Check if the instance has already been reviewed
+            if instance.reviewed:
+                return Response({
+                    'error': 'Cannot delete an application that has already been reviewed.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Perform the deletion
+            instance.delete()
+
+            return Response({
+                'message': 'Application instance deleted successfully',
+                'id': instance_id
+            }, status=status.HTTP_200_OK)
+
+        except AuthenticationFailed as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except PermissionDenied as e:
+            return Response({'error': str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist as e:
+            return Response({'error': f"Not found: {str(e)}"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Unexpected error in delete method: {str(e)}")
+            return Response({'error': "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     # def post(self, request):
     #     user = request.user
 
