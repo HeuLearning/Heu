@@ -1747,6 +1747,7 @@ class InstructorApplicationInstanceDetailView(APIView):
                 'learning_organization_location_name': instance.template.learning_organization_location.name,
                 'accepted': instance.accepted,
                 'completed': instance.completed,
+                'reviewed': instance.reviewed,
                 'approver': instance.approver.user_id if instance.approver else None,
             }
 
