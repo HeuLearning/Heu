@@ -1653,17 +1653,35 @@ class InstructorApplicationInstanceView(APIView):
             # Prepare the response data
             template_data = []
             for template in active_templates:
+                # Get the associated InstructorApplicationInstance for this template and user
+                instance = InstructorApplicationInstance.objects.filter(
+                    template=template,
+                    instructor_id=instructor_data
+                ).first()
+
+                instance_data = None
+                if instance:
+                    instance_data = {
+                        "id": instance.id,
+                        "completed": instance.completed,
+                        "reviewed": instance.reviewed,
+                        "accepted": instance.accepted,
+                        "approver": instance.approver.user_id if instance.approver else None
+                    }
+
                 template_data.append({
                     "learning_organization_location_name": template.learning_organization_location.name,
                     "learning_organization_name": template.learning_organization_location.learning_organization.name,
                     "google_form_link": template.google_form_link,
-                    "id": template.id
+                    "id": template.id,
+                    "application_instance": instance_data
                 })
 
             return Response({
                 "instructor_id": user_id,
                 "active_templates": template_data
             }, status=status.HTTP_200_OK)
+
         except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         except PermissionDenied as e:
@@ -1730,8 +1748,8 @@ class InstructorApplicationInstanceDetailView(APIView):
                 'accepted': instance.accepted,
                 'completed': instance.completed,
                 'approver': instance.approver.user_id if instance.approver else None,
-                'created': created
             }
+
             return Response(response_data, status=status.HTTP_200_OK)
 
         except AuthenticationFailed as e:
@@ -1830,6 +1848,7 @@ class InstructorApplicationInstanceDetailView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in delete method: {str(e)}")
             return Response({'error': "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     # def post(self, request):
     #     user = request.user
 
