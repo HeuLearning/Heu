@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
+from django.utils import timezone
+import uuid
 
 # Create your models here.
 class CustomUser(AbstractUser):
@@ -134,3 +136,16 @@ class Session(models.Model):
 
     def __str__(self):
         return f'{self.admin_creator} {self.learning_organization_location.learning_organization.name} @ {self.learning_organization_location.name} {self.viewed} {self.approved}'
+    
+class SessionApprovalToken(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    sessions = models.ManyToManyField(Session, related_name='approval_tokens')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.token}, {self.used}, {self.expires_at}'
+
+    def is_valid(self):
+        return not self.used and self.expires_at > timezone.now()
