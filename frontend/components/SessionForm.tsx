@@ -1,38 +1,30 @@
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
 export default function SessionForm({ index, session, setSession }) {
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setSession({ ...session, index: index, [name]: value });
+  const handleChange = (name, value) => {
+    console.log(value);
+    setSession({ ...session, index: index, [name]: value.toISOString() });
   };
 
   return (
     <div>
       <h3>Session {index}</h3>
-      <form>
-        <label htmlFor="date">Year (YYYY-MM-DD): </label>
-        <input
-          type="text"
-          name="date"
-          required={true}
-          onChange={handleChange}
-        ></input>
-        <br />
-        <label htmlFor="start_time">Start time hour 24-hour (HH:MM): </label>
-        <input
-          type="text"
-          name="start_time"
-          required={true}
-          onChange={handleChange}
-        ></input>
-        <br />
-        <label htmlFor="end_time">End time hour 24-hour (HH:MM): </label>
-        <input
-          type="text"
-          name="end_time"
-          required={true}
-          onChange={handleChange}
-        ></input>
-        <br />
-      </form>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DateTimePicker
+          label="Session Start Time"
+          onChange={(newValue) => {
+            handleChange("start_time", newValue);
+          }}
+        />
+        <DateTimePicker
+          label="Session End Time"
+          onChange={(newValue) => {
+            handleChange("end_time", newValue);
+          }}
+        />
+      </LocalizationProvider>
       <br />
     </div>
   );

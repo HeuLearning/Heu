@@ -29,9 +29,6 @@ from django.urls import reverse
 from django.conf import settings
 import uuid
 from django.utils import timezone
-
-
-
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
 # from .getcontext import get_context
 import os
