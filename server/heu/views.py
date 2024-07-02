@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
 from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
-from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements
+from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements, SessionApprovalToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError, PermissionDenied
@@ -22,8 +22,13 @@ from collections import defaultdict
 from django.shortcuts import get_object_or_404
 from datetime import timedelta, datetime
 from django.core.mail import send_mail
-
-
+import html
+from django.utils.html import strip_tags
+from django.core.mail import EmailMultiAlternatives
+from django.urls import reverse
+from django.conf import settings
+import uuid
+from django.utils import timezone
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
 # from .getcontext import get_context
 import os
@@ -709,6 +714,130 @@ class AdminSessionsByLocationView(APIView):
         user_info = response.json()
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         return user_info
+    
+    def create_sessions_and_approval_token(self, proposed_sessions, admin_data, session_requirements):
+        # Create a unique token
+        unique_token = uuid.uuid4()
+
+        # Create an approval token
+        approval_token = SessionApprovalToken.objects.create(
+            token=unique_token,
+            expires_at=timezone.now() + timedelta(days=7)  # Token expires in 7 days
+        )
+
+        # Create sessions and link them to the approval token
+        created_sessions = []
+        for session_data in proposed_sessions:
+            session = Session.objects.create(
+                admin_creator=admin_data,
+                learning_organization_location=session_requirements.learning_organization_location,
+                start_time=session_data['start_time'],
+                end_time=session_data['end_time']
+            )
+            created_sessions.append(session)
+
+        # Link the sessions to the approval token
+        approval_token.sessions.set(created_sessions)
+
+        return approval_token.token, created_sessions
+
+
+    def generate_unique_token(self):
+        return str(uuid.uuid4())
+
+    def format_sessions_to_html(self, proposed_sessions, token):
+        base_url = "localhost:8000"  # Make sure to set this in your Django settings
+        accept_url = f"{base_url}{reverse('accept_sessions', args=[token])}"
+        deny_url = f"{base_url}{reverse('deny_sessions', args=[token])}"
+
+        html_content = f"""
+        <html>
+        <head>
+            <style>
+                table {{
+                    border-collapse: collapse;
+                    width: 100%;
+                }}
+                th, td {{
+                    border: 1px solid black;
+                    padding: 8px;
+                    text-align: left;
+                }}
+                th {{
+                    background-color: #f2f2f2;
+                }}
+                .button {{
+                    display: inline-block;
+                    padding: 10px 20px;
+                    margin: 10px;
+                    text-decoration: none;
+                    color: white;
+                    border-radius: 5px;
+                }}
+                .accept {{
+                    background-color: #4CAF50;
+                }}
+                .deny {{
+                    background-color: #f44336;
+                }}
+            </style>
+        </head>
+        <body>
+            <h1>Proposed Sessions</h1>
+            <table>
+                <tr>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Duration (hours)</th>
+                </tr>
+        """
+
+        for session in proposed_sessions:
+            start_time = datetime.fromisoformat(session['start_time'])
+            end_time = datetime.fromisoformat(session['end_time'])
+            duration = (end_time - start_time).total_seconds() / 3600
+
+            html_content += f"""
+                <tr>
+                    <td>{start_time}</td>
+                    <td>{end_time}</td>
+                    <td>{duration:.2f}</td>
+                </tr>
+            """
+
+        html_content += f"""
+            </table>
+            <p>To approve or deny these sessions, please click one of the following links:</p>
+            <p>{accept_url}</p>
+            <p>
+                <a href="{accept_url}" style="color: #4CAF50; font-weight: bold;">Accept All Sessions</a>
+            </p>
+            <p>{deny_url}</p>
+            <p>
+                <a href="{deny_url}" style="color: #f44336; font-weight: bold;">Deny All Sessions</a>
+            </p>
+        </body>
+        </html>
+        """
+
+        return html_content
+   
+    def send(self, proposed_sessions, recipients, approval_token):
+        # token = self.generate_unique_token()
+        subject = 'Session Approval Request'
+        html_content = self.format_sessions_to_html(proposed_sessions, str(approval_token))
+        text_content = strip_tags(html_content)  # Create a plain-text version of the HTML
+
+        email = EmailMultiAlternatives(
+            subject,
+            text_content,
+            'desi.devaul@gmail.com',
+            recipients
+        )
+        email.attach_alternative(html_content, "text/html")
+        email.send(fail_silently=False)
+
+        # return token  # Return the token so you can associate it with the sessions in your database
 
     def get(self, request, loc_id):
         try:
@@ -793,7 +922,6 @@ class AdminSessionsByLocationView(APIView):
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
-
             # Get session_requirement_id and proposed sessions from request data
             session_requirement_id = request.data.get('session_requirement_id')
             proposed_sessions = request.data.get('sessions', [])
@@ -829,13 +957,13 @@ class AdminSessionsByLocationView(APIView):
                 session_times.append((start_time, end_time))
 
             # Check for overlapping sessions
-            session_times.sort(key=lambda x: x[0])  # Sort by start time
-            for i in range(1, len(session_times)):
-                if session_times[i][0] < session_times[i-1][1]:
-                    return Response({
-                        "error": f"Sessions overlap: {session_times[i-1]} and {session_times[i]}"
-                    }, status=400)
-
+            # session_times.sort(key=lambda x: x[0])  # Sort by start time
+            # for i in range(1, len(session_times)):
+            #     if session_times[i][0] < session_times[i-1][1]:
+            #         print("here2")
+            #         return Response({
+            #             "error": f"Sessions overlap: {session_times[i-1]} and {session_times[i]}"
+            #         }, status=400)
             # Check if sessions cover the minimum number of consecutive weeks
             start_dates = [datetime.fromisoformat(session['start_time']).date() for session in proposed_sessions]
             end_dates = [datetime.fromisoformat(session['end_time']).date() for session in proposed_sessions]
@@ -854,8 +982,10 @@ class AdminSessionsByLocationView(APIView):
 
             # Calculate average days per week, excluding exempt weeks
             sorted_weeks = sorted(weeks.items(), key=lambda x: len(x[1]))
-            non_exempt_weeks = sorted_weeks[len(sorted_weeks) - session_requirements.num_exempt_weeks:] # maybe wrong
-            
+            print(sorted_weeks, session_requirements.num_exempt_weeks)
+            non_exempt_weeks = sorted_weeks[:len(sorted_weeks) - session_requirements.num_exempt_weeks] # maybe wrong
+            # print("here4")
+            # print(non_exempt_weeks)
             if len(non_exempt_weeks) == 0:
                 return Response({"error": "Not enough weeks with sessions after exemptions"}, status=400)
 
@@ -866,27 +996,45 @@ class AdminSessionsByLocationView(APIView):
                     "error": f"Average of {avg_days_per_week:.2f} days per week is less than the required {session_requirements.minimum_avg_days_per_week} days"
                 }, status=400)
 
-            # If all checks pass, create the sessions
-            created_sessions = []
-            for session_data in proposed_sessions:
-                session = Session.objects.create(
-                    admin_creator=admin_data,
-                    learning_organization_location=session_requirements.learning_organization_location,
-                    start_time=session_data['start_time'],
-                    end_time=session_data['end_time']
-                )
-                created_sessions.append(session)
+            # Create sessions and approval token
+            approval_token, created_sessions = self.create_sessions_and_approval_token(
+                proposed_sessions, admin_data, session_requirements
+            )
 
+            # Generate and send email
+            # html_sessions = self.format_sessions_to_html(proposed_sessions, str(approval_token.token))
+            self.send(proposed_sessions, ["ddevaul@princeton.edu", "francis@heulearning.org"], approval_token)
+
+            print("here")
+
+            # # If all checks pass, create the sessions
+            # created_sessions = []
+            # for session_data in proposed_sessions:
+            #     session = Session.objects.create(
+            #         admin_creator=admin_data,
+            #         learning_organization_location=session_requirements.learning_organization_location,
+            #         start_time=session_data['start_time'],
+            #         end_time=session_data['end_time']
+            #     )
+            #     created_sessions.append(session)
+            
+            # html_sessions = self.format_sessions_to_html(proposed_sessions)
+            # self.send(proposed_sessions, ["ddevaul@princeton.edu", "francis@heulearning.org"])
+
+            print("sent")
             return Response({
                 "message": f"Successfully created {len(created_sessions)} sessions",
                 "session_ids": [session.id for session in created_sessions]
             }, status=201)
 
         except AuthenticationFailed as e:
+            print(e)
             return Response({"error": str(e)}, status=401)
         except PermissionDenied as e:
+            print(e)
             return Response({"error": str(e)}, status=403)
         except Exception as e:
+            print(e)
             logger.error(f"Unexpected error in AdminSessionsView POST: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
         
@@ -1197,16 +1345,17 @@ class InstructorApplicationTemplateView(APIView):
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
                 raise AuthenticationFailed("Invalid authorization header")
-            
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
             # Get all AdminData objects for this user
             admin_data = AdminData.objects.filter(user_id=user_id)
-            
             if not admin_data.exists():
                 return Response({"error": "User does not have admin permissions"}, status=403)
+
+            # Get the InstructorData for this user (if it exists)
+            instructor_data = InstructorData.objects.filter(user_id=user_id).first()
 
             # Get all learning organization locations where the user is an admin
             learning_org_locations = LearningOrganizationLocation.objects.filter(
@@ -1220,7 +1369,6 @@ class InstructorApplicationTemplateView(APIView):
             )
 
             return_data = defaultdict(list)
-
             for location in learning_org_locations:
                 location_data = {
                     "id": location.id,
@@ -1236,13 +1384,29 @@ class InstructorApplicationTemplateView(APIView):
                         "active": template.active,
                         "admin_creator": template.admin_creator.user_id
                     }
+
+                    # Get the InstructorApplicationInstance for this template and user (if it exists)
+                    if instructor_data:
+                        application_instance = InstructorApplicationInstance.objects.filter(
+                            template=template,
+                            instructor_id=instructor_data
+                        ).first()
+
+                        if application_instance:
+                            template_data.update({
+                                "application_instance_id": application_instance.id,
+                                "completed": application_instance.completed,
+                                "reviewed": application_instance.reviewed,
+                                "accepted": application_instance.accepted,
+                                "approver": application_instance.approver.user_id if application_instance.approver else None
+                            })
+
                     location_data["templates"].append(template_data)
 
                 return_data[location.learning_organization.name].append(location_data)
 
             # Convert defaultdict to regular dict for JSON serialization
             formatted_return_data = dict(return_data)
-
             return Response(formatted_return_data)
 
         except AuthenticationFailed as e:
@@ -1250,7 +1414,7 @@ class InstructorApplicationTemplateView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in InstructorApplicationTemplateView GET: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-
+        
     def post(self, request):
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
@@ -1509,7 +1673,6 @@ class InstructorApplicationInstanceView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in get method: {str(e)}")
             return Response({'error': "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class InstructorApplicationInstanceDetailView(APIView):
     # permission_classes = [IsAuthenticated]
@@ -1859,3 +2022,102 @@ class EmailView(APIView):
     def get(self, request):
         self.send()
         return Response("sent an email we hope")
+    
+class SessionApprovalView(APIView):
+    def get(self, request, token, action):
+        try:
+            approval_token = SessionApprovalToken.objects.get(token=token)
+            
+            if not approval_token.is_valid():
+                return HttpResponse("This approval link has expired or already been used.")
+            
+            sessions = approval_token.sessions.all()
+            
+            if action == 'accept':
+                sessions.update(approved=True)
+                message = "All sessions have been accepted."
+            elif action == 'deny':
+                sessions.update(approved=False)  # or sessions.delete() if you prefer
+                message = "All sessions have been denied."
+            else:
+                return HttpResponse("Invalid action.")
+            
+            approval_token.used = True
+            approval_token.save()
+            
+            return HttpResponse(message)
+        
+        except SessionApprovalToken.DoesNotExist:
+            return HttpResponse("Invalid approval token.")
+        
+
+class AdminApproveAdminView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def post(self, request):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get request data
+            learning_organization_id = request.data.get('learning_organization_id')
+            admin_data_id = request.data.get('admin_data_id')
+
+            if not learning_organization_id or not admin_data_id:
+                return Response({"error": "Missing required parameters"}, status=400)
+
+            # Get the learning organization
+            learning_organization = get_object_or_404(LearningOrganization, id=learning_organization_id)
+
+            # Check if the requesting user is an admin for this organization
+            try:
+                requesting_admin = AdminData.objects.get(user_id=user_id, learning_organization=learning_organization, verified=True)
+            except AdminData.DoesNotExist:
+                raise PermissionDenied("You are not an admin for this organization")
+
+            # Get the AdminData object to be updated
+            admin_to_update = get_object_or_404(AdminData, id=admin_data_id, learning_organization=learning_organization)
+
+            # Update the verified flag
+            admin_to_update.verified = True
+            admin_to_update.save()
+
+            return Response({
+                "message": "Admin approval successful",
+                "admin_data": {
+                    "id": admin_to_update.id,
+                    "user_id": admin_to_update.user_id,
+                    "verified": admin_to_update.verified,
+                    "learning_organization": learning_organization.name
+                }
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in AdminApproveAdminView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)

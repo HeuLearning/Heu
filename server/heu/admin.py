@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import CustomUser, LookupIndex, Question, Assessment, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements
+from .models import (CustomUser, LookupIndex, Question, Assessment, 
+AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, 
+LearningOrganizationLocation, Room, Session, SessionPrerequisites, 
+InstructorApplicationTemplate, InstructorApplicationInstance, 
+SessionRequirements, SessionApprovalToken)
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 
@@ -43,3 +47,4 @@ admin.site.register(SessionPrerequisites)
 admin.site.register(InstructorApplicationTemplate)
 admin.site.register(InstructorApplicationInstance)
 admin.site.register(SessionRequirements)
+admin.site.register(SessionApprovalToken)

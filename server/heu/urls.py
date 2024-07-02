@@ -25,9 +25,12 @@ urlpatterns = [
     path('instructor-application-instance/<int:template_id>', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-detail'),
     path('instructor-application-instance/put/<int:instance_id>', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-delete'),
     path('instructor-application-instance/delete', views.InstructorApplicationInstanceDetailView.as_view(), name='instructor-application-instance-delete'),
+    path('admin-approve-admin', views.AdminApproveAdminView.as_view()),
     # path('instructor-applications-instructor/<int:template_id>', views.InstructorApplicationInstanceView.as_view()),
     path('instructor-applications-instructor', views.InstructorApplicationInstanceView.as_view()),
     path('email', views.EmailView.as_view()),
+    path('sessions/<uuid:token>/accept/', views.SessionApprovalView.as_view(), {'action': 'accept'}, name='accept_sessions'),
+    path('sessions/<uuid:token>/deny/', views.SessionApprovalView.as_view(), {'action': 'deny'}, name='deny_sessions'),
     path('locations', views.LocationsView.as_view()),
     path('check_user', views.LoginUserView.as_view()), # this path is for auth0
     path("", views.index, name="index"),
