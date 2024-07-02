@@ -45,23 +45,50 @@ export const getServerSideProps = withPageAuthRequired({
     } else if (role === "st") {
       return {
         redirect: {
-          destination: "/student",
+          destination: "/learner",
           permanent: false,
         },
       };
     }
+
+    const locationOptions = {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`, // Include the access token
+      },
+    };
+
+    let locationResponse = await fetch(
+      "http://localhost:8000/api/instructor-applications-instructor",
+      locationOptions
+    );
+    const locationData = await locationResponse.json();
+    console.log(locationData);
+
+    let instructorResponse = await fetch(
+      "http://localhost:8000/api/instructor-applications-instructor",
+      locationOptions
+    );
+    const instructorData = await instructorResponse.json();
+
     return {
       props: {
-        role: role || "unknown",
+        role: roleType || null,
+        locations: locationData || null,
+        sessionToken: session.accessToken || null,
       },
     };
   },
 });
 
-export default function InstructorHome({
+export default function InstructorApplications({
   role,
+  locations,
+  sessionToken,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
+
   return (
     <>
       <Head>
@@ -76,11 +103,18 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <a href="/instructor/applications">
-          <button>Applications</button>
-        </a>
-        <button>Schedule</button>
-        <button>Class Mode</button>
+        {locations.active_templates.map((template, index) => (
+          <div>
+            <h1>{template.learning_organization_name}</h1>
+            <h2>{template.learning_organization_location_name}</h2>
+            {/* <a href={template.google_form_link} target="_blank">
+              <h3>{template.google_form_link}</h3>
+            </a> */}
+            <a href={`/instructor/applications/${template.id}`}>
+              <button>Apply</button>
+            </a>
+          </div>
+        ))}
       </div>
     </>
   );
