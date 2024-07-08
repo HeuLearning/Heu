@@ -128,7 +128,7 @@ export default function Applications({
             <h1>Learning Organization: {orgName}</h1>
             {locations.map((location) => (
               <div key={location.id}>
-                <h2>Applications for {location.location}</h2>
+                <h2>Applications for {location.location_name}</h2>
                 {location.templates.map((template) => (
                   <div>
                     <h3>Application template ID: {template.id}</h3>
