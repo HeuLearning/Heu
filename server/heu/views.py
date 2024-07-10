@@ -8,13 +8,14 @@ from django.views.generic.detail import DetailView
 from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
 from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements, SessionApprovalToken
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError, PermissionDenied
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.throttling import UserRateThrottle
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.db.models import Sum, Count, Q, Prefetch, F
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
@@ -29,6 +30,7 @@ from django.urls import reverse
 from django.conf import settings
 import uuid
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
 # from .getcontext import get_context
 import os
@@ -37,6 +39,9 @@ import json
 import re
 import random
 import logging
+
+User = get_user_model()
+
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +96,45 @@ class UserCRUD(APIView):
         
         return Response(role_data.data)
 
+# class GetUserRole(APIView):
+#     # authentication_classes = [SessionAuthentication]
+#     # permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         logger.debug(f"GetUserRole: request.user = {request.user}")
+#         logger.debug(f"GetUserRole: request.user type = {type(request.user)}")
+#         logger.debug(f"GetUserRole: request.auth = {request.auth}")
+
+#         if isinstance(request.user, User):
+#             user = request.user
+#         else:
+#             # Fallback: Try to get the user from the database
+#             try:
+#                 user = User.objects.get(user_id=request.user)
+#             except User.DoesNotExist:
+#                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+#         # Retrieve user role information
+#         role_data = {'verified': False}
+#         if user.user_type in ['in', 'ad', 'hs', 'st']:
+#             role_model = {
+#                 'in': InstructorData,
+#                 'ad': AdminData,
+#                 'hs': HeuStaffData,
+#                 'st': StudentData
+#             }[user.user_type]
+#             role_instance = role_model.objects.filter(user_id=user.user_id).first()
+#             if role_instance:
+#                 role_data['verified'] = getattr(role_instance, 'verified', False)
+
+#         return Response({
+#             "user_id": user.user_id,
+#             "username": user.username,
+#             "email": user.email,
+#             "role": user.user_type,
+#             "verified": role_data['verified']
+#         })
+
 class GetUserRole(APIView):
     def get_user_info(self, token):
         # Check cache first
@@ -116,6 +160,8 @@ class GetUserRole(APIView):
         return user_info
 
     def get(self, request):
+        # print("here")
+        print("get user role", request.user)
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
@@ -1284,7 +1330,8 @@ class AdminSessionDetailView(APIView):
             return Response({"error": "An unexpected error occurred"}, status=500)
         
 class LoginUserView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    # permission_classes = [AllowAny]  # Allow any user to access this view
 
     def get_user_info(self, bearer_token):
         domain = os.environ.get('AUTH0_DOMAIN')
@@ -1292,6 +1339,69 @@ class LoginUserView(APIView):
         response = requests.get(f'https://{domain}/userinfo', headers=headers)
         response.raise_for_status()  # Raises an HTTPError for bad responses
         return response.json()
+
+    def post(self, request):
+        logger.info("LoginUserView post method started")
+        token = request.data.get('token')
+        if not token:
+            logger.warning("No token provided")
+            return Response({"error": "No token provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info("Attempting to authenticate user")
+        user = authenticate(request, token=token)
+        if user is not None:
+            logger.info(f"User authenticated: {user.user_id}")
+            login(request, user)
+            logger.info("User logged in")
+            return Response({
+                "message": "Login successful",
+                "user_id": user.user_id,
+                "user_type": user.user_type
+            }, status=status.HTTP_200_OK)
+        else:
+            logger.warning("Invalid token")
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+    # def post(self, request, format=None):
+    #     try:
+    #         bearer_token = request.data.get('token')  # Expect token in request data
+    #         if not bearer_token:
+    #             return Response({"error": "No token provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+    #         user_info = self.get_user_info(bearer_token)
+
+    #         with transaction.atomic():
+    #             user, created = CustomUser.objects.update_or_create(
+    #                 user_id=user_info["sub"],
+    #                 defaults={
+    #                     "username": user_info.get("nickname", ""),
+    #                     "email": user_info.get("email", ""),
+    #                     "first_name": user_info.get("given_name", ""),
+    #                     "last_name": user_info.get("family_name", ""),
+    #                 }
+    #             )
+
+    #             # Log the user in (create a Django session)
+    #             login(request, user)
+
+    #         if created:
+    #             return Response({"message": "User created and logged in", "user_id": user.user_id}, status=status.HTTP_201_CREATED)
+    #         else:
+    #             return Response({"message": "User updated and logged in", "user_id": user.user_id}, status=status.HTTP_200_OK)
+
+    #     except requests.RequestException as e:
+    #         return Response({"error": "Failed to retrieve user info from Auth0"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    #     except ValidationError as e:
+    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    #     except Exception as e:
+    #         return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    # def get_user_info(self, bearer_token):
+    #     domain = os.environ.get('AUTH0_DOMAIN')
+    #     headers = {"Authorization": f'Bearer {bearer_token}'}
+    #     response = requests.get(f'https://{domain}/userinfo', headers=headers)
+    #     response.raise_for_status()  # Raises an HTTPError for bad responses
+    #     return response.json()
 
     def get(self, request, format=None):
         try:
