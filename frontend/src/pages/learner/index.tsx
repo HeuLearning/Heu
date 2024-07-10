@@ -14,6 +14,7 @@ export const getServerSideProps = withPageAuthRequired({
     const session = await getSession(req, res);
 
     if (!session) {
+      console.log("what")
       return {
         redirect: {
           destination: "/api/auth/login",
@@ -29,29 +30,30 @@ export const getServerSideProps = withPageAuthRequired({
         Authorization: `Bearer ${session.accessToken}`, // Include the access token
       },
     };
-
-    const response = await fetch(
-      "http://localhost:8000/api/get-user-role",
-      options
-    );
-    const roleType = await response.json();
-    console.log(roleType);
-    const role = roleType.role;
-    if (role === "ad") {
-      return {
-        redirect: {
-          destination: "/admin",
-          permanent: false,
-        },
-      };
-    } else if (role === "in") {
-      return {
-        redirect: {
-          destination: "/instructor",
-          permanent: false,
-        },
-      };
-    }
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/get-user-role",
+        options
+      );
+      const roleType = await response.json();
+      console.log(roleType);
+      const role = roleType.role;
+      if (role === "ad") {
+        return {
+          redirect: {
+            destination: "/admin",
+            permanent: false,
+          },
+        };
+      } else if (role === "in") {
+        return {
+          redirect: {
+            destination: "/instructor",
+            permanent: false,
+          },
+        };
+      }
+    
 
     // if the user is verified then get the related sessions
     const sessionOptions = {
@@ -62,19 +64,22 @@ export const getServerSideProps = withPageAuthRequired({
       },
     };
 
-    let sessionResponse = await fetch(
-      "http://localhost:8000/api/user-sessions",
-      sessionOptions
-    );
-    sessionResponse = await sessionResponse.json();
-    console.log(sessionResponse);
-    return {
-      props: {
-        role: roleType || null,
-        sessions: sessionResponse || null,
-        sessionToken: session.accessToken || null,
-      },
-    };
+      let sessionResponse = await fetch(
+        "http://localhost:8000/api/user-sessions",
+        sessionOptions
+      );
+      sessionResponse = await sessionResponse.json();
+      console.log(sessionResponse);
+      return {
+        props: {
+          role: roleType || null,
+          sessions: sessionResponse || null,
+          sessionToken: session.accessToken || null,
+        },
+      };
+    } catch (error) {
+      console.log(error);
+    }
   },
 });
 

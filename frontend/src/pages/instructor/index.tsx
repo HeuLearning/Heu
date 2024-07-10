@@ -29,32 +29,36 @@ export const getServerSideProps = withPageAuthRequired({
       },
     };
 
-    const response = await fetch(
-      "http://localhost:8000/api/get-user-role",
-      options
-    );
-    const roleType = await response.json();
-    const role = roleType.role;
-    if (role === "ad") {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/get-user-role",
+        options
+      );
+      const roleType = await response.json();
+      const role = roleType.role;
+      if (role === "ad") {
+        return {
+          redirect: {
+            destination: "/admin",
+            permanent: false,
+          },
+        };
+      } else if (role === "st") {
+        return {
+          redirect: {
+            destination: "/learner",
+            permanent: false,
+          },
+        };
+      }
       return {
-        redirect: {
-          destination: "/admin",
-          permanent: false,
+        props: {
+          role: role || "unknown",
         },
       };
-    } else if (role === "st") {
-      return {
-        redirect: {
-          destination: "/student",
-          permanent: false,
-        },
-      };
+    } catch (error) {
+      console.log(error);
     }
-    return {
-      props: {
-        role: role || "unknown",
-      },
-    };
   },
 });
 

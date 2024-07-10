@@ -40,11 +40,13 @@ export default handleAuth({
       console.log(accessToken)
       const config: AxiosRequestConfig = {
         url: `${apiServerUrl}/check_user`,
-        method: "GET",
+        method: "POST", // changed
         headers: {
           "content-type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        }
+          // Authorization: `Bearer ${accessToken}`,
+          // body: JSON.stringify({ token: accessToken }),
+        },
+        data: { token: accessToken }, // This is the correct way to send data in the body
       };
       await axios(config);
     } catch (error) {

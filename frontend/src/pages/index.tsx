@@ -22,59 +22,67 @@ export const getServerSideProps = withPageAuthRequired({
       };
     }
 
+    console.log(session.accessToken);
+    
     const options = {
       method: 'GET',
+      // credentials: 'include',
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${session.accessToken}`, // Include the access token
       },
     };
 
-    const response = await fetch('http://localhost:8000/api/get-user-role', options);
-    const roleType = await response.json();
-    if (roleType === "no type" ) {
+    try {
+
+      const response = await fetch('http://localhost:8000/api/get-user-role', options);
+      const roleType = await response.json();
+      if (roleType === "no type" ) {
+        return {
+          props: {
+            role: roleType || 'unknown',
+            accessToken: session.accessToken,
+          },
+        };
+        return {
+          redirect: {
+            destination: '/diagnostic',
+            permanent: false,
+          },
+        };
+      }
+      const role = roleType.role;
+      if (role === "ad") {
+        return {
+          redirect: {
+            destination: '/admin',
+            permanent: false,
+          },
+        };
+      } else if (role === "in") {
+        return {
+          redirect: {
+            destination: '/instructor',
+            permanent: false,
+          },
+        };
+      } else if (role === "st") {
+        return {
+          redirect: {
+            destination: '/learner',
+            permanent: false,
+          },
+        };
+      }
       return {
         props: {
-          role: roleType || 'unknown',
+          role: role || 'unknown',
           accessToken: session.accessToken,
         },
       };
-      return {
-        redirect: {
-          destination: '/diagnostic',
-          permanent: false,
-        },
-      };
+    } catch (error) {
+      console.log(error);
     }
-    const role = roleType.role;
-    if (role === "ad") {
-      return {
-        redirect: {
-          destination: '/admin',
-          permanent: false,
-        },
-      };
-    } else if (role === "in") {
-      return {
-        redirect: {
-          destination: '/instructor',
-          permanent: false,
-        },
-      };
-    } else if (role === "st") {
-      return {
-        redirect: {
-          destination: '/learner',
-          permanent: false,
-        },
-      };
-    }
-    return {
-      props: {
-        role: role || 'unknown',
-        accessToken: session.accessToken,
-      },
-    };
   }
 });
 
@@ -93,7 +101,7 @@ export default function Home({ role, accessToken }: InferGetServerSidePropsType<
         role: newRole,
       }),
     };
-
+    console.log("here1")
     await fetch('http://localhost:8000/api/user', options);
     switch(newRole) {
       case "ad":
