@@ -1,21 +1,43 @@
-import React, { useState, useEffect } from 'react';
+// import React from 'react';
+// import BasicWebSocketComponent from '../components/BasicWebSocketComponent';
+// import ErrorBoundary from '../components/ErrorBoundary';
 
-const BasicWebSocketComponent = () => {
+// const WebSocketTestPage = () => {
+//   return (
+//     <div>
+//       <h1>WebSocket Test Page</h1>
+//       <ErrorBoundary fallback={<p>Something went wrong with the WebSocket component.</p>}>
+//         <BasicWebSocketComponent />
+//       </ErrorBoundary>
+//     </div>
+//   );
+// };
+
+// export default WebSocketTestPage;
+
+
+import React, { useState, useEffect, useCallback } from 'react';
+
+const MultiTabWebSocketComponent = () => {
   const [socket, setSocket] = useState(null);
+  const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
-  const [receivedMessages, setReceivedMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isConnected, setIsConnected] = useState(false);
 
-  useEffect(() => {
-    // Create WebSocket connection
+  const connectWebSocket = useCallback(() => {
     const ws = new WebSocket('ws://localhost:8000/inperson/ws/chat/');
 
     ws.onopen = () => {
       console.log('WebSocket Connected');
+      setIsConnected(true);
     };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      setReceivedMessages(prev => [...prev, data.message]);
+      if (data.type === 'chat_message') {
+        setChatMessages(prev => [...prev, { username: data.username, message: data.message }]);
+      }
     };
 
     ws.onerror = (error) => {
@@ -24,45 +46,66 @@ const BasicWebSocketComponent = () => {
 
     ws.onclose = () => {
       console.log('WebSocket Disconnected');
+      setIsConnected(false);
     };
 
     setSocket(ws);
 
-    // Clean up the WebSocket connection on component unmount
     return () => {
       ws.close();
     };
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, []);
+
+  useEffect(() => {
+    connectWebSocket();
+  }, [connectWebSocket]);
 
   const sendMessage = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: 'chat_message', message }));
+    if (socket && socket.readyState === WebSocket.OPEN && message && username) {
+      socket.send(JSON.stringify({
+        type: 'chat_message',
+        username: username,
+        message: message
+      }));
       setMessage('');
     } else {
-      console.log('WebSocket not connected');
+      console.log('Cannot send message. Check connection and make sure username is set.');
     }
   };
 
   return (
     <div>
-      <h2>Basic WebSocket Test</h2>
-      <div>
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message"
-        />
-        <button onClick={sendMessage}>Send Message</button>
-      </div>
-      <div>
-        <h3>Received Messages:</h3>
-        {receivedMessages.map((msg, index) => (
-          <p key={index}>{msg}</p>
-        ))}
-      </div>
+      <h2>Multi-Tab WebSocket Chat</h2>
+      {!isConnected && <p>Connecting to WebSocket...</p>}
+      {isConnected && (
+        <>
+          <div>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+            />
+          </div>
+          <div>
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message"
+            />
+            <button onClick={sendMessage}>Send Message</button>
+          </div>
+          <div>
+            <h3>Chat Messages:</h3>
+            {chatMessages.map((msg, index) => (
+              <p key={index}><strong>{msg.username}:</strong> {msg.message}</p>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
-export default BasicWebSocketComponent;
+export default MultiTabWebSocketComponent;
