@@ -93,9 +93,9 @@ class Auth0TokenMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
         headers = dict(scope['headers'])
         auth_header = headers.get(b'authorization', b'').decode()
-        print("at the very fucking least is this working?")
         if auth_header.startswith('Bearer '):
             token = auth_header.split(' ')[1]
+            print("here")
             user = await self.get_user_info(token)
             scope['user'] = user
             print("we're here", user)
@@ -109,6 +109,7 @@ class Auth0TokenMiddleware(BaseMiddleware):
         domain = settings.AUTH0_DOMAIN
         headers = {"Authorization": f'Bearer {bearer_token}'}
         response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        print("response ", response.json())
         return type('User', (), {'is_authenticated': True, 'id': response.json()['sub']})()
 
         # response = requests.get(f'https://{domain}/userinfo', headers=headers)
