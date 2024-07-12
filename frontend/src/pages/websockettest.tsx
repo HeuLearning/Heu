@@ -1,126 +1,15 @@
-// // // import React from 'react';
-// // // import BasicWebSocketComponent from '../components/BasicWebSocketComponent';
-// // // import ErrorBoundary from '../components/ErrorBoundary';
+//  // websockettest.tsx
 
-// // // const WebSocketTestPage = () => {
-// // //   return (
-// // //     <div>
-// // //       <h1>WebSocket Test Page</h1>
-// // //       <ErrorBoundary fallback={<p>Something went wrong with the WebSocket component.</p>}>
-// // //         <BasicWebSocketComponent />
-// // //       </ErrorBoundary>
-// // //     </div>
-// // //   );
-// // // };
+// import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-// // // export default WebSocketTestPage;
-
-
-// // import React, { useState, useEffect, useCallback } from 'react';
-
-// // const MultiTabWebSocketComponent = () => {
-// //   const [socket, setSocket] = useState(null);
-// //   const [username, setUsername] = useState('');
-// //   const [message, setMessage] = useState('');
-// //   const [chatMessages, setChatMessages] = useState([]);
-// //   const [isConnected, setIsConnected] = useState(false);
-
-// //   const connectWebSocket = useCallback(() => {
-// //     const ws = new WebSocket('ws://localhost:8000/inperson/ws/chat/');
-
-// //     ws.onopen = () => {
-// //       console.log('WebSocket Connected');
-// //       setIsConnected(true);
-// //     };
-
-// //     ws.onmessage = (event) => {
-// //       const data = JSON.parse(event.data);
-// //       if (data.type === 'chat_message') {
-// //         setChatMessages(prev => [...prev, { username: data.username, message: data.message }]);
-// //       }
-// //     };
-
-// //     ws.onerror = (error) => {
-// //       console.error('WebSocket Error:', error);
-// //     };
-
-// //     ws.onclose = () => {
-// //       console.log('WebSocket Disconnected');
-// //       setIsConnected(false);
-// //     };
-
-// //     setSocket(ws);
-
-// //     return () => {
-// //       ws.close();
-// //     };
-// //   }, []);
-
-// //   useEffect(() => {
-// //     connectWebSocket();
-// //   }, [connectWebSocket]);
-
-// //   const sendMessage = () => {
-// //     if (socket && socket.readyState === WebSocket.OPEN && message && username) {
-// //       socket.send(JSON.stringify({
-// //         type: 'chat_message',
-// //         username: username,
-// //         message: message
-// //       }));
-// //       setMessage('');
-// //     } else {
-// //       console.log('Cannot send message. Check connection and make sure username is set.');
-// //     }
-// //   };
-
-// //   return (
-// //     <div>
-// //       <h2>Multi-Tab WebSocket Chat</h2>
-// //       {!isConnected && <p>Connecting to WebSocket...</p>}
-// //       {isConnected && (
-// //         <>
-// //           <div>
-// //             <input
-// //               type="text"
-// //               value={username}
-// //               onChange={(e) => setUsername(e.target.value)}
-// //               placeholder="Enter your username"
-// //             />
-// //           </div>
-// //           <div>
-// //             <input
-// //               type="text"
-// //               value={message}
-// //               onChange={(e) => setMessage(e.target.value)}
-// //               placeholder="Type a message"
-// //             />
-// //             <button onClick={sendMessage}>Send Message</button>
-// //           </div>
-// //           <div>
-// //             <h3>Chat Messages:</h3>
-// //             {chatMessages.map((msg, index) => (
-// //               <p key={index}><strong>{msg.username}:</strong> {msg.message}</p>
-// //             ))}
-// //           </div>
-// //         </>
-// //       )}
-// //     </div>
-// //   );
-// // };
-
-// // export default MultiTabWebSocketComponent;
-
-
-
-// import React, { useState, useEffect, useCallback } from 'react';
-
-// const MultiRoomWebSocketComponent = () => {
+// const ImprovedMultiRoomWebSocketComponent = () => {
 //   const [socket, setSocket] = useState(null);
 //   const [username, setUsername] = useState('');
 //   const [roomName, setRoomName] = useState('');
 //   const [message, setMessage] = useState('');
 //   const [chatMessages, setChatMessages] = useState([]);
 //   const [isConnected, setIsConnected] = useState(false);
+//   const lastMessageRef = useRef(null);
 
 //   const connectWebSocket = useCallback(() => {
 //     if (!roomName) {
@@ -137,7 +26,11 @@
 
 //     ws.onmessage = (event) => {
 //       const data = JSON.parse(event.data);
-//       setChatMessages(prev => [...prev, { username: data.username, message: data.message }]);
+//       if (data.type === 'history') {
+//         setChatMessages(data.messages);
+//       } else if (data.type === 'chat') {
+//         setChatMessages(prev => [...prev, { username: data.username, message: data.message }]);
+//       }
 //     };
 
 //     ws.onerror = (error) => {
@@ -156,11 +49,25 @@
 //     };
 //   }, [roomName]);
 
+//   // useEffect(() => {
+//   //   if (roomName) {
+//   //     connectWebSocket();
+//   //   }
+//   // }, [roomName, connectWebSocket]);
+
 //   useEffect(() => {
 //     if (roomName) {
-//       connectWebSocket();
+//       const ws = connectWebSocket();
+//       setSocket(ws);
+
+//       return () => {
+//         if (ws) {
+//           ws.close();
+//         }
+//       };
 //     }
 //   }, [roomName, connectWebSocket]);
+
 
 //   const joinRoom = () => {
 //     if (roomName && username) {
@@ -182,9 +89,15 @@
 //     }
 //   };
 
+//   useEffect(() => {
+//     if (lastMessageRef.current) {
+//       lastMessageRef.current.scrollIntoView({ behavior: 'smooth' });
+//     }
+//   }, [chatMessages]);
+
 //   return (
 //     <div>
-//       <h2>Multi-Room WebSocket Chat</h2>
+//       <h2>Improved Multi-Room WebSocket Chat</h2>
 //       {!isConnected ? (
 //         <div>
 //           <input
@@ -213,10 +126,12 @@
 //             />
 //             <button onClick={sendMessage}>Send Message</button>
 //           </div>
-//           <div>
+//           <div style={{ height: '300px', overflowY: 'auto' }}>
 //             <h3>Chat Messages:</h3>
 //             {chatMessages.map((msg, index) => (
-//               <p key={index}><strong>{msg.username}:</strong> {msg.message}</p>
+//               <p key={index} ref={index === chatMessages.length - 1 ? lastMessageRef : null}>
+//                 <strong>{msg.username}:</strong> {msg.message}
+//               </p>
 //             ))}
 //           </div>
 //         </>
@@ -225,25 +140,29 @@
 //   );
 // };
 
-// export default MultiRoomWebSocketComponent;
-
+// export default ImprovedMultiRoomWebSocketComponent;
 
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-const ImprovedMultiRoomWebSocketComponent = () => {
-  const [socket, setSocket] = useState(null);
+interface ChatMessage {
+  username: string;
+  message: string;
+}
+
+const ImprovedMultiRoomWebSocketComponent: React.FC = () => {
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const [username, setUsername] = useState('');
   const [roomName, setRoomName] = useState('');
   const [message, setMessage] = useState('');
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const lastMessageRef = useRef(null);
+  const lastMessageRef = useRef<HTMLParagraphElement>(null);
 
   const connectWebSocket = useCallback(() => {
     if (!roomName) {
       console.log('Room name is required');
-      return;
+      return null;
     }
 
     const ws = new WebSocket(`ws://localhost:8000/ws/chat/${roomName}/`);
@@ -271,22 +190,32 @@ const ImprovedMultiRoomWebSocketComponent = () => {
       setIsConnected(false);
     };
 
-    setSocket(ws);
-
-    return () => {
-      ws.close();
-    };
+    return ws;
   }, [roomName]);
 
   useEffect(() => {
+    let ws: WebSocket | null = null;
+
     if (roomName) {
-      connectWebSocket();
+      ws = connectWebSocket();
+      if (ws) {
+        setSocket(ws);
+      }
     }
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
   }, [roomName, connectWebSocket]);
 
   const joinRoom = () => {
     if (roomName && username) {
-      connectWebSocket();
+      const ws = connectWebSocket();
+      if (ws) {
+        setSocket(ws);
+      }
     } else {
       console.log('Room name and username are required');
     }

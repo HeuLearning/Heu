@@ -149,7 +149,13 @@
 #         }))
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.layers import get_channel_layer
+from asgiref.sync import sync_to_async
+import redis
+import os
+
+# Create a Redis connection using the configuration from settings
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
+redis_client = redis.Redis.from_url(f"rediss://:{REDIS_PASSWORD}@db-redis-nyc3-84439-do-user-17041273-0.a.db.ondigitalocean.com:25061")
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -164,7 +170,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        # Retrieve and send previous messages
+        # Send previous messages
         messages = await self.get_messages()
         await self.send(text_data=json.dumps({
             'type': 'history',
@@ -183,7 +189,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = data['message']
         username = data['username']
 
-        # Save the message
+        # Save the message to Redis
         await self.save_message(username, message)
 
         # Send message to room group
@@ -207,19 +213,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'username': username
         }))
 
-    async def get_messages(self):
-        channel_layer = get_channel_layer()
-        # Retrieve messages from the channel layer
-        messages = await channel_layer.get(f"{self.room_group_name}_messages", [])
-        return messages[-50:]  # Return the last 50 messages
+    @sync_to_async
+    def get_messages(self):
+        # Get the last 50 messages from Redis
+        messages = redis_client.lrange(f'chat_messages:{self.room_name}', -50, -1)
+        return [json.loads(msg) for msg in messages]
 
-    async def save_message(self, username, message):
-        channel_layer = get_channel_layer()
-        # Retrieve current messages
-        messages = await channel_layer.get(f"{self.room_group_name}_messages", [])
-        # Append new message
-        messages.append({'username': username, 'message': message})
-        # Keep only the last 100 messages
-        messages = messages[-100:]
-        # Save messages back to the channel layer
-        await channel_layer.set(f"{self.room_group_name}_messages", messages)
+    @sync_to_async
+    def save_message(self, username, message):
+        # Save message to Redis
+        redis_client.rpush(f'chat_messages:{self.room_name}', json.dumps({
+            'username': username,
+            'message': message
+        }))
+        # Trim the list to keep only the last 100 messages
+        redis_client.ltrim(f'chat_messages:{self.room_name}', -100, -1)
