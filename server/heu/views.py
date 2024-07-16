@@ -58,6 +58,7 @@ class UserCRUD(APIView):
         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
         u = CustomUser.objects.get(user_id=result["sub"])
         u_s = UserSerializer(u)
+        print(u_s)
         role = u_s.data['user_type']
         body = json.loads(request.body)
         if body["purpose"] == "change role":
