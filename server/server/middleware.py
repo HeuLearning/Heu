@@ -6,6 +6,7 @@ from django.core.cache import cache
 import requests
 from django.conf import settings
 import jwt
+from urllib.parse import parse_qs
 
 print("Auth0TokenMiddleware module loaded")  # Add this line
 
@@ -91,19 +92,28 @@ print("Auth0TokenMiddleware module loaded")
 #         return AnonymousUser()
 class Auth0TokenMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        headers = dict(scope['headers'])
-        auth_header = headers.get(b'authorization', b'').decode()
-        if auth_header.startswith('Bearer '):
-            token = auth_header.split(' ')[1]
-            print("here")
-            user = await self.get_user_info(token)
-            scope['user'] = user
-            print("we're here", user)
+        # Parse the query string
+        query_string = scope['query_string'].decode()
+        query_params = parse_qs(query_string)
+        
+        # Extract the token from the query parameters
+        token = query_params.get('token', [None])[0]
+        print(token)
+        if token:
+            try:
+                # Verify and decode the token
+                user = await self.get_user_info(token)
+                scope['user'] = user
+                print(f"Authenticated user: {user}")
+            except Exception as e:
+                print(f"Authentication error: {str(e)}")
+                scope['user'] = AnonymousUser()
         else:
+            print("Token not found in query string")
             scope['user'] = AnonymousUser()
 
         return await super().__call__(scope, receive, send)
-    
+
     @database_sync_to_async
     def get_user_info(self, bearer_token):
         domain = settings.AUTH0_DOMAIN
