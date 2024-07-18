@@ -98,7 +98,7 @@ class Auth0TokenMiddleware(BaseMiddleware):
         
         # Extract the token from the query parameters
         token = query_params.get('token', [None])[0]
-        print(token)
+        # print(token)
         if token:
             try:
                 # Verify and decode the token

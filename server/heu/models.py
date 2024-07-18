@@ -149,3 +149,13 @@ class SessionApprovalToken(models.Model):
 
     def is_valid(self):
         return not self.used and self.expires_at > timezone.now()
+    
+class HardCodedQuestionCounter(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    order = models.IntegerField()
+
+
+class HardCodedModule(models.Model):
+    questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
+
+

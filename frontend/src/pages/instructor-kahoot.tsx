@@ -52,6 +52,7 @@ export default function Kahoot({
   const [isAnswered, setIsAnswered] = useState<Boolean>(false);
   const [correct, setCorrect] = useState<Boolean>(false);
   const [questionNumber, setQuestionNumber] = useState<Number>(null);
+  const [studentProgress, setStudentProgress] = useState<any>({});
 
   const connectWebSocket = useCallback(() => {
     if (!roomName) {
@@ -72,8 +73,8 @@ export default function Kahoot({
       
       switch (data.type) {
         case 'student_progress':
-          // setStudentProgress(data);
-          console.log("wtv");
+          setStudentProgress(data);
+          break
         case 'chat':
           setChatMessages(prevMessages => [...prevMessages, { username: data.username, message: data.message }]);
           break;
@@ -198,7 +199,12 @@ export default function Kahoot({
       ) : (
         <>
           <p>Connected to room: {roomName}</p>
-          <div>
+          {studentProgress && (
+            <>
+            <div>student: {studentProgress.student_id} is on question: {studentProgress.question_number}</div>
+            </>
+          )}
+          {/* <div>
           </div>
           {question && (
             <div>
@@ -214,7 +220,7 @@ export default function Kahoot({
           )}
           {!question && (
             <button onClick={() => startModule()}>start module</button>
-          )}
+          )} */}
         </>
       )}
     </div>
