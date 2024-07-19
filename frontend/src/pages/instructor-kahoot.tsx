@@ -2,17 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
-import { SettingsCellRounded } from '@mui/icons-material';
 
-interface ChatMessage {
-  username: string;
-  message: string;
-}
-
-interface Question {
-  text: string;
-  number: number;
-  json: {}
+interface StudentProgress {
+  student_id: string;
+  question_id?: number;
+  answer?: string;
+  is_right?: boolean;
+  seconds_to_answer?: number;
 }
 
 export const getServerSideProps = withPageAuthRequired({
@@ -43,16 +39,9 @@ export default function Kahoot({
   const { user, error, isLoading } = useUser();
 
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [username, setUsername] = useState('');
   const [roomName, setRoomName] = useState('');
-  const [message, setMessage] = useState('');
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [question, setQuestion] = useState<Question>(null);
-  const [isAnswered, setIsAnswered] = useState<Boolean>(false);
-  const [correct, setCorrect] = useState<Boolean>(false);
-  const [questionNumber, setQuestionNumber] = useState<Number>(null);
-  const [studentProgress, setStudentProgress] = useState<any>({});
+  const [studentProgress, setStudentProgress] = useState<{ [key: string]: StudentProgress }>({});
 
   const connectWebSocket = useCallback(() => {
     if (!roomName) {
@@ -65,6 +54,8 @@ export default function Kahoot({
     ws.onopen = () => {
       console.log('WebSocket Connected');
       setIsConnected(true);
+      // Request initial progress when connection is established
+      ws.send(JSON.stringify({ type: 'get_initial_progress' }));
     };
 
     ws.onmessage = (event) => {
@@ -73,20 +64,19 @@ export default function Kahoot({
       
       switch (data.type) {
         case 'student_progress':
-          setStudentProgress(data);
-          break
-        case 'chat':
-          setChatMessages(prevMessages => [...prevMessages, { username: data.username, message: data.message }]);
+          setStudentProgress(prevProgress => ({
+            ...prevProgress,
+            [data.student_id]: {
+              student_id: data.student_id,
+              question_id: data.question_id,
+              answer: data.answer,
+              is_right: data.is_right,
+              seconds_to_answer: data.seconds_to_answer
+            }
+          }));
           break;
-        case 'question':
-          setQuestion(data.question);
-          setIsAnswered(false);
-          setCorrect(false);
-          setQuestionNumber(data.question.number);
-          break;
-        case 'module_started':
-          console.log('Module started:', data.module_id);
-          // You can add additional state or actions for when a module starts
+        case 'initial_progress':
+          setStudentProgress(data.progress);
           break;
         default:
           console.log('Unhandled message type:', data.type);
@@ -123,71 +113,39 @@ export default function Kahoot({
   }, [roomName, connectWebSocket]);
 
   const joinRoom = () => {
-    if (roomName && username) {
+    if (roomName) {
       const ws = connectWebSocket();
       if (ws) {
         setSocket(ws);
       }
     } else {
-      console.log('Room name and username are required');
+      console.log('Room name is required');
     }
   };
 
-  const sendMessage = () => {
-    if (socket && socket.readyState === WebSocket.OPEN && message) {
-      const messageData = {
-        type: 'chat',
-        username: username,
-        message: message
-      };
-      socket.send(JSON.stringify(messageData));
-      setMessage('');
-    } else {
-      console.log('Cannot send message. Check connection and make sure message is not empty.');
-    }
-  };
-
-  const startModule = () => {
-    console.log("trying to start a module");
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const messageData = {
-        type: 'start_module'
-      };
-      socket.send(JSON.stringify(messageData));
-    } else {
-      console.log('Cannot request next question. Check connection.');
-    }
-  }
-
-  const handleAnswer = () => {
-    setIsAnswered(true);
-    setCorrect(true); // will need to do some calculation here to find whether the answer is correct or not
-  }
-
-  const nextQuestion = () => {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const messageData = {
-        type: 'next_question',
-        correct: correct,
-        number: questionNumber,
-      };
-      socket.send(JSON.stringify(messageData));
-    } else {
-      console.log('Cannot request next question. Check connection.');
-    }
+  const renderStudentProgress = () => {
+    return Object.values(studentProgress).map((progress) => (
+      <div key={progress.student_id}>
+        Student {progress.student_id}: 
+        {progress.question_id ? (
+          <>
+            Question {progress.question_id} - 
+            Answer: {progress.answer || 'N/A'}, 
+            Correct: {progress.is_right ? 'Yes' : 'No'}, 
+            Time: {progress.seconds_to_answer || 'N/A'}s
+          </>
+        ) : (
+          'Waiting for first answer'
+        )}
+      </div>
+    ));
   };
 
   return (
     <div>
-      <h2>Kahoot</h2>
+      <h2>Kahoot Instructor View</h2>
       {!isConnected ? (
         <div>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
-          />
           <input
             type="text"
             value={roomName}
@@ -199,28 +157,10 @@ export default function Kahoot({
       ) : (
         <>
           <p>Connected to room: {roomName}</p>
-          {studentProgress && (
-            <>
-            <div>student: {studentProgress.student_id} is on question: {studentProgress.question_number}</div>
-            </>
-          )}
-          {/* <div>
+          <div>
+            <h3>Student Progress:</h3>
+            {renderStudentProgress()}
           </div>
-          {question && (
-            <div>
-              <h3>Current Question:</h3>
-              <p>{question.text}</p>
-              {isAnswered && (
-                <button onClick={() => nextQuestion()}>Next Question</button>
-              )}
-              {!isAnswered && (
-                <button onClick={() => handleAnswer()}>Answer</button>
-              )}
-            </div>
-          )}
-          {!question && (
-            <button onClick={() => startModule()}>start module</button>
-          )} */}
         </>
       )}
     </div>

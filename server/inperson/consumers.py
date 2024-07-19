@@ -6,7 +6,7 @@ import os
 from channels.db import database_sync_to_async
 import requests
 from urllib.parse import parse_qs
-from heu.models import CustomUser, HardCodedModule, Question, HardCodedQuestionCounter
+from heu.models import CustomUser, HardCodedModule, Question, HardCodedQuestionCounter, HardCodedStudentProgress
 from django.forms.models import model_to_dict
 
 # Create a Redis connection using the configuration from settings
@@ -514,6 +514,320 @@ redis_client = redis.Redis.from_url(f"rediss://:{REDIS_PASSWORD}@db-redis-nyc3-8
 #     def is_instructor(self, user):
 #         # Implement your logic to determine if a user is an instructor
 #         return user.groups.filter(name='Instructor').exists() # will need to change this to be for this specific location
+# class KahootLikeConsumer(AsyncWebsocketConsumer):
+#     async def connect(self):
+#         self.room_name = self.scope['url_route']['kwargs']['room_name']
+#         self.room_group_name = f'kahoot_{self.room_name}'
+#         self.instructor_room_group_name = f'kahoot_instructor_{self.room_name}'
+        
+#         self.user = self.scope['user']
+#         self.is_instructor = await self.get_is_instructor(self.user)
+
+#         await self.accept()
+
+#         if self.is_instructor:
+#             print("instructor")
+#             await self.channel_layer.group_add(
+#                 self.instructor_room_group_name,
+#                 self.channel_name
+#             )
+#         else:
+#             print("student")
+#             await self.channel_layer.group_add(
+#                 self.room_group_name,
+#                 self.channel_name
+#             )
+#             # Initialize or get the student's progress
+#             # self.progress = await self.get_or_create_progress()
+#             # Send the current question to the student
+#             # print("starting module")
+#             # await self.start_module()
+#             # await self.send_current_question()
+
+#     async def disconnect(self, close_code):
+#         if self.is_instructor:
+#             await self.channel_layer.group_discard(
+#                 self.instructor_room_group_name,
+#                 self.channel_name
+#             )
+#         else:
+#             await self.channel_layer.group_discard(
+#                 self.room_group_name,
+#                 self.channel_name
+#             )
+
+#     async def receive(self, text_data):
+#         data = json.loads(text_data)
+#         message_type = data.get('type')
+#         # print(data)
+#         if message_type == 'start_module':
+#             print("starting module")
+#             await self.start_module()
+#             await self.update_instructor(1)
+#         elif message_type == 'next_question':
+#             print(data)
+#             await self.advance_question(data.get('number'))
+#             await self.update_instructor(data.get('number') + 1)
+#         elif message_type == "student_progress":
+#             print("student progress update")
+#             # print(data)
+#             # if not self.is_instructor:
+#                 # await self.get_next_question()
+#             # else:
+#                 # print("instructor")
+             
+#     async def start_module(self):
+#         question = await self.get_next_question(1, 1)
+#         await self.send(
+#             text_data=json.dumps({
+#                 "type": "question",
+#                 "question": question,
+#             })
+#         )
+
+#     async def advance_question(self, prev_question_number):
+#         # save the question, presumably
+#         prev_question_number += 1
+#         question = await self.get_next_question(1, prev_question_number)
+#         await self.send(
+#             text_data=json.dumps({
+#                 "type": "question",
+#                 "question": question,
+#             })
+#         )
+
+
+#     async def send_current_question(self):
+#         # print("current question")
+#         # question = await self.get_question(self.progress.current_question_id)
+#         # question = {"text": "asdf", "options": "asd;lfjas;dlfjasdf"}
+
+#         question = await self.get_question(0)
+#         if question:
+#             await self.send(text_data=json.dumps({
+#                 'type': 'question',
+#                 'question': question['text'],
+#                 'options': question['options']
+#             }))
+#         else:
+#             await self.send(text_data=json.dumps({
+#                 'type': 'quiz_completed'
+#             }))
+            
+#     @database_sync_to_async
+#     def get_next_question(self, module_number=0, question_number=0):
+#         module = HardCodedModule.objects.all().first() # as it stands, this module number is also, conviently, the id, this will need to change
+#         question_counter = module.questions.get(order=question_number)
+#         question = question_counter.question
+
+#         # Convert the Question object to a dictionary
+#         question_dict = model_to_dict(question)
+
+#         # You can add or remove fields as needed
+#         serialized_question = {
+#             # 'id': question.id,
+#             'number': question_number,
+#             'text': question.text,  
+#             'json': question.json# Assuming your Question model has a 'text' field
+#             # Add any other fields you need
+#         }
+
+#         print(f"Serialized question: {json.dumps(serialized_question)}")
+#         return serialized_question
+
+#     async def update_instructor(self, question_number):
+#         await self.channel_layer.group_send(
+#             self.instructor_room_group_name,
+#             {
+#                 'type': 'student_progress',
+#                 'student_id': self.user.id,
+#                 'question_number': question_number
+#                 # 'question_id': self.progress.current_question_id,
+#                 # 'question_number': self.progress.question_number
+#             }
+#         )
+
+#     async def student_progress(self, event):
+#         await self.send(text_data=json.dumps({
+#             'type': 'student_progress',
+#             'student_id': event['student_id'],
+#             'question_number': event['question_number']
+#         }))
+#     # async def student_progress(self, event):
+#     #     await self.send(text_data=json.dumps({
+#     #         'type': 'student_progress',
+#     #         'student_id': event['student_id'],
+#     #         'question_id': event['question_id'],
+#     #         'question_number': event['question_number']
+#     #     }))
+
+#     @database_sync_to_async
+#     def get_is_instructor(self, user):
+#         cu = CustomUser.objects.get(user_id=self.scope['user'].id)
+#         if cu.user_type == "in":
+#             return True
+#         return False
+
+#     # @database_sync_to_async
+#     # def get_or_create_progress(self):
+#     #     progress, created = StudentProgress.objects.get_or_create(
+#     #         student=self.user,
+#     #         room_name=self.room_name
+#     #     )
+#     #     if created:
+#     #         # Assign a QuestionSet to the student if it's their first time
+#     #         question_set = QuestionSet.objects.filter(room_name=self.room_name).order_by('?').first()
+#     #         progress.question_set = question_set
+#     #         progress.save()
+#     #     return progress
+
+#     # @database_sync_to_async
+#     # def save_progress(self):
+#     #     self.progress.question_number = F('question_number') + 1
+#     #     self.progress.save()
+
+#     @database_sync_to_async
+#     def get_question(self, question_id):
+#         return {"asdf"}
+#         # return Question.objects.filter(id=question_id, question_set=self.progress.question_set).first()
+
+#     @database_sync_to_async
+#     def get_next_question_from_db(self):
+#         return "question"
+#         # return Question.objects.filter(
+#         #     question_set=self.progress.question_set,
+#         #     id__gt=self.progress.current_question_id
+#         # ).order_by('id').first()
+
+# class KahootLikeConsumer(AsyncWebsocketConsumer):
+#     async def connect(self):
+#         self.room_name = self.scope['url_route']['kwargs']['room_name']
+#         self.room_group_name = f'kahoot_{self.room_name}'
+#         self.instructor_room_group_name = f'kahoot_instructor_{self.room_name}'
+        
+#         self.user = self.scope['user']
+#         self.is_instructor = await self.get_is_instructor(self.user)
+
+#         await self.accept()
+
+#         if self.is_instructor:
+#             await self.channel_layer.group_add(
+#                 self.instructor_room_group_name,
+#                 self.channel_name
+#             )
+#             # Send a message to inform the client that they are an instructor
+#             await self.send(text_data=json.dumps({
+#                 'type': 'is_instructor',
+#                 'is_instructor': True
+#             }))
+#         else:
+#             await self.channel_layer.group_add(
+#                 self.room_group_name,
+#                 self.channel_name
+#             )
+
+#     async def disconnect(self, close_code):
+#         if self.is_instructor:
+#             await self.channel_layer.group_discard(
+#                 self.instructor_room_group_name,
+#                 self.channel_name
+#             )
+#         else:
+#             await self.channel_layer.group_discard(
+#                 self.room_group_name,
+#                 self.channel_name
+#             )
+
+#     async def receive(self, text_data):
+#         data = json.loads(text_data)
+#         message_type = data.get('type')
+
+#         if message_type == 'start_module':
+#             await self.start_module()
+#             await self.update_instructor(1)
+#         elif message_type == 'next_question':
+#             await self.advance_question(data.get('number'))
+#             await self.update_instructor(data.get('number') + 1)
+#         elif message_type == "student_progress":
+#             await self.update_instructor(data.get('question_number'))
+#         elif message_type == 'get_initial_progress':
+#             if self.is_instructor:
+#                 await self.send_initial_progress()
+
+#     async def start_module(self):
+#         question = await self.get_next_question(1, 1)
+#         await self.send(
+#             text_data=json.dumps({
+#                 "type": "question",
+#                 "question": question,
+#             })
+#         )
+
+#     async def advance_question(self, prev_question_number):
+#         prev_question_number += 1
+#         question = await self.get_next_question(1, prev_question_number)
+#         await self.send(
+#             text_data=json.dumps({
+#                 "type": "question",
+#                 "question": question,
+#             })
+#         )
+
+#     @database_sync_to_async
+#     def get_next_question(self, module_number=0, question_number=0):
+#         module = HardCodedModule.objects.all().first()
+#         question_counter = module.questions.get(order=question_number)
+#         question = question_counter.question
+
+#         serialized_question = {
+#             'number': question_number,
+#             'text': question.text,
+#             'json': question.json
+#         }
+
+#         return serialized_question
+
+#     async def update_instructor(self, question_number):
+#         await self.channel_layer.group_send(
+#             self.instructor_room_group_name,
+#             {
+#                 'type': 'student_progress',
+#                 'student_id': self.user.id,
+#                 'question_number': question_number
+#             }
+#         )
+
+#     async def student_progress(self, event):
+#         await self.send(text_data=json.dumps({
+#             'type': 'student_progress',
+#             'student_id': event['student_id'],
+#             'question_number': event['question_number']
+#         }))
+
+#     @database_sync_to_async
+#     def get_is_instructor(self, user):
+#         cu = CustomUser.objects.get(user_id=self.scope['user'].id)
+#         return cu.user_type == "in"
+
+#     async def send_initial_progress(self):
+#         # This method should retrieve all current student progress and send it to the instructor
+#         progress = await self.get_all_student_progress()
+#         await self.send(text_data=json.dumps({
+#             'type': 'initial_progress',
+#             'progress': progress
+#         }))
+
+#     @database_sync_to_async
+#     def get_all_student_progress(self):
+#         # This method should return a dictionary of all student progress
+#         # You'll need to implement this based on your data model
+#         # For example:
+#         # return {student.id: {'student_id': student.id, 'question_number': student.current_question_number}
+#         #         for student in StudentProgress.objects.filter(room_name=self.room_name)}
+        
+#         # For now, we'll return an empty dict. You should replace this with actual data retrieval.
+#         return {}
+
 class KahootLikeConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -531,18 +845,18 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
                 self.instructor_room_group_name,
                 self.channel_name
             )
+            # Send initial progress to instructor
+            progress = await self.get_all_student_progress()
+            await self.send(text_data=json.dumps({
+                'type': 'initial_progress',
+                'progress': progress
+            }))
         else:
             print("student")
             await self.channel_layer.group_add(
                 self.room_group_name,
                 self.channel_name
             )
-            # Initialize or get the student's progress
-            # self.progress = await self.get_or_create_progress()
-            # Send the current question to the student
-            # print("starting module")
-            # await self.start_module()
-            # await self.send_current_question()
 
     async def disconnect(self, close_code):
         if self.is_instructor:
@@ -559,23 +873,49 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message_type = data.get('type')
-        # print(data)
+
         if message_type == 'start_module':
-            print("starting module")
             await self.start_module()
-            await self.update_instructor(1)
+            await self.update_instructor_initial()
         elif message_type == 'next_question':
-            print(data)
             await self.advance_question(data.get('number'))
-            await self.update_instructor(data.get('number') + 1)
-        elif message_type == "student_progress":
-            print("student progress update")
-            # print(data)
-            # if not self.is_instructor:
-                # await self.get_next_question()
-            # else:
-                # print("instructor")
-             
+            await self.update_instructor(data.get('correct'), data.get('time'), data.get('question'), data.get('answer'))
+            await self.save_answer(data.get('correct'), data.get('time'), data.get('question'), data.get('answer'))
+        elif message_type == 'get_initial_progress':
+            progress = await self.get_all_student_progress()
+            await self.send(text_data=json.dumps({
+                'type': 'initial_progress',
+                'progress': progress
+            }))
+
+    async def update_instructor(self, correct: bool, time: int, question: dict, answer: str):
+        await self.channel_layer.group_send(
+            self.instructor_room_group_name,
+            {
+                'type': 'student_progress',
+                'student_id': self.scope['user'].id,
+                'question_id': question['id'],
+                'answer': answer,
+                'is_right': correct,
+                'seconds_to_answer': time
+            }
+        )
+
+    async def student_progress(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'student_progress',
+            'student_id': event['student_id'],
+            'question_id': event['question_id'],
+            'answer': event['answer'],
+            'is_right': event['is_right'],
+            'seconds_to_answer': event['seconds_to_answer']
+        }))
+
+    async def initial_progress(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'initial_progress',
+            'progress': event['progress']
+        }))
     async def start_module(self):
         question = await self.get_next_question(1, 1)
         await self.send(
@@ -586,7 +926,6 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
         )
 
     async def advance_question(self, prev_question_number):
-        # save the question, presumably
         prev_question_number += 1
         question = await self.get_next_question(1, prev_question_number)
         await self.send(
@@ -596,105 +935,118 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
             })
         )
 
-
-    async def send_current_question(self):
-        # print("current question")
-        # question = await self.get_question(self.progress.current_question_id)
-        # question = {"text": "asdf", "options": "asd;lfjas;dlfjasdf"}
-
-        question = await self.get_question(0)
-        if question:
-            await self.send(text_data=json.dumps({
-                'type': 'question',
-                'question': question['text'],
-                'options': question['options']
-            }))
-        else:
-            await self.send(text_data=json.dumps({
-                'type': 'quiz_completed'
-            }))
-            
     @database_sync_to_async
     def get_next_question(self, module_number=0, question_number=0):
-        module = HardCodedModule.objects.all().first() # as it stands, this module number is also, conviently, the id, this will need to change
+        module = HardCodedModule.objects.all().first()
         question_counter = module.questions.get(order=question_number)
         question = question_counter.question
-
-        # Convert the Question object to a dictionary
-        question_dict = model_to_dict(question)
-
-        # You can add or remove fields as needed
         serialized_question = {
-            # 'id': question.id,
             'number': question_number,
-            'text': question.text,  
-            'json': question.json# Assuming your Question model has a 'text' field
-            # Add any other fields you need
+            'id': question.pk,
+            'text': question.text,
+            'json': question.json
         }
 
-        print(f"Serialized question: {json.dumps(serialized_question)}")
         return serialized_question
 
-    async def update_instructor(self, question_number):
+    async def update_instructor_initial(self):
         await self.channel_layer.group_send(
-            self.instructor_room_group_name,
-            {
-                'type': 'student_progress',
-                'student_id': self.user.id,
-                'question_number': question_number
-                # 'question_id': self.progress.current_question_id,
-                # 'question_number': self.progress.question_number
-            }
-        )
+                    self.instructor_room_group_name,
+                    {
+                        'type': 'initial_progress',
+                        'student_id': self.scope['user'].id,
+                        # 'question_id': question.pk,
+                        # 'answer': answer,
+                        # 'is_right': correct,
+                        # 'seconds_to_answer': time
+                    }
+            )
+        
+    # async def update_instructor(self, correct: bool, time: int, question: dict, answer: str):
+    #     # await self.save_student_progress(self.user.id, question_number)
+    #     await self.channel_layer.group_send(
+    #         self.instructor_room_group_name,
+    #         {
+    #             'type': 'student_progress',
+    #             'student_id': self.scope['user'].id,
+    #             'question_id': question['id'],
+    #             'answer': answer,
+    #             'is_right': correct,
+    #             'seconds_to_answer': time
+    #         }
+    #     )
 
-    async def student_progress(self, event):
-        await self.send(text_data=json.dumps({
-            'type': 'student_progress',
-            'student_id': event['student_id'],
-            'question_number': event['question_number']
-        }))
     # async def student_progress(self, event):
     #     await self.send(text_data=json.dumps({
     #         'type': 'student_progress',
     #         'student_id': event['student_id'],
-    #         'question_id': event['question_id'],
     #         'question_number': event['question_number']
     #     }))
 
     @database_sync_to_async
     def get_is_instructor(self, user):
         cu = CustomUser.objects.get(user_id=self.scope['user'].id)
-        if cu.user_type == "in":
-            return True
-        return False
+        return cu.user_type == "in"
 
-    # @database_sync_to_async
-    # def get_or_create_progress(self):
-    #     progress, created = StudentProgress.objects.get_or_create(
-    #         student=self.user,
-    #         room_name=self.room_name
-    #     )
-    #     if created:
-    #         # Assign a QuestionSet to the student if it's their first time
-    #         question_set = QuestionSet.objects.filter(room_name=self.room_name).order_by('?').first()
-    #         progress.question_set = question_set
-    #         progress.save()
-    #     return progress
+    @sync_to_async
+    def save_student_progress(self, correct: bool, time: int, question: dict, answer: str):
+        # redis_key = f'student_progress:{self.room_name}'
+        # redis_client.hset(redis_key, student_id, json.dumps({
+        #     'student_id': student_id,
+        #     'question_number': question_number
+        # }))
+        redis_key = f'student_progress:{self.room_name}'
+        existing_data = redis_client.hget(redis_key, self.scope['user'].id)
+        if existing_data:
+            progress_data = json.loads(existing_data.decode())
+            progress_data.update({
+                'question_id': question['id'],
+                'answer': answer,
+                'is_right': correct,
+                'seconds_to_answer': time
+            })
+        else:
+            progress_data = {
+                'student_id': self.scope['user'].id,
+                'question_id': question['id'],
+                'answer': answer,
+                'is_right': correct,
+                'seconds_to_answer': time
+            }
+        redis_client.hset(redis_key, self.scope['user'].id, json.dumps(progress_data))
 
-    # @database_sync_to_async
-    # def save_progress(self):
-    #     self.progress.question_number = F('question_number') + 1
-    #     self.progress.save()
 
-    @database_sync_to_async
-    def get_question(self, question_id):
-        return {"asdf"}
-        # return Question.objects.filter(id=question_id, question_set=self.progress.question_set).first()
+    @sync_to_async
+    def get_all_student_progress(self):
+        redis_key = f'student_progress:{self.room_name}'
+        progress_data = redis_client.hgetall(redis_key)
+        return {k.decode(): json.loads(v.decode()) for k, v in progress_data.items()}
 
-    @database_sync_to_async
-    def get_next_question_from_db(self):
-        return "question"
-        # return Question.objects.filter(
-        #     question_set=self.progress.question_set,
-        #     id__gt=self.progress.current_question_id
-        # ).order_by('id').first()
+
+    @sync_to_async
+    def save_answer(self, correct: bool, time: int, question: dict, answer: str):
+        # Get or create the Question object
+        question_obj, _ = Question.objects.get_or_create(pk=question['id'])
+        # Get or create the HardCodedStudentProgress object
+        cu = CustomUser.objects.get(user_id=self.scope['user'].id)
+        progress, created = HardCodedStudentProgress.objects.get_or_create(
+            student=cu,
+            question=question_obj,
+            defaults={
+                'answer': answer,
+                'isRight': correct,
+                'secondsToAnswer': time
+            }
+        )
+
+        if not created:
+            # If the object already existed, update its fields
+            progress.answer = answer
+            progress.isRight = correct
+            progress.secondsToAnswer = time
+            progress.save()
+
+        return progress
+
+
+

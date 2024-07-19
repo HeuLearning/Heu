@@ -10,6 +10,7 @@ interface ChatMessage {
 }
 
 interface Question {
+  id: string;
   text: string;
   number: number;
   json: {}
@@ -51,7 +52,10 @@ export default function Kahoot({
   const [question, setQuestion] = useState<Question>(null);
   const [isAnswered, setIsAnswered] = useState<Boolean>(false);
   const [correct, setCorrect] = useState<Boolean>(false);
-  const [questionNumber, setQuestionNumber] = useState<Number>(null);
+  const [questionNumber, setQuestionNumber] = useState<number>(null);
+  const [answer, setAnswer] = useState<String>('');
+  const [startTime, setStartTime] = useState<number>(0);
+  const [time, setTime] = useState<number>(0);
 
   const connectWebSocket = useCallback(() => {
     if (!roomName) {
@@ -78,10 +82,12 @@ export default function Kahoot({
           setChatMessages(prevMessages => [...prevMessages, { username: data.username, message: data.message }]);
           break;
         case 'question':
+          setStartTime(Date.now());
           setQuestion(data.question);
           setIsAnswered(false);
           setCorrect(false);
           setQuestionNumber(data.question.number);
+          setAnswer('');
           break;
         case 'module_started':
           console.log('Module started:', data.module_id);
@@ -158,7 +164,10 @@ export default function Kahoot({
     }
   }
 
-  const handleAnswer = () => {
+  const handleAnswer = (answer: String = "temp answer") => {
+    const time = Date.now() - startTime;
+    setTime(time);
+    setAnswer(answer);
     setIsAnswered(true);
     setCorrect(true); // will need to do some calculation here to find whether the answer is correct or not
   }
@@ -169,7 +178,11 @@ export default function Kahoot({
         type: 'next_question',
         correct: correct,
         number: questionNumber,
+        time: time,
+        question: question,
+        answer: answer,
       };
+      console.log(JSON.stringify(messageData));
       socket.send(JSON.stringify(messageData));
     } else {
       console.log('Cannot request next question. Check connection.');

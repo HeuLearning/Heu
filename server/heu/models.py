@@ -159,3 +159,9 @@ class HardCodedModule(models.Model):
     questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
 
 
+class HardCodedStudentProgress(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer = models.TextField(blank=True, null=True) # maybe shouldn't be null or blank
+    isRight = models.BooleanField(blank=False, default=False)
+    secondsToAnswer = models.IntegerField(blank=False)
