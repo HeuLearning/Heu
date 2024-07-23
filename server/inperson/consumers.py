@@ -829,6 +829,35 @@ redis_client = redis.Redis.from_url(f"rediss://:{REDIS_PASSWORD}@db-redis-nyc3-8
 #         return {}
 
 class KahootLikeConsumer(AsyncWebsocketConsumer):
+    # async def connect(self):
+    #     self.room_name = self.scope['url_route']['kwargs']['room_name']
+    #     self.room_group_name = f'kahoot_{self.room_name}'
+    #     self.instructor_room_group_name = f'kahoot_instructor_{self.room_name}'
+        
+    #     self.user = self.scope['user']
+    #     self.is_instructor = await self.get_is_instructor(self.user)
+
+    #     await self.accept()
+
+    #     if self.is_instructor:
+    #         print("instructor")
+    #         await self.channel_layer.group_add(
+    #             self.instructor_room_group_name,
+    #             self.channel_name
+    #         )
+    #         # Send initial progress to instructor
+    #         progress = await self.get_all_student_progress()
+    #         await self.send(text_data=json.dumps({
+    #             'type': 'initial_progress',
+    #             'progress': progress
+    #         }))
+    #     else:
+    #         print("student")
+    #         await self.channel_layer.group_add(
+    #             self.room_group_name,
+    #             self.channel_name
+    #         )
+
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'kahoot_{self.room_name}'
@@ -857,6 +886,58 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 self.channel_name
             )
+            # Record student's presence
+            await self.record_student_presence()
+            # Notify instructor of new student
+            await self.notify_instructor_new_student()
+
+    async def record_student_presence(self):
+        await self.save_student_progress(enrolled=True)
+
+    async def notify_instructor_new_student(self):
+        await self.channel_layer.group_send(
+            self.instructor_room_group_name,
+            {
+                'type': 'student_joined',
+                'student_id': self.scope['user'].id
+            }
+        )
+
+    async def student_joined(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'student_joined',
+            'student_id': event['student_id']
+        }))
+
+    @sync_to_async
+    def save_student_progress(self, enrolled=None, started=None, correct=None, time=None, question=None, answer=None):
+        redis_key = f'student_progress:{self.room_name}'
+        existing_data = redis_client.hget(redis_key, str(self.scope['user'].id))
+        if existing_data:
+            progress_data = json.loads(existing_data.decode())
+        else:
+            progress_data = {
+                'student_id': str(self.scope['user'].id),
+                'enrolled': False,
+                'started': False
+            }
+        
+        if enrolled is not None:
+            progress_data['enrolled'] = enrolled
+        
+        if started is not None:
+            progress_data['started'] = started
+        
+        if question is not None:
+            progress_data.update({
+                'question_id': question['id'],
+                'answer': answer,
+                'is_right': correct,
+                'seconds_to_answer': time
+            })
+        
+        redis_client.hset(redis_key, str(self.scope['user'].id), json.dumps(progress_data))
+
 
     async def disconnect(self, close_code):
         if self.is_instructor:
@@ -876,7 +957,7 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
 
         if message_type == 'start_module':
             await self.start_module()
-            await self.update_instructor_initial()
+            await self.update_instructor_start_module()
         elif message_type == 'next_question':
             await self.advance_question(data.get('number'))
             await self.update_instructor(data.get('correct'), data.get('time'), data.get('question'), data.get('answer'))
@@ -914,8 +995,9 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
     async def initial_progress(self, event):
         await self.send(text_data=json.dumps({
             'type': 'initial_progress',
-            'progress': event['progress']
+            'progress': event.get('progress', {})
         }))
+
     async def start_module(self):
         question = await self.get_next_question(1, 1)
         await self.send(
@@ -924,6 +1006,22 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
                 "question": question,
             })
         )
+
+    async def update_instructor_start_module(self):
+        await self.channel_layer.group_send(
+            self.instructor_room_group_name,
+            {
+                'type': 'student_started_module',
+                'student_id': str(self.scope['user'].id)
+            }
+        )
+
+    async def student_started_module(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'student_started_module',
+            'student_id': event['student_id']
+        }))
+
 
     async def advance_question(self, prev_question_number):
         prev_question_number += 1
@@ -950,6 +1048,7 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
         return serialized_question
 
     async def update_instructor_initial(self):
+        print("inital information for the instructor")
         await self.channel_layer.group_send(
                     self.instructor_room_group_name,
                     {
@@ -988,32 +1087,32 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
         cu = CustomUser.objects.get(user_id=self.scope['user'].id)
         return cu.user_type == "in"
 
-    @sync_to_async
-    def save_student_progress(self, correct: bool, time: int, question: dict, answer: str):
-        # redis_key = f'student_progress:{self.room_name}'
-        # redis_client.hset(redis_key, student_id, json.dumps({
-        #     'student_id': student_id,
-        #     'question_number': question_number
-        # }))
-        redis_key = f'student_progress:{self.room_name}'
-        existing_data = redis_client.hget(redis_key, self.scope['user'].id)
-        if existing_data:
-            progress_data = json.loads(existing_data.decode())
-            progress_data.update({
-                'question_id': question['id'],
-                'answer': answer,
-                'is_right': correct,
-                'seconds_to_answer': time
-            })
-        else:
-            progress_data = {
-                'student_id': self.scope['user'].id,
-                'question_id': question['id'],
-                'answer': answer,
-                'is_right': correct,
-                'seconds_to_answer': time
-            }
-        redis_client.hset(redis_key, self.scope['user'].id, json.dumps(progress_data))
+    # @sync_to_async
+    # def save_student_progress(self, correct: bool, time: int, question: dict, answer: str):
+    #     # redis_key = f'student_progress:{self.room_name}'
+    #     # redis_client.hset(redis_key, student_id, json.dumps({
+    #     #     'student_id': student_id,
+    #     #     'question_number': question_number
+    #     # }))
+    #     redis_key = f'student_progress:{self.room_name}'
+    #     existing_data = redis_client.hget(redis_key, self.scope['user'].id)
+    #     if existing_data:
+    #         progress_data = json.loads(existing_data.decode())
+    #         progress_data.update({
+    #             'question_id': question['id'],
+    #             'answer': answer,
+    #             'is_right': correct,
+    #             'seconds_to_answer': time
+    #         })
+    #     else:
+    #         progress_data = {
+    #             'student_id': self.scope['user'].id,
+    #             'question_id': question['id'],
+    #             'answer': answer,
+    #             'is_right': correct,
+    #             'seconds_to_answer': time
+    #         }
+    #     redis_client.hset(redis_key, self.scope['user'].id, json.dumps(progress_data))
 
 
     @sync_to_async
