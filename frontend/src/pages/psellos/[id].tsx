@@ -1,10 +1,10 @@
 import React from "react";
 import { useText } from "../api/services/use-text";
-import { useRouter } from 'next/router';
-import { withPageAuthRequired } from '@auth0/nextjs-auth0';
+import { useRouter } from "next/router";
+import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import Head from "next/head";
-import Header from "components/header";
-import styles from "../../styles/text.module.css"
+import Header from "components/landing_page/header";
+import styles from "../../styles/text.module.css";
 import { useState } from "react";
 import type { SuggestionModel } from "models/suggestion-model";
 import Suggestion from "components/suggestion";
@@ -19,15 +19,15 @@ import PaginationFooter from "components/navigation/pagination-footer";
 import { type PotentialSuggestionModel } from "models/potential-suggestion-model";
 import Search from "components/search";
 import { type ScreensModel } from "models/screens-model";
-import { CustomButton } from "../../../components/buttons/custom-button"
+import { CustomButton } from "../../../components/buttons/custom-button";
 import { type WordProbabilityModel } from "models/WordProbabilityModel";
 
 export default function SingleText() {
   const screens: ScreensModel = {
-    generate: 'GENERATE_SUGGESTIONS',
-    view: 'VIEW_SUGGESTIONS',
-    search: 'SEARCH_TEXT',
-  }
+    generate: "GENERATE_SUGGESTIONS",
+    view: "VIEW_SUGGESTIONS",
+    search: "SEARCH_TEXT",
+  };
   const [screen, setScreen] = useState<string>(screens.generate);
   const [maskedWords, setMaskedWords] = useState<Array<WordIndex>>([]);
   const [maskedIndices, setMaskedIndices] = useState<Array<number>>([]);
@@ -37,11 +37,10 @@ export default function SingleText() {
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
   const id = router.query.id;
-  const [potentialSuggestion, setPotentialSuggestion] = useState<PotentialSuggestionModel>();
+  const [potentialSuggestion, setPotentialSuggestion] =
+    useState<PotentialSuggestionModel>();
 
-
- 
-  const getSuggestion = async ():Promise<PotentialSuggestionModel | void> => {
+  const getSuggestion = async (): Promise<PotentialSuggestionModel | void> => {
     if (maskedWords.length === 0) {
       window.alert("Must Select Words");
       return;
@@ -59,10 +58,12 @@ export default function SingleText() {
         words: maskedWords,
         text_id: id,
         chunk: chunk,
-        numTokens: numTokens
-      }
+        numTokens: numTokens,
+      },
     };
-    const response: AxiosResponse<PotentialSuggestionModel> = await axios(config);
+    const response: AxiosResponse<PotentialSuggestionModel> = await axios(
+      config
+    );
     const { data } = response;
     setPotentialSuggestion(data);
     // console.log(data)
@@ -78,11 +79,12 @@ export default function SingleText() {
     //   //   id: router.query.id
     //   // }
     // });
-  }
+  };
 
-
-  const saveSuggestion = async (suggestion: WordProbabilityModel):Promise<string> => {
-    const words = maskedWords.map(wordIndex =>  wordIndex.word);
+  const saveSuggestion = async (
+    suggestion: WordProbabilityModel
+  ): Promise<string> => {
+    const words = maskedWords.map((wordIndex) => wordIndex.word);
     const start_index = maskedWords[0]?.index;
     const end_index = maskedWords[maskedWords.length - 1]?.index;
 
@@ -98,19 +100,18 @@ export default function SingleText() {
         start_index: start_index,
         end_index: end_index,
         chunk: chunk,
-        suggestion: suggestion
-      }
+        suggestion: suggestion,
+      },
     };
     const response: AxiosResponse<string> = await axios(config);
     const { data } = response;
-    window.alert('Suggestion Saved');
+    window.alert("Suggestion Saved");
     setMaskedWords([]);
     setMaskedIndices([]);
     setScreen(screens.view);
     // console.log(data)
     return data;
-  }
-
+  };
 
   const maskWord = (word: string, index: number) => {
     // const tempMaskedWord: WordIndex = {
@@ -118,33 +119,32 @@ export default function SingleText() {
     //   word: props.word
     // }
     if (maskedWords.length === 0) {
-      setMaskedWords([{word, index}]);
+      setMaskedWords([{ word, index }]);
       setMaskedIndices([index]);
       return;
-    }  
-    const lastWord : WordIndex = maskedWords[maskedWords.length - 1];
-    const firstWord : WordIndex = maskedWords[0];
-    if (index === (lastWord.index + 1)) {
+    }
+    const lastWord: WordIndex = maskedWords[maskedWords.length - 1];
+    const firstWord: WordIndex = maskedWords[0];
+    if (index === lastWord.index + 1) {
       const tempMaskedWords: Array<WordIndex> = maskedWords;
-      tempMaskedWords.push({word, index});
+      tempMaskedWords.push({ word, index });
       setMaskedWords([...tempMaskedWords]);
       setMaskedIndices([...maskedIndices, index]);
       return;
     }
-    if (index === (firstWord.index - 1)) {
+    if (index === firstWord.index - 1) {
       const tempMaskedWords: Array<WordIndex> = maskedWords;
-      tempMaskedWords.unshift({word, index});
+      tempMaskedWords.unshift({ word, index });
       setMaskedWords([...tempMaskedWords]);
       setMaskedIndices([index, ...maskedIndices]);
       return;
     }
     window.alert("Words For Suggestion Be Kept Consecutive");
-  } 
-
+  };
 
   const unMaskWord = (word: string, index: number) => {
-    const lastWord : WordIndex = maskedWords[maskedWords.length - 1];
-    const firstWord : WordIndex = maskedWords[0];
+    const lastWord: WordIndex = maskedWords[maskedWords.length - 1];
+    const firstWord: WordIndex = maskedWords[0];
     if (maskedIndices.length === 1) {
       setMaskedIndices([]);
       setMaskedWords([]);
@@ -162,16 +162,15 @@ export default function SingleText() {
     if (firstWord.index === index) {
       const tempMaskedWords = maskedWords;
       tempMaskedWords.shift();
-      setMaskedWords([...tempMaskedWords])
+      setMaskedWords([...tempMaskedWords]);
       const tempMaskedIndices = maskedIndices;
       tempMaskedIndices.shift();
       setMaskedIndices(tempMaskedIndices);
-    } 
+    }
     window.alert("Words For Suggestion Be Kept Consecutive");
-  }
+  };
 
   const { text } = useText({
-
     url: `/api/data/text`,
     method: "POST",
     headers: {
@@ -179,21 +178,31 @@ export default function SingleText() {
     },
     data: {
       id: router.query.id,
-      chunk: chunk
-    }
+      chunk: chunk,
+    },
   });
 
   if (screen === screens.search) {
     return (
       <>
-      <Head>Logion</Head>
-      <Header/>
-      <div className={styles.screenContainer}>
-        <div className={styles.screenBackButtonContainer}>
-          <CustomButton onClick={() => {setScreen(screens.view)}} text='Back'></CustomButton>
+        <Head>Logion</Head>
+        <Header />
+        <div className={styles.screenContainer}>
+          <div className={styles.screenBackButtonContainer}>
+            <CustomButton
+              onClick={() => {
+                setScreen(screens.view);
+              }}
+              text="Back"
+            ></CustomButton>
+          </div>
+          <Search
+            text_id={id}
+            setChunk={setChunk}
+            setScreen={setScreen}
+            screens={screens}
+          ></Search>
         </div>
-        <Search text_id={id} setChunk={setChunk} setScreen={setScreen} screens={screens}></Search>
-      </div>
       </>
     );
   }
@@ -202,101 +211,202 @@ export default function SingleText() {
     return (
       <>
         <Head>Logion</Head>
-        <Header/>
+        <Header />
         <div className={styles.textWithSuggestionsPanelContainer}>
           <div>
             {text && <div className={styles.workTitle}>{text[0].title}</div>}
             <div className={styles.buttonContainer}>
-              <CustomButton text='View Already Made Suggestions' onClick={() => {
-                setScreen(screens.view)
-                setMaskedWords([])
-              }}></CustomButton>
-              <CustomButton text='Search' onClick={() => {setScreen(screens.search)}}></CustomButton>
+              <CustomButton
+                text="View Already Made Suggestions"
+                onClick={() => {
+                  setScreen(screens.view);
+                  setMaskedWords([]);
+                }}
+              ></CustomButton>
+              <CustomButton
+                text="Search"
+                onClick={() => {
+                  setScreen(screens.search);
+                }}
+              ></CustomButton>
             </div>
-            {text &&  
-            <>
-              <PaginationFooter chunk={chunk} maxChunk={text[0].chunks} setChunk={setChunk}></PaginationFooter>
-              <div className={styles.textContainer}>{text && text[0].body.trim().split(/[\s]+/).map((word, index) => {
-                  return (
-                    <div key={index} className={styles.wordDiv}>
-                      <MaskableWord word={word} index={index} masked={maskedIndices.includes(index)} maskWord={maskWord} unMaskWord={unMaskWord}></MaskableWord>
-                    </div>
-                  );
-              })}
-              </div>
-            </>
-            }
+            {text && (
+              <>
+                <PaginationFooter
+                  chunk={chunk}
+                  maxChunk={text[0].chunks}
+                  setChunk={setChunk}
+                ></PaginationFooter>
+                <div className={styles.textContainer}>
+                  {text &&
+                    text[0].body
+                      .trim()
+                      .split(/[\s]+/)
+                      .map((word, index) => {
+                        return (
+                          <div key={index} className={styles.wordDiv}>
+                            <MaskableWord
+                              word={word}
+                              index={index}
+                              masked={maskedIndices.includes(index)}
+                              maskWord={maskWord}
+                              unMaskWord={unMaskWord}
+                            ></MaskableWord>
+                          </div>
+                        );
+                      })}
+                </div>
+              </>
+            )}
           </div>
-          {text && <MakeSuggestionPanel potentialSuggestion={potentialSuggestion} setNumTokens={setNumTokens} numTokens={numTokens} loading={loading} saveSuggestion={saveSuggestion} chunk={chunk} text_id={text[0].id} getSuggestion={getSuggestion} maskedWords={maskedWords} setMaskedWords={setMaskedWords} ></MakeSuggestionPanel>}
+          {text && (
+            <MakeSuggestionPanel
+              potentialSuggestion={potentialSuggestion}
+              setNumTokens={setNumTokens}
+              numTokens={numTokens}
+              loading={loading}
+              saveSuggestion={saveSuggestion}
+              chunk={chunk}
+              text_id={text[0].id}
+              getSuggestion={getSuggestion}
+              maskedWords={maskedWords}
+              setMaskedWords={setMaskedWords}
+            ></MakeSuggestionPanel>
+          )}
         </div>
-    </>
-    )
+      </>
+    );
   }
 
   // if (suggestions.length > 0) {
-    return (
+  return (
     <>
-        <Head>Logion</Head>
-        <Header/>
-        <div className={styles.textWithSuggestionsPanelContainer}>
-          <div>
-            {text && <div className={styles.workTitle}>{text[0].title}</div>}
-            <div className={styles.buttonContainer}>
-              <CustomButton onClick={() => {
-                setScreen(screens.generate)
-                setMaskedWords([])
-                }} text='Ask Logion For Your Own Suggestion'></CustomButton>
-                <CustomButton text='Search' onClick={() => {setScreen(screens.search)}}></CustomButton>
-            </div>
-            {text &&  
+      <Head>Logion</Head>
+      <Header />
+      <div className={styles.textWithSuggestionsPanelContainer}>
+        <div>
+          {text && <div className={styles.workTitle}>{text[0].title}</div>}
+          <div className={styles.buttonContainer}>
+            <CustomButton
+              onClick={() => {
+                setScreen(screens.generate);
+                setMaskedWords([]);
+              }}
+              text="Ask Logion For Your Own Suggestion"
+            ></CustomButton>
+            <CustomButton
+              text="Search"
+              onClick={() => {
+                setScreen(screens.search);
+              }}
+            ></CustomButton>
+          </div>
+          {text && (
             <>
-              <PaginationFooter chunk={chunk} maxChunk={text[0].chunks} setChunk={setChunk}></PaginationFooter>
-              <div className={styles.textContainer}>{text && text[0].body.trim().split(/[\s]+/).map((word, index) => {
-                  const suggestions : Array<SuggestionModel> = [];
-                  text[1].forEach((suggestion: SuggestionModel )=> {
-                    if (index <= suggestion.end_index && index >= suggestion.start_index) {
-                      suggestions.push(suggestion)
-                    }
-                  })
-                  if (suggestions.length > 0) return <Suggestion word={word} suggestions={suggestions} index={index} setSuggestions={setSuggestions}></Suggestion>
-                  return <div className={styles.wordDiv} key={index}>{word.trim()}</div>;
-              })}
+              <PaginationFooter
+                chunk={chunk}
+                maxChunk={text[0].chunks}
+                setChunk={setChunk}
+              ></PaginationFooter>
+              <div className={styles.textContainer}>
+                {text &&
+                  text[0].body
+                    .trim()
+                    .split(/[\s]+/)
+                    .map((word, index) => {
+                      const suggestions: Array<SuggestionModel> = [];
+                      text[1].forEach((suggestion: SuggestionModel) => {
+                        if (
+                          index <= suggestion.end_index &&
+                          index >= suggestion.start_index
+                        ) {
+                          suggestions.push(suggestion);
+                        }
+                      });
+                      if (suggestions.length > 0)
+                        return (
+                          <Suggestion
+                            word={word}
+                            suggestions={suggestions}
+                            index={index}
+                            setSuggestions={setSuggestions}
+                          ></Suggestion>
+                        );
+                      return (
+                        <div className={styles.wordDiv} key={index}>
+                          {word.trim()}
+                        </div>
+                      );
+                    })}
               </div>
             </>
-            }
-          </div>
-          {suggestions.length > 0 &&  <ViewSuggestionPanel suggestions={suggestions} setSuggestions={setSuggestions}></ViewSuggestionPanel>}
+          )}
         </div>
+        {suggestions.length > 0 && (
+          <ViewSuggestionPanel
+            suggestions={suggestions}
+            setSuggestions={setSuggestions}
+          ></ViewSuggestionPanel>
+        )}
+      </div>
     </>
-    )
+  );
   // }
 
   return (
-      <>
-        <Head>Logion</Head>
-        <Header/>
-        <div className={styles.textWithSuggestionsPanelContainer}>
-          {text && <div className={styles.workTitle}>{text[0].title}</div>}
-          <div className={styles.buttonContainer}>
-            <CustomButton onClick={() => {
-              setScreen(screens.generate)
-              setMaskedWords([])
-              }} text='Ask Logion For Your Own Suggestion'></CustomButton>
-              <CustomButton text='Search' onClick={() => {setScreen(screens.search)}}></CustomButton>
-          </div>
-          <div className={styles.textContainer}>{text && text[0].body.trim().split(/[\s]+/).map((word, index) => {
-              const suggestions : Array<SuggestionModel> = [];
-              text[1].forEach((suggestion: SuggestionModel )=> {
-                if (index <= suggestion.end_index && index >= suggestion.start_index) {
-                  suggestions.push(suggestion)
-                }
-              })
-              if (suggestions.length > 0) return <Suggestion word={word} suggestions={suggestions} index={index} setSuggestions={setSuggestions}></Suggestion>
-              return <div className={styles.wordDiv} key={index}>{word.trim()}</div>;
-          })}
-          </div>
+    <>
+      <Head>Logion</Head>
+      <Header />
+      <div className={styles.textWithSuggestionsPanelContainer}>
+        {text && <div className={styles.workTitle}>{text[0].title}</div>}
+        <div className={styles.buttonContainer}>
+          <CustomButton
+            onClick={() => {
+              setScreen(screens.generate);
+              setMaskedWords([]);
+            }}
+            text="Ask Logion For Your Own Suggestion"
+          ></CustomButton>
+          <CustomButton
+            text="Search"
+            onClick={() => {
+              setScreen(screens.search);
+            }}
+          ></CustomButton>
         </div>
-      </>
+        <div className={styles.textContainer}>
+          {text &&
+            text[0].body
+              .trim()
+              .split(/[\s]+/)
+              .map((word, index) => {
+                const suggestions: Array<SuggestionModel> = [];
+                text[1].forEach((suggestion: SuggestionModel) => {
+                  if (
+                    index <= suggestion.end_index &&
+                    index >= suggestion.start_index
+                  ) {
+                    suggestions.push(suggestion);
+                  }
+                });
+                if (suggestions.length > 0)
+                  return (
+                    <Suggestion
+                      word={word}
+                      suggestions={suggestions}
+                      index={index}
+                      setSuggestions={setSuggestions}
+                    ></Suggestion>
+                  );
+                return (
+                  <div className={styles.wordDiv} key={index}>
+                    {word.trim()}
+                  </div>
+                );
+              })}
+        </div>
+      </div>
+    </>
   );
 }
 
