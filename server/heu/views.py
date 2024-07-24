@@ -477,6 +477,8 @@ class UserSessionsView(APIView):
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
+                instructor_ids = session.instructors or []
+                instructors = CustomUser.objects.filter(user_id__in=instructor_ids).values('first_name', 'last_name')
                 return_ls.append({
                     "start_time": session.start_time,
                     "end_time": session.end_time,
@@ -487,6 +489,7 @@ class UserSessionsView(APIView):
                     "location": session.learning_organization_location.name,
                     "isEnrolled": user_id in enrolled,
                     "isWaitlisted": user_id in waitlisted,
+                    "instructors": list(instructors),
                     "id": session.id
                 })
             return Response(return_ls)
@@ -665,6 +668,9 @@ class AdminSessionsView(APIView):
                 for session in sessions:
                     enrolled = session.enrolled_students or []
                     waitlisted = session.waitlist_students or []
+                    instructor_ids = session.instructors or []
+                    instructors = CustomUser.objects.filter(user_id__in=instructor_ids).values('first_name', 'last_name', 'user_id')
+                    
                     sessions_data.append({
                         "id": session.id,
                         "start_time": session.start_time,
@@ -675,7 +681,8 @@ class AdminSessionsView(APIView):
                         "learning_organization": learning_organization.name,
                         "location": location.name,
                         "approved": session.approved,
-                        "viewed": session.viewed
+                        "viewed": session.viewed,
+                        "instructors": list(instructors),
                     })
 
                 all_sessions_data.append({
@@ -1282,6 +1289,173 @@ class AdminSessionDetailView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in AdminSessionDetailView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
+        
+class InstructorSessionsView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get InstructorData for the user
+            try:
+                instructor_data = InstructorData.objects.get(user_id=user_id)
+                if not instructor_data.verified:
+                    raise PermissionDenied("Instructor is not verified")
+            except InstructorData.DoesNotExist:
+                raise PermissionDenied("User is not an instructor")
+
+            # Get all sessions for this instructor
+            sessions = Session.objects.filter(instructors__contains=[user_id]).select_related(
+                'learning_organization_location__learning_organization'
+            )
+
+            sessions_data = []
+            for session in sessions:
+                location = session.learning_organization_location
+                learning_organization = location.learning_organization
+
+                enrolled = session.enrolled_students or []
+                waitlisted = session.waitlist_students or []
+
+                # Calculate max capacity for this location
+                max_capacity = Room.objects.filter(
+                    learning_organization=learning_organization,
+                    learning_organization_location=location
+                ).aggregate(total_capacity=Sum('max_capacity'))['total_capacity'] or 0
+
+                # Fetch other instructors for this session
+                other_instructor_ids = [id for id in (session.instructors or []) if id != user_id]
+                other_instructors = CustomUser.objects.filter(user_id__in=other_instructor_ids).values('first_name', 'last_name', 'user_id')
+
+                sessions_data.append({
+                    "id": session.id,
+                    "start_time": session.start_time,
+                    "end_time": session.end_time,
+                    "max_capacity": max_capacity,
+                    "num_enrolled": len(enrolled),
+                    "num_waitlist": len(waitlisted),
+                    "learning_organization": learning_organization.name,
+                    "location": location.name,
+                    "approved": session.approved,
+                    "viewed": session.viewed,
+                    "other_instructors": list(other_instructors)
+                })
+
+            return Response({
+                "instructor_id": user_id,
+                "sessions": sessions_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorSessionsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+
+class InstructorSessionDetailView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get_session(self, session_pk):
+        try:
+            return Session.objects.get(id=session_pk)
+        except Session.DoesNotExist:
+            raise NotFound("Session not found")
+
+    @transaction.atomic
+    def post(self, request, session_pk, format=None):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            u_id = user_info['sub']
+
+            # Verify that the user is an instructor
+            try:
+                instructor_data = InstructorData.objects.get(user_id=u_id)
+                if not instructor_data.verified:
+                    raise PermissionDenied("Instructor is not verified")
+            except InstructorData.DoesNotExist:
+                raise PermissionDenied("User is not an instructor")
+
+            session = self.get_session(session_pk)
+            if not session.approved:
+                raise PermissionDenied("This session is not approved for instructor assignment.")
+            
+            body = json.loads(request.body)
+            task = body.get("task")
+
+            if task == "sign_up":
+                return self.sign_up_instructor(session, u_id)
+            elif task == "remove":
+                return self.remove_instructor(session, u_id)
+            else:
+                raise ValidationError("Unknown task")
+
+        except (AuthenticationFailed, NotFound, ValidationError, PermissionDenied) as e:
+            return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorSessionDetailView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+        
+    def sign_up_instructor(self, session, u_id):
+        instructors = session.instructors or []
+        if u_id in instructors:
+            return Response({"message": "Already signed up to teach this session"})
+        instructors.append(u_id)
+        session.instructors = instructors
+        session.save()
+        return Response({"message": "Successfully signed up to teach"})
+
+    def remove_instructor(self, session, u_id):
+        instructors = session.instructors or []
+        if u_id not in instructors:
+            return Response({"message": "Not signed up to teach this session"})
+        instructors.remove(u_id)
+        session.instructors = instructors
+        session.save()
+        return Response({"message": "Successfully removed from teaching this session"})
         
 class LoginUserView(APIView):
     permission_classes = [IsAuthenticated]
