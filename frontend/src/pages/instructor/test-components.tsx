@@ -1,3 +1,5 @@
+"use client";
+
 import Head from "next/head";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect } from "react";
@@ -6,6 +8,12 @@ import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
+import Navbar from "components/instructor/Navbar";
+import DashboardContainer from "components/instructor/DashboardContainer";
+import CalendarContainer from "components/instructor/CalendarContainer";
+import SessionDetailViewContainer from "components/instructor/SessionDetailViewContainer";
+import MiniClassBlock from "components/instructor/MiniClassBlock";
+import Module from "components/instructor/Phase";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -45,7 +53,7 @@ export const getServerSideProps = withPageAuthRequired({
     } else if (role === "st") {
       return {
         redirect: {
-          destination: "/learner",
+          destination: "/student",
           permanent: false,
         },
       };
@@ -76,11 +84,13 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <a href="/instructor/applications">
-          <button>Applications</button>
-        </a>
-        <button>Schedule</button>
-        <button>Class Mode</button>
+        <MiniClassBlock
+          dateCard={["JUN", "20"]}
+          date="Friday, June 21st"
+          time="10AM"
+          status="Online"
+        />
+        <Module title="Module 1" time="9:00 - 9:15" />
       </div>
     </>
   );

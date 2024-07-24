@@ -23,6 +23,7 @@
     }
   },
   "include": [
+    "tailwind.config.ts",
     ".eslintrc.cjs",
     "**/*.ts",
     "src/types/**/*.ts",

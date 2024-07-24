@@ -1,0 +1,26 @@
+.navbar {
+  background-color: #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  padding: 16px 40px 16px 40px;
+}
+
+.navbar_left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.navbar_buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar_right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}

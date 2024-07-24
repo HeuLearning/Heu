@@ -1,6 +1,6 @@
 import Head from "next/head";
-import Header from "../../components/header"
-import styles from "../styles/Home.module.css"
+import Header from "../../components/landing_page/header";
+import styles from "../styles/Home.module.css";
 
 export default function CustomErrorPage() {
   return (
@@ -12,9 +12,9 @@ export default function CustomErrorPage() {
       </Head>
       <main className={styles.main}>
         <Header></Header>
-        <div style={{"margin": "10px"}}>
-            Error. This application is only for approved users. To request
-            access, please reach out to: x.
+        <div style={{ margin: "10px" }}>
+          Error. This application is only for approved users. To request access,
+          please reach out to: x.
         </div>
       </main>
     </>

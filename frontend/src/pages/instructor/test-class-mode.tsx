@@ -1,11 +1,19 @@
+"use client";
+
 import Head from "next/head";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 // import { useRouter } from 'next/router';
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
+import Navbar from "components/instructor/Navbar";
+import DashboardContainer from "components/instructor/DashboardContainer";
+import { PopUpProvider } from "components/instructor/PopUpContext";
+import EnhancedPopUp from "components/instructor/EnhancedPopUp";
+import ClassModeContainer from "components/instructor/ClassModeContainer";
+import { useRouter } from "next/router";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -45,7 +53,7 @@ export const getServerSideProps = withPageAuthRequired({
     } else if (role === "st") {
       return {
         redirect: {
-          destination: "/learner",
+          destination: "/student",
           permanent: false,
         },
       };
@@ -62,6 +70,7 @@ export default function InstructorHome({
   role,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
+
   return (
     <>
       <Head>
@@ -76,11 +85,11 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <a href="/instructor/applications">
-          <button>Applications</button>
-        </a>
-        <button>Schedule</button>
-        <button>Class Mode</button>
+        <PopUpProvider>
+          <Navbar />
+          <ClassModeContainer />
+          <EnhancedPopUp />
+        </PopUpProvider>
       </div>
     </>
   );
