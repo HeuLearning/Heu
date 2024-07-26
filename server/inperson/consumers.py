@@ -960,8 +960,22 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
             await self.update_instructor_start_module()
         elif message_type == 'next_question':
             await self.advance_question(data.get('number'))
-            await self.update_instructor(data.get('correct'), data.get('time'), data.get('question'), data.get('answer'))
-            await self.save_answer(data.get('correct'), data.get('time'), data.get('question'), data.get('answer'))
+            await self.update_instructor(
+                data.get('correct'),
+                data.get('time'),
+                data.get('question'),
+                data.get('final_answer'),
+                data.get('intermediate_answers'),
+                data.get('intermediate_timing')
+            )
+            await self.save_answer(
+                data.get('correct'),
+                data.get('time'),
+                data.get('question'),
+                data.get('final_answer'),
+                data.get('intermediate_answers'),
+                data.get('intermediate_timing')
+            )
         elif message_type == 'get_initial_progress':
             progress = await self.get_all_student_progress()
             await self.send(text_data=json.dumps({
@@ -969,25 +983,32 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
                 'progress': progress
             }))
 
-    async def update_instructor(self, correct: bool, time: int, question: dict, answer: str):
+
+    async def update_instructor(self, correct: bool, time: int, question: dict, final_answer: str, intermediate_answers: list, intermediate_timing: list):
         await self.channel_layer.group_send(
             self.instructor_room_group_name,
             {
                 'type': 'student_progress',
                 'student_id': self.scope['user'].id,
                 'question_id': question['id'],
-                'answer': answer,
+                'final_answer': final_answer,
+                'intermediate_answers': intermediate_answers,
+                'intermediate_timing': intermediate_timing,
                 'is_right': correct,
                 'seconds_to_answer': time
             }
         )
+
+
 
     async def student_progress(self, event):
         await self.send(text_data=json.dumps({
             'type': 'student_progress',
             'student_id': event['student_id'],
             'question_id': event['question_id'],
-            'answer': event['answer'],
+            'final_answer': event['final_answer'],
+            'intermediate_answers': event['intermediate_answers'],
+            'intermediate_timing': event['intermediate_timing'],
             'is_right': event['is_right'],
             'seconds_to_answer': event['seconds_to_answer']
         }))
@@ -1000,12 +1021,20 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
 
     async def start_module(self):
         question = await self.get_next_question(1, 1)
-        await self.send(
-            text_data=json.dumps({
-                "type": "question",
-                "question": question,
-            })
-        )
+        if question:
+            await self.send(
+                text_data=json.dumps({
+                    "type": "question",
+                    "question": question,
+                })
+            )
+        else:
+            await self.send(
+                text_data=json.dumps({
+                    "type": "module_completed",
+                })
+            )
+
 
     async def update_instructor_start_module(self):
         await self.channel_layer.group_send(
@@ -1026,26 +1055,36 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
     async def advance_question(self, prev_question_number):
         prev_question_number += 1
         question = await self.get_next_question(1, prev_question_number)
-        await self.send(
-            text_data=json.dumps({
-                "type": "question",
-                "question": question,
-            })
-        )
+        if question:
+            await self.send(
+                text_data=json.dumps({
+                    "type": "question",
+                    "question": question,
+                })
+            )
+        else:
+            await self.send(
+                text_data=json.dumps({
+                    "type": "module_completed",
+                })
+            )
+            await self.update_instructor_module_completed()
 
     @database_sync_to_async
     def get_next_question(self, module_number=0, question_number=0):
         module = HardCodedModule.objects.all().first()
-        question_counter = module.questions.get(order=question_number)
-        question = question_counter.question
-        serialized_question = {
-            'number': question_number,
-            'id': question.pk,
-            'text': question.text,
-            'json': question.json
-        }
+        question_counter = module.questions.filter(order=question_number).first()
+        if question_counter:
+            question = question_counter.question
+            serialized_question = {
+                'number': question_number,
+                'id': question.pk,
+                'text': question.text,
+                'json': question.json
+            }
+            return serialized_question
+        return None
 
-        return serialized_question
 
     async def update_instructor_initial(self):
         print("inital information for the instructor")
@@ -1061,6 +1100,20 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
                     }
             )
         
+    async def update_instructor_module_completed(self):
+        await self.channel_layer.group_send(
+            self.instructor_room_group_name,
+            {
+                'type': 'student_completed_module',
+                'student_id': str(self.scope['user'].id)
+            }
+        )
+        
+    async def student_completed_module(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'student_completed_module',
+            'student_id': event['student_id']
+        }))
     # async def update_instructor(self, correct: bool, time: int, question: dict, answer: str):
     #     # await self.save_student_progress(self.user.id, question_number)
     #     await self.channel_layer.group_send(
@@ -1123,29 +1176,28 @@ class KahootLikeConsumer(AsyncWebsocketConsumer):
 
 
     @sync_to_async
-    def save_answer(self, correct: bool, time: int, question: dict, answer: str):
-        # Get or create the Question object
+    def save_answer(self, correct: bool, time: int, question: dict, final_answer: str, intermediate_answers: list, intermediate_timing: list):
         question_obj, _ = Question.objects.get_or_create(pk=question['id'])
-        # Get or create the HardCodedStudentProgress object
         cu = CustomUser.objects.get(user_id=self.scope['user'].id)
         progress, created = HardCodedStudentProgress.objects.get_or_create(
             student=cu,
             question=question_obj,
             defaults={
-                'answer': answer,
+                'answer': final_answer,
+                'intermediate_answers': intermediate_answers,
+                'intermediate_timing': intermediate_timing,
                 'isRight': correct,
                 'secondsToAnswer': time
             }
         )
 
         if not created:
-            # If the object already existed, update its fields
-            progress.answer = answer
+            progress.answer = final_answer
+            progress.intermediate_answers = intermediate_answers
+            progress.intermediate_timing = intermediate_timing
             progress.isRight = correct
             progress.secondsToAnswer = time
             progress.save()
 
         return progress
-
-
 
