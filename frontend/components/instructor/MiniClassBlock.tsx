@@ -11,6 +11,7 @@ export default function MiniClassBlock({
   startTime,
   endTime,
   status,
+  onClick = null,
 }) {
   const router = useRouter();
   // date = ["Thursday", "June", "20"];
@@ -43,8 +44,10 @@ export default function MiniClassBlock({
       content: (
         <PopUp>
           <div className="space-y-[12px]">
-            <h3 className="text-h3">Confirm attendance</h3>
-            <p className="text-body-regular">
+            <h3 className="text-typeface_primary text-h3">
+              Confirm attendance
+            </h3>
+            <p className="text-typeface_primary text-body-regular">
               Would you like to confirm attendance to the following class?
             </p>
           </div>
@@ -71,14 +74,12 @@ export default function MiniClassBlock({
           </div>
           <div className="flex justify-end space-x-[12px]">
             <Button
-              className="bg-white text-typeface_primary outline-action_border_primary text-body-semibold-cap-height"
+              className="button-secondary"
               onClick={() => hidePopUp("confirm-attendance")}
             >
               Cancel
             </Button>
-            <Button className="bg-action_bg_primary text-typeface_highlight text-body-semibold-cap-height">
-              Confirm
-            </Button>
+            <Button className="button-primary">Confirm</Button>
           </div>
         </PopUp>
       ),

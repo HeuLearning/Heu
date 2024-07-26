@@ -6,7 +6,7 @@ export default function CompletionBar({ percentage }) {
   return percentage >= 0 && percentage <= 1 ? (
     <div className="relative h-[4px] w-full rounded-full bg-surface_bg_secondary">
       <div
-        className={`absolute h-full ${rounded} bg-surface_bg_dark transition-all duration-300`}
+        className={`absolute h-full ${rounded} bg-surface_bg_darkest transition-all duration-300`}
         style={{ width: `${percentage * 100}%` }}
       />
     </div>

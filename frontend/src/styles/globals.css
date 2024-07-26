@@ -9,40 +9,13 @@
   font-family: "Inter", sans-serif;
 }
 
+html,
 body {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  padding: 0;
   background-color: #f5f5f5;
-}
-
-@media only screen and (max-width: 500px) {
-  body {
-    margin-left: 10vw;
-    margin-right: 10vw;
-  }
-  .circle {
-    left: 51vw !important;
-    top: 99vw !important;
-  }
-
-  .squiggle {
-    left: 52.5vw !important;
-    top: 114.8vw !important;
-  }
-}
-
-@media only screen and (min-width: 501px) and (max-width: 768px) {
-  body {
-    margin-left: 12vw;
-    margin-right: 12vw;
-  }
-  .circle {
-    left: 51.4vw !important;
-    top: 63vw !important;
-  }
-
-  .squiggle {
-    left: 52.2vw !important;
-    top: 78vw !important;
-  }
 }
 
 ul,

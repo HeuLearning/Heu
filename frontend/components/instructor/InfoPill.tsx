@@ -1,7 +1,7 @@
 export default function InfoPill({ text }) {
   return (
     <div className="inline-block rounded-full bg-status_bg_info text-status_fg_info text-body-semibold-cap-height">
-      <div className="flex items-center gap-[4px] px-[8px] py-[6px]">
+      <div className="flex items-center gap-[4px] py-[6px] pl-[4px] pr-[8px]">
         <svg
           width="16"
           height="16"
