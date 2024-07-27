@@ -34,7 +34,7 @@ export default function HorizontalDatePicker({
     height: "44px",
     borderRadius: "100%",
     backgroundColor: "var(--surface_bg_darkest)",
-    color: "var(--typeface_highlight)",
+    color: "var(--typeface_highlight) !important",
   };
 
   const getStyles = (day) => {
@@ -80,16 +80,11 @@ export default function HorizontalDatePicker({
     const dateIndex = Array.from(allDateElements).indexOf(dateElement);
 
     // Calculate the width of a single date element
-    const dateWidth = dateElement.offsetWidth + 5;
+    const dateWidth = dateElement.offsetWidth + 8; // margin left of each element
 
     // Calculate the scroll position
     const scrollPosition =
-      dateIndex * dateWidth - container.offsetWidth / 2 + dateWidth / 2;
-
-    console.log("Date Index:", dateIndex);
-    console.log("Date Width:", dateWidth);
-    console.log(container.offsetWidth);
-    console.log("Calculated Scroll Position:", scrollPosition);
+      dateIndex * dateWidth - container.offsetWidth / 2 + dateWidth / 2 + 4; // half of the margin left
 
     return Math.max(0, scrollPosition);
   };
@@ -156,19 +151,19 @@ export default function HorizontalDatePicker({
       for (let j = start; j < end; j++) {
         const day = addDays(month, j);
         days.push(
-          <div
-            key={format(day, "yyyy-MM-dd")}
-            id={`${getId(day)}`}
-            className={styles.dateDayItem}
-            style={getStyles(day)}
-            onClick={() => onDateClick(day)}
-            data-date={day.toISOString()}
-          >
-            <div className={styles.dayLabel}>{format(day, dayFormat)}</div>
+          <div className="ml-[8px]" key={format(day, "yyyy-MM-dd")}>
+            <div className={styles.dayLabel}>
+              {format(day, dayFormat).charAt(0)}
+            </div>
             <div
-              className={
+              id={`${getId(day)}`}
+              className={`${styles.dateDayItem} ${
+                isSameDay(day, selectedDate) ? styles.selectedDate : ""
+              } ${
                 isBeforeToday(day) ? styles.pastDateLabel : styles.dateLabel
-              }
+              }`}
+              onClick={() => onDateClick(day)}
+              data-date={day.toISOString()}
             >
               {format(day, dateFormat)}
             </div>
@@ -248,7 +243,7 @@ export default function HorizontalDatePicker({
       const containerRect = container.getBoundingClientRect();
       const monthRect = monthElement.getBoundingClientRect();
       const scrollLeft =
-        monthRect.left - containerRect.left + container.scrollLeft - 30;
+        monthRect.left - containerRect.left + container.scrollLeft;
 
       container.scrollTo({
         left: scrollLeft,

@@ -21,10 +21,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
-  margin: 0 0 0 5px;
   width: 44px;
-  height: 49px;
+  height: 44px;
   flex-shrink: 0;
 }
 
@@ -34,13 +34,19 @@
   align-self: center;
 }
 
+/* day of the week */
 .dayLabel {
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--typeface_primary);
   margin: 4px 0 0 0;
+  text-align: center;
 }
 
+/* day number */
 .dateLabel {
   font-size: 14px;
+  font-weight: 500;
   color: var(--typeface_primary);
 }
 
@@ -49,11 +55,11 @@
   color: var(--typeface_tertiary);
 }
 
-.selectedStyle {
-  font-weight: "semibold";
+.selectedDate {
+  font-weight: 600;
   width: "44px";
   height: "44px";
-  border-radius: "100%";
-  background-color: "var(--surface_bg_darkest)";
-  color: "var(--typeface_highlight)";
+  border-radius: 100%;
+  background-color: var(--surface_bg_darkest);
+  color: var(--typeface_highlight) !important;
 }

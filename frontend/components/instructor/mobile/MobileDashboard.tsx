@@ -16,7 +16,7 @@ export default function MobileDashboard({ upcomingSessions }) {
       <HorizontalDatePicker getSelectedDay={selectedDay} labelFormat={"MMMM"} />
 
       <div>
-        <div className="border-[1px] border-surface_border_secondary"></div>
+        <div className="border-[1px] border-surface_bg_secondary"></div>
         <p className="px-[24px] py-[24px] text-typeface_secondary text-body-semibold">
           Coming up
         </p>
