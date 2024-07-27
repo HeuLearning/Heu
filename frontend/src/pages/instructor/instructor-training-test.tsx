@@ -10,9 +10,11 @@ import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import Navbar from "components/instructor/Navbar";
 import DashboardContainer from "components/instructor/DashboardContainer";
+import CalendarContainer from "components/instructor/CalendarContainer";
+import SessionDetailViewContainer from "components/instructor/SessionDetailViewContainer";
+import PopUp from "components/instructor/PopUp";
 import { PopUpProvider } from "components/instructor/PopUpContext";
 import EnhancedPopUp from "components/instructor/EnhancedPopUp";
-import ClassModeContainer from "components/instructor/ClassModeContainer";
 import { useRouter } from "next/router";
 
 export const getServerSideProps = withPageAuthRequired({
@@ -90,7 +92,6 @@ export default function InstructorHome({
       <div>
         <PopUpProvider>
           <Navbar />
-          <ClassModeContainer />
           <EnhancedPopUp />
         </PopUpProvider>
       </div>

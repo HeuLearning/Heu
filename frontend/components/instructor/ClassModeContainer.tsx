@@ -177,7 +177,7 @@ export default function ClassModeContainer() {
             />
           ))}
         </div>
-        <SideBar className="flex flex-col gap-[24px]">
+        <SideBar className="flex w-[330px] flex-col gap-[24px]">
           <h3 className="text-typeface_primary text-h3">Notebook</h3>
           <ToggleButton
             buttonOptions={["Instructions", "Learners"]}
@@ -192,9 +192,11 @@ export default function ClassModeContainer() {
               exercises, and regular assessments to monitor progress.
             </p>
           ) : (
-            learners.map((learner) => (
-              <LearnerItem name={learner.name} status={learner.status} />
-            ))
+            <div className="flex flex-col gap-[8px] px-[12px]">
+              {learners.map((learner) => (
+                <LearnerItem name={learner.name} status={learner.status} />
+              ))}
+            </div>
           )}
         </SideBar>
       </div>
@@ -229,7 +231,7 @@ export default function ClassModeContainer() {
             title="Thursday, June 20th"
             subtitle="10:00 - 11:00AM"
             buttonText="Start class"
-            buttonStyle="text-typeface_highlight text-body-semibold-cap-height bg-action_bg_primary"
+            buttonStyle="button-primary"
           />
           <div className="flex flex-grow justify-between gap-[24px]">
             <div className="grid flex-grow grid-cols-3 grid-rows-2 gap-[16px]">

@@ -9,8 +9,8 @@ export default function LearnerItem({ name, status }) {
   }
   return (
     <div className="flex justify-between">
-      <div className="flex items-center gap-[8px]">
-        <ProfilePic size={24} />
+      <div className="flex items-center gap-[4px]">
+        <ProfilePic size={32} />
         <p className="text-typeface_primary text-body-medium">{name}</p>
       </div>
       <div className="flex items-center gap-[5px]">

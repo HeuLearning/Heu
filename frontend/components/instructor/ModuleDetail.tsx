@@ -25,7 +25,7 @@ export default function ModuleDetail({
               width="24"
               height="24"
               rx="12"
-              fill="var(--surface_bg_dark)"
+              fill="var(--surface_bg_darkest)"
             />
           </svg>
           <p className="text-typeface_highlight text-body-semibold center-atop-svg">

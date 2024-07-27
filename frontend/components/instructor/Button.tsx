@@ -1,8 +1,17 @@
-export default function Button({ className, onClick = null, children }) {
+import { useResponsive } from "./ResponsiveContext";
+
+export default function Button({
+  justifyContent = "justify-center",
+  className,
+  onClick = null,
+  children,
+}) {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <button
-      type="button"
-      className={`relative inline-flex items-center justify-center rounded-[10px] px-[12px] py-[11px] ${className}`}
+      className={`relative inline-flex ${justifyContent} items-center rounded-[10px] px-[12px] ${className} ${
+        isMobile ? "py-[15px]" : "py-[11px]"
+      }`}
       onClick={onClick}
     >
       {children}

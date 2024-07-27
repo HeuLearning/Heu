@@ -2,6 +2,8 @@ import { type AppType } from "next/dist/shared/lib/utils";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import "~/styles/globals.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ResponsiveProvider } from "components/instructor/ResponsiveContext";
+import Head from "next/head";
 
 const theme = createTheme({
   components: {
@@ -35,11 +37,21 @@ const theme = createTheme({
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <ThemeProvider theme={theme}>
-      <UserProvider>
-        <Component {...pageProps} />
-      </UserProvider>
-    </ThemeProvider>
+    <>
+      <Head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+      </Head>
+      <ThemeProvider theme={theme}>
+        <ResponsiveProvider>
+          <UserProvider>
+            <Component {...pageProps} />
+          </UserProvider>
+        </ResponsiveProvider>
+      </ThemeProvider>
+    </>
   );
 };
 

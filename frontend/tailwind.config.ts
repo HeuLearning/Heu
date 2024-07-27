@@ -1,3 +1,5 @@
+import { NodeNextRequest } from "next/dist/server/base-http/node";
+import { Londrina_Solid } from "next/font/google";
 import { type Config } from "tailwindcss";
 
 const plugin = require("tailwindcss/plugin");
@@ -15,16 +17,24 @@ export default {
         typeface_tertiary: "#BFBFBF",
         typeface_highlight: "#FFFFFF",
         action_bg_primary: "#292929",
+        action_bg_primary_hover: "#404040",
+        action_bg_primary_press: "#1C1C1C",
         action_bg_secondary: "#FFFFFF",
+        action_bg_secondary_hover: "#F5F5F5",
+        action_bg_secondary_press: "#EDEDED",
         action_bg_tertiary: "#EDEDED",
         action_border_primary: "#D9D9D9",
+        action_border_secondary: "#EDEDED",
         surface_bg_primary: "#999999",
         surface_bg_secondary: "#EDEDED",
         surface_bg_tertiary: "#FAFAFA",
         surface_bg_highlight: "#FFFFFF",
-        surface_bg_dark: "#404040",
-        surface_border_primary: "#D9D9D9",
-        surface_border_secondary: "#EDEDED",
+        surface_bg_dark: "#999999",
+        surface_bg_darker: "#5B5B5B",
+        surface_bg_darkest: "#404040",
+        surface_border_primary: "#BFBFBF",
+        surface_border_secondary: "#D9D9D9",
+        surface_border_tertiary: "#EDEDED",
         status_fg_positive: "#27C000",
         status_bg_positive: "#DAFFD1",
         status_fg_negative: "#FE0909",
@@ -56,7 +66,15 @@ export default {
           "--typeface_tertiary": theme("colors.typeface_tertiary"),
           "--typeface_highlight": theme("colors.typeface_highlight"),
           "--action_bg_primary": theme("colors.action_bg_primary"),
+          "--action_bg_primary_hover": theme("colors.action_bg_primary_hover"),
+          "--action_bg_primary_press": theme("colors.action_bg_primary_press"),
           "--action_bg_secondary": theme("colors.action_bg_secondary"),
+          "--action_bg_secondary_hover": theme(
+            "colors.action_bg_secondary_hover"
+          ),
+          "--action_bg_secondary_press": theme(
+            "colors.action_bg_secondary_press"
+          ),
           "--action_bg_tertiary": theme("colors.action_bg_tertiary"),
           "--action_border_primary": theme("colors.action_border_primary"),
           "--surface_bg_primary": theme("colors.surface_bg_primary"),
@@ -64,10 +82,13 @@ export default {
           "--surface_bg_tertiary": theme("colors.surface_bg_tertiary"),
           "--surface_bg_highlight": theme("colors.surface_bg_highlight"),
           "--surface_bg_dark": theme("colors.surface_bg_dark"),
+          "--surface_bg_darker": theme("colors.surface_bg_darker"),
+          "--surface_bg_darkest": theme("colors.surface_bg_darkest"),
           "--surface_border_primary": theme("colors.surface_border_primary"),
           "--surface_border_secondary": theme(
             "colors.surface_border_secondary"
           ),
+          "--surface_border_tertiary": theme("colors.surface_border_tertiary"),
           "--status_fg_positive": theme("colors.status_fg_positive"),
           "--status_bg_positive": theme("colors.status_bg_positive"),
           "--status_fg_negative": theme("colors.status_fg_negative"),
@@ -77,6 +98,64 @@ export default {
         },
       });
     },
+    plugin(function ({ addComponents, theme }) {
+      addComponents({
+        ".button-primary": {
+          backgroundColor: theme("colors.action_bg_primary"),
+          fontSize: "14px",
+          fontWeight: 600,
+          letterSpacing: "-0.28px",
+          lineHeight: "0.8",
+          color: theme("colors.typeface_highlight"),
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_primary_hover"),
+          },
+          "&:active": {
+            backgroundColor: theme("colors.action_bg_primary_press"),
+          },
+        },
+        ".button-secondary": {
+          backgroundColor: theme("colors.action_bg_secondary"),
+          outline: "1px solid " + theme("colors.action_border_primary"),
+          fontSize: "14px",
+          fontWeight: 600,
+          letterSpacing: "-0.28px", // -2% of 14px
+          lineHeight: "0.8",
+          color: theme("colors.typeface_primary"),
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_secondary_hover"),
+            outline: "1px solid " + theme("colors.surface_border_tertiary"),
+          },
+          "&:active": {
+            backgroundColor: theme("colors.action_bg_secondary_press"),
+            outline: "1px solid " + theme("colors.surface_border_tertiary"),
+          },
+        },
+        ".navbutton-selected": {
+          backgroundColor: theme("colors.action_bg_secondary"),
+          boxShadow: "0px 1px 2px 0px rgb(0 0 0 / 7%)",
+          fontWeight: 600,
+          fontSize: "14px",
+          letterSpacing: "-0.28px", // -2% of 14px
+          lineHeight: "0.8",
+          color: theme("colors.typeface_primary"),
+        },
+        ".navbutton": {
+          backgroundColor: "transparent",
+          fontSize: "14px",
+          fontWeight: 500,
+          letterSpacing: "-0.28px", // -2% of 14px
+          lineHeight: "0.8",
+          color: theme("colors.typeface_primary"),
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_tertiary"),
+          },
+          "&:disabled": {
+            color: theme("colors.typeface_tertiray"),
+          },
+        },
+      });
+    }),
     function ({ addUtilities, theme }) {
       addUtilities({
         ".text-h1": {
@@ -149,6 +228,15 @@ export default {
           letterSpacing: "-0.28px", // -2% of 14px
           lineHeight: "0.8",
           color: theme("colors.typeface_tertiary"),
+        },
+        ".no-scrollbar": {
+          "-ms-overflow-style": "none",
+          /* Firefox */
+          "scrollbar-width": "none",
+          /* Safari and Chrome */
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
         },
       });
     },

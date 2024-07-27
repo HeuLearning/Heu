@@ -2,26 +2,20 @@
 
 import Head from "next/head";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useEffect, useState, useRef } from "react";
-// import { useRouter } from 'next/router';
+import { useEffect, useState } from "react";
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
-import { getAccessToken } from "@auth0/nextjs-auth0";
-import { redirect } from "next/navigation";
 import Navbar from "components/instructor/Navbar";
 import DashboardContainer from "components/instructor/DashboardContainer";
-import CalendarContainer from "components/instructor/CalendarContainer";
-import SessionDetailViewContainer from "components/instructor/SessionDetailViewContainer";
-import PopUp from "components/instructor/PopUp";
 import { PopUpProvider } from "components/instructor/PopUpContext";
 import EnhancedPopUp from "components/instructor/EnhancedPopUp";
 import { useRouter } from "next/router";
+import { useResponsive } from "components/instructor/ResponsiveContext";
 
-export const getServerSideProps = withPageAuthRequired({
+export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
     const { req, res } = ctx;
     const session = await getSession(req, res);
-
     if (!session) {
       return {
         redirect: {
@@ -35,7 +29,7 @@ export const getServerSideProps = withPageAuthRequired({
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${session.accessToken}`, // Include the access token
+        Authorization: `Bearer ${session.accessToken}`,
       },
     };
 
@@ -45,6 +39,7 @@ export const getServerSideProps = withPageAuthRequired({
     );
     const roleType = await response.json();
     const role = roleType.role;
+
     if (role === "ad") {
       return {
         redirect: {
@@ -60,6 +55,7 @@ export const getServerSideProps = withPageAuthRequired({
         },
       };
     }
+
     return {
       props: {
         role: role || "unknown",
@@ -71,14 +67,34 @@ export const getServerSideProps = withPageAuthRequired({
 export default function InstructorHome({
   role,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  console.log(role);
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const [mobile, setMobile] = useState(false);
+  const [tablet, setTablet] = useState(false);
+  const [desktop, setDesktop] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMobile(isMobile);
+      setTablet(isTablet);
+      setDesktop(isDesktop);
+    }, 0); // Adjust the timeout as needed
+
+    return () => clearTimeout(timer);
+  }, [isMobile, isTablet, isDesktop]);
+
+  if (!mobile && !tablet && !desktop) {
+    return <div></div>; // Loading state while calculating screen size
+  }
 
   return (
     <>
       <Head>
         <title>Heu Learning</title>
         <meta name="description" content="Teach more English better" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
         <link rel="icon" href="/icon.ico" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"

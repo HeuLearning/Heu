@@ -10,9 +10,13 @@ import XButton from "./XButton";
 import ShowMoreButton from "./ShowMoreButton";
 import ClassItemDetailed from "./ClassItemDetailed";
 import ClassStats from "./ClassStats";
+import { useResponsive } from "./ResponsiveContext";
+import MobileDetailView from "components/instructor/mobile/MobileDetailView";
 
 export default function SessionDetailViewContainer() {
   const [dashboardHeight, setDashboardHeight] = useState(0);
+
+  const { isMobile, isTablet, isDesktop } = useResponsive();
 
   useEffect(() => {
     const dashboardContainer = document.getElementById("dashboard-container");
@@ -106,6 +110,25 @@ export default function SessionDetailViewContainer() {
       height: "auto",
     });
   };
+
+  if (isMobile) {
+    return (
+      <div>
+        <MobileDetailView
+          backgroundColor="bg-surface_bg_highlight"
+          className="px-[16px] pt-[24px]"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="p-[8px] text-typeface_primary text-h3">
+              Class details
+            </h3>
+            <XButton onClick={""} />
+          </div>
+        </MobileDetailView>
+      </div>
+    );
+  }
+
   return (
     <div
       id="session-detail-view"
@@ -126,14 +149,13 @@ export default function SessionDetailViewContainer() {
               <svg
                 width="16"
                 height="16"
-                viewBox="0 2 16 16"
+                viewBox="0 0 16 16"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <rect width="16" height="16" fill="white" />
                 <path
-                  d="M5.87305 5.21729C5.87305 4.8234 5.96794 4.46533 6.15771 4.14307C6.34749 3.8208 6.60173 3.56478 6.92041 3.375C7.24268 3.18164 7.60075 3.08496 7.99463 3.08496C8.39209 3.08496 8.75016 3.18164 9.06885 3.375C9.39111 3.56478 9.64714 3.8208 9.83691 4.14307C10.0267 4.46533 10.1216 4.8234 10.1216 5.21729C10.1216 5.54313 10.0535 5.84749 9.91748 6.13037C9.78141 6.40967 9.59521 6.64958 9.35889 6.8501C9.12256 7.05062 8.85579 7.19027 8.55859 7.26904V12.3179C8.55859 12.6867 8.5389 13.0161 8.49951 13.3062C8.4637 13.5962 8.41715 13.8433 8.35986 14.0474C8.30257 14.255 8.23991 14.4126 8.17188 14.52C8.10742 14.6274 8.04834 14.6812 7.99463 14.6812C7.94092 14.6812 7.88184 14.6257 7.81738 14.5146C7.75293 14.4072 7.69027 14.2515 7.62939 14.0474C7.5721 13.8433 7.52376 13.5962 7.48438 13.3062C7.44857 13.0161 7.43066 12.6867 7.43066 12.3179V7.26904C7.12988 7.18669 6.86133 7.04704 6.625 6.8501C6.39225 6.64958 6.20785 6.40967 6.07178 6.13037C5.93929 5.84749 5.87305 5.54313 5.87305 5.21729ZM7.3877 5.33545C7.58822 5.33545 7.76009 5.26383 7.90332 5.12061C8.04655 4.9738 8.11816 4.80192 8.11816 4.60498C8.11816 4.40804 8.04655 4.23796 7.90332 4.09473C7.76009 3.9515 7.58822 3.87988 7.3877 3.87988C7.19434 3.87988 7.02425 3.9515 6.87744 4.09473C6.73421 4.23796 6.6626 4.40804 6.6626 4.60498C6.6626 4.80192 6.73421 4.9738 6.87744 5.12061C7.02425 5.26383 7.19434 5.33545 7.3877 5.33545Z"
-                  fill="var(--surface_bg_dark)"
+                  d="M5.87305 4.21729C5.87305 3.8234 5.96794 3.46533 6.15771 3.14307C6.34749 2.8208 6.60173 2.56478 6.92041 2.375C7.24268 2.18164 7.60075 2.08496 7.99463 2.08496C8.39209 2.08496 8.75016 2.18164 9.06885 2.375C9.39111 2.56478 9.64714 2.8208 9.83691 3.14307C10.0267 3.46533 10.1216 3.8234 10.1216 4.21729C10.1216 4.54313 10.0535 4.84749 9.91748 5.13037C9.78141 5.40967 9.59521 5.64958 9.35889 5.8501C9.12256 6.05062 8.85579 6.19027 8.55859 6.26904V11.3179C8.55859 11.6867 8.5389 12.0161 8.49951 12.3062C8.4637 12.5962 8.41715 12.8433 8.35986 13.0474C8.30257 13.255 8.23991 13.4126 8.17188 13.52C8.10742 13.6274 8.04834 13.6812 7.99463 13.6812C7.94092 13.6812 7.88184 13.6257 7.81738 13.5146C7.75293 13.4072 7.69027 13.2515 7.62939 13.0474C7.5721 12.8433 7.52376 12.5962 7.48438 12.3062C7.44857 12.0161 7.43066 11.6867 7.43066 11.3179V6.26904C7.12988 6.18669 6.86133 6.04704 6.625 5.8501C6.39225 5.64958 6.20785 5.40967 6.07178 5.13037C5.93929 4.84749 5.87305 4.54313 5.87305 4.21729ZM7.3877 4.33545C7.58822 4.33545 7.76009 4.26383 7.90332 4.12061C8.04655 3.9738 8.11816 3.80192 8.11816 3.60498C8.11816 3.40804 8.04655 3.23796 7.90332 3.09473C7.76009 2.9515 7.58822 2.87988 7.3877 2.87988C7.19434 2.87988 7.02425 2.9515 6.87744 3.09473C6.73421 3.23796 6.6626 3.40804 6.6626 3.60498C6.6626 3.80192 6.73421 3.9738 6.87744 4.12061C7.02425 4.26383 7.19434 4.33545 7.3877 4.33545Z"
+                  fill="var(--typeface_primary)"
                 />
               </svg>
               <p className="text-typeface_primary text-body-medium">
@@ -151,12 +173,8 @@ export default function SessionDetailViewContainer() {
         <div className="session-buttons flex items-center gap-[16px]">
           <InfoPill text="Starts in 2 days" />
           <div className="flex items-center gap-[12px]">
-            <Button className="bg-white text-typeface_primary outline-action_border_primary text-body-semibold-cap-height">
-              I can't attend
-            </Button>
-            <Button className="bg-action_bg_primary text-white text-body-semibold-cap-height">
-              Confirm
-            </Button>
+            <Button className="button-secondary">I can't attend</Button>
+            <Button className="button-primary">Confirm</Button>
             <DropDownSelector
               selectedButtonStyling="drop-shadow-md"
               selected="RSVP"
