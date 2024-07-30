@@ -1325,6 +1325,9 @@ class InstructorSessionsView(APIView):
                 raise PermissionDenied("User is not an instructor")
 
             # Get all sessions for this instructor
+            # sessions = Session.objects.filter(instructors__contains=[user_id]).select_related(
+            #     'learning_organization_location__learning_organization'
+            # )
             sessions = Session.objects.filter(instructors__contains=[user_id]).select_related(
                 'learning_organization_location__learning_organization'
             )
@@ -1354,8 +1357,8 @@ class InstructorSessionsView(APIView):
                     "max_capacity": max_capacity,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
-                    "learning_organization": learning_organization.name,
-                    "location": location.name,
+                    "learning_organization_name": learning_organization.name,
+                    "location_name": location.name,
                     "approved": session.approved,
                     "viewed": session.viewed,
                     "other_instructors": list(other_instructors)
