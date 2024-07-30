@@ -133,6 +133,11 @@ class Session(models.Model):
         blank=True,
         default=list
     )
+    instructors = ArrayField(
+        models.CharField(max_length=255),
+        blank=True,
+        default=list
+    )
 
     def __str__(self):
         return f'{self.admin_creator} {self.learning_organization_location.learning_organization.name} @ {self.learning_organization_location.name} {self.viewed} {self.approved}'
