@@ -88,7 +88,7 @@ export default function DropDownSelector({
         {isOpen ? (
           <div
             style={{ minWidth: `${dropdownWidth}px` }}
-            className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] shadow-[0_25px_70px_-18px_rgba(0,0,0,0.2)]"
+            className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] drop-shadow-50"
           >
             {allOptions.map((option) => (
               <div key={option} style={{ width: "100%" }}>
