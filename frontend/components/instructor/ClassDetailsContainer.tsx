@@ -14,6 +14,10 @@ export default function ClassDetailsContainer() {
         </p>
       </div>
       <ClassStats
+        attending="80/120"
+        level="C1"
+        agenda="Target"
+        classCode="7FJR92"
         svgBgColor="surface_bg_highlight"
         direction="flex-col gap-[32px]"
       />

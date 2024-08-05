@@ -10,7 +10,7 @@ export default function Button({
   return (
     <button
       className={`relative inline-flex ${justifyContent} items-center rounded-[10px] px-[12px] ${className} ${
-        isMobile ? "py-[15px]" : "py-[11px]"
+        isMobile ? "py-[17px]" : "py-[11px]"
       }`}
       onClick={onClick}
     >

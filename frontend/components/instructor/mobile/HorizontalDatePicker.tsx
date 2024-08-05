@@ -261,22 +261,38 @@ export default function HorizontalDatePicker({
 
   return (
     <div className="flex w-full flex-col">
-      <div className="custom-calendar-header sticky flex justify-between px-[16px] pb-[16px] pt-[24px]">
+      <div className="custom-calendar-header sticky flex items-center justify-between px-[16px] pb-[16px] pt-[24px]">
         <span className="text-typeface_primary leading-tight text-h1">
           {format(currentMonth, "MMMM yyyy")}
         </span>
-        <div className="flex space-x-[20px]">
+        <div className="flex space-x-[12px]">
           <button className="custom-navigation-button" onClick={prevMonth}>
             <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
+              width="40"
+              height="40"
+              viewBox="0 0 40 40"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
+              <rect
+                x="0.5"
+                y="0.5"
+                width="39"
+                height="39"
+                rx="19.5"
+                fill="white"
+              />
+              <rect
+                x="0.5"
+                y="0.5"
+                width="39"
+                height="39"
+                rx="19.5"
+                stroke="var(--action_border_secondary)"
+              />
               <path
-                d="M9.75 4.75L6.25 8.25L9.75 11.75"
-                stroke="var(--surface_bg_darkest)"
+                d="M21.5 16.25L18 19.75L21.5 23.25"
+                stroke="var(--action_bg_primary)"
                 stroke-width="2"
                 stroke-linecap="round"
               />
@@ -284,15 +300,31 @@ export default function HorizontalDatePicker({
           </button>
           <button className="custom-navigation-button" onClick={nextMonth}>
             <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
+              width="40"
+              height="40"
+              viewBox="0 0 40 40"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
+              <rect
+                x="0.5"
+                y="0.5"
+                width="39"
+                height="39"
+                rx="19.5"
+                fill="white"
+              />
+              <rect
+                x="0.5"
+                y="0.5"
+                width="39"
+                height="39"
+                rx="19.5"
+                stroke="var(--action_border_secondary)"
+              />
               <path
-                d="M6.25 11.25L9.75 7.75L6.25 4.25"
-                stroke="var(--surface_bg_darkest)"
+                d="M18.5 23.25L22 19.75L18.5 16.25"
+                stroke="var(--action_bg_primary)"
                 stroke-width="2"
                 stroke-linecap="round"
               />

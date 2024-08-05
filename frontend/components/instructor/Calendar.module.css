@@ -149,7 +149,7 @@
 
 .react-calendar__tile--now {
   border-radius: 100px;
-  border: 1px solid var(--surface_border_secondary) !important;
+  border: 1px solid var(--surface_border_tertiary) !important;
   background: #fafafa;
 }
 

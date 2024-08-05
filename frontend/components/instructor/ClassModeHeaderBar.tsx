@@ -6,8 +6,7 @@ export default function ClassModeHeaderBar({
   iconName,
   title,
   subtitle = "",
-  buttonText,
-  buttonStyle,
+  rightSide,
 }) {
   let Icon;
   if (iconName === "calendar") {
@@ -42,7 +41,7 @@ export default function ClassModeHeaderBar({
     );
   }
   return (
-    <div className="flex items-center justify-between p-[24px]">
+    <div className="flex items-center justify-between px-[14px] py-[26px]">
       <div className="flex items-center gap-[16px]">
         <BackButton onClick={onBack} />
         <div className="flex gap-[8px]">
@@ -51,7 +50,7 @@ export default function ClassModeHeaderBar({
         </div>
         <h3 className="text-typeface_secondary text-h3">{subtitle}</h3>
       </div>
-      <Button className={`${buttonStyle}`}>{buttonText}</Button>
+      {rightSide}
     </div>
   );
 }

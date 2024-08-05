@@ -11,6 +11,8 @@ import { PopUpProvider } from "components/instructor/PopUpContext";
 import EnhancedPopUp from "components/instructor/EnhancedPopUp";
 import { useRouter } from "next/router";
 import { useResponsive } from "components/instructor/ResponsiveContext";
+import { SessionsProvider } from "components/instructor/SessionsContext";
+import dynamic from "next/dynamic";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -58,7 +60,8 @@ export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
 
     return {
       props: {
-        role: role || "unknown",
+        role: roleType || null,
+        accessToken: session.accessToken || null,
       },
     };
   },
@@ -66,6 +69,7 @@ export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
 
 export default function InstructorHome({
   role,
+  accessToken,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [mobile, setMobile] = useState(false);
@@ -103,11 +107,13 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <PopUpProvider>
-          <Navbar />
-          <DashboardContainer />
-          <EnhancedPopUp />
-        </PopUpProvider>
+        <SessionsProvider accessToken={accessToken}>
+          <PopUpProvider>
+            <Navbar />
+            <DashboardContainer />
+            <EnhancedPopUp />
+          </PopUpProvider>
+        </SessionsProvider>
       </div>
     </>
   );
