@@ -93,7 +93,7 @@ class UserCRUD(APIView):
         return Response(role_data.data)
 
 class GetUserRole(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     def get_user_info(self, token):
         # Check cache first
         cache_key = f'user_info_{token[:10]}'  # Use part of the token as cache key
@@ -122,42 +122,62 @@ class GetUserRole(APIView):
         print("GetUserRole dispatch method called")
         return super().dispatch(request, *args, **kwargs)
     
-    def get(self, request):
-        print("GetUserRole.get method called")
-        print(f"Request META: {request.META}")
-        print(f"Request headers: {request.headers}")
+
+    def get_or_create_user(self, user_info):
+        user_id = user_info['sub']
+        email = user_info.get('email', '')
+        nickname = user_info.get('nickname', '')
         
+        if not email:
+            raise ValidationError("Email is required for user creation")
+
+        try:
+            # Try to get the user by user_id first
+            user = CustomUser.objects.get(user_id=user_id)
+            # Update user information if it has changed
+            user.email = email
+            user.username = nickname or email  # Use nickname if available, otherwise use email
+            user.save()
+            return user, False  # User found and updated
+        except CustomUser.DoesNotExist:
+            pass
+
+        # If user doesn't exist, try to create one
+        try:
+            user = CustomUser.objects.create(
+                user_id=user_id,
+                email=email,
+                username=nickname or email,  # Use nickname if available, otherwise use email
+            )
+            return user, True  # New user created
+        except:
+            # logger.error(f"IntegrityError while creating user: {str(e)}")
+            # If creation fails due to integrity error, try to fetch by email
+            try:
+                user = CustomUser.objects.get(email=email)
+                # Update user_id if it's not set
+                if not user.user_id:
+                    user.user_id = user_id
+                    user.save()
+                return user, False  # Existing user found by email
+            except CustomUser.DoesNotExist:
+                logger.error(f"Failed to create or retrieve user for {email}")
+                raise ValidationError("Unable to create or retrieve user")
+
+    # Usage in your view
+    def get(self, request):
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-            print(f"Authorization header: {auth_header[:20]}...")
-
             if not auth_header.startswith('Bearer '):
-                print("ERROR: Invalid authorization header")
                 raise AuthenticationFailed("Invalid authorization header")
-
+            
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
-
-            print(user_info['sub'])
-            # Assuming CustomUser has these fields
-            user, created = CustomUser.objects.get_or_create(
-                user_id=user_info['sub'],
-                defaults={
-                    'email': user_info.get('email', ''),
-                    # 'user_type': user_info.get('user_type', '')  # Make sure Auth0 provides this
-                }
-            )
-
-            # Update user's ID if it's not set
-            if not user.user_id:
-                user.user_id = user_info['sub']
-                user.save()
-
-            # Simplified role data retrieval
-            role_data = {
-                'verified': False  # Default value
-            }
-
+            
+            user, created = self.get_or_create_user(user_info)
+            
+            # Simplified role data retrieval (unchanged)
+            role_data = {'verified': False}
             if user.user_type in ['in', 'ad', 'hs', 'st']:
                 role_model = {
                     'in': InstructorData,
@@ -165,21 +185,80 @@ class GetUserRole(APIView):
                     'hs': HeuStaffData,
                     'st': StudentData
                 }[user.user_type]
-                
                 role_instance = role_model.objects.filter(user_id=user.user_id).first()
                 if role_instance:
                     role_data['verified'] = getattr(role_instance, 'verified', False)
-
+            
             return Response({
                 "role": user.user_type,
                 "verified": role_data['verified']
             })
-
         except AuthenticationFailed as e:
             return Response({"error": str(e)}, status=401)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=400)
         except Exception as e:
             logger.error(f"Unexpected error in GetUserRole: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
+        
+    # def get(self, request):
+    #     print("GetUserRole.get method called")
+    #     print(f"Request META: {request.META}")
+    #     print(f"Request headers: {request.headers}")
+        
+    #     try:
+    #         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    #         print(f"Authorization header: {auth_header[:20]}...")
+
+    #         if not auth_header.startswith('Bearer '):
+    #             print("ERROR: Invalid authorization header")
+    #             raise AuthenticationFailed("Invalid authorization header")
+
+    #         token = auth_header.split(' ')[1]
+    #         user_info = self.get_user_info(token)
+
+    #         print(user_info['sub'])
+    #         # Assuming CustomUser has these fields
+    #         user, created = CustomUser.objects.get_or_create(
+    #             user_id=user_info['sub'],
+    #             # defaults={
+    #             #     'email': user_info.get('email', ''),
+    #             #     # 'user_type': user_info.get('user_type', '')  # Make sure Auth0 provides this
+    #             # }
+    #         )
+
+    #         # Update user's ID if it's not set
+    #         if not user.user_id:
+    #             user.user_id = user_info['sub']
+    #             user.save()
+
+    #         # Simplified role data retrieval
+    #         role_data = {
+    #             'verified': False  # Default value
+    #         }
+
+    #         if user.user_type in ['in', 'ad', 'hs', 'st']:
+    #             role_model = {
+    #                 'in': InstructorData,
+    #                 'ad': AdminData,
+    #                 'hs': HeuStaffData,
+    #                 'st': StudentData
+    #             }[user.user_type]
+                
+    #             role_instance = role_model.objects.filter(user_id=user.user_id).first()
+    #             if role_instance:
+    #                 role_data['verified'] = getattr(role_instance, 'verified', False)
+
+    #         return Response({
+    #             "role": user.user_type,
+    #             "verified": role_data['verified']
+    #         })
+
+    #     except AuthenticationFailed as e:
+    #         return Response({"error": str(e)}, status=401)
+    #     except Exception as e:
+    #         logger.error(f"Unexpected error in GetUserRole: {str(e)}")
+    #         return Response({"error": "An unexpected error occurred"}, status=500)
         
 # check if the user has done this before
 class StartAssessment(APIView):
