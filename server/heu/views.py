@@ -124,14 +124,20 @@ class GetUserRole(APIView):
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
 
+            print(user_info['sub'])
             # Assuming CustomUser has these fields
             user, created = CustomUser.objects.get_or_create(
                 user_id=user_info['sub'],
                 defaults={
                     'email': user_info.get('email', ''),
-                    'user_type': user_info.get('user_type', '')  # Make sure Auth0 provides this
+                    # 'user_type': user_info.get('user_type', '')  # Make sure Auth0 provides this
                 }
             )
+
+            # Update user's ID if it's not set
+            if not user.user_id:
+                user.user_id = user_info['sub']
+                user.save()
 
             # Simplified role data retrieval
             role_data = {
