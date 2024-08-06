@@ -37,6 +37,7 @@ import json
 import re
 import random
 import logging
+from rest_framework.permissions import AllowAny
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,7 @@ class UserCRUD(APIView):
         return Response(role_data.data)
 
 class GetUserRole(APIView):
+    permission_classes = [AllowAny]
     def get_user_info(self, token):
         # Check cache first
         cache_key = f'user_info_{token[:10]}'  # Use part of the token as cache key
@@ -116,6 +118,7 @@ class GetUserRole(APIView):
         return user_info
 
     def get(self, request):
+        print("what hte fuck")
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
