@@ -15,7 +15,7 @@ export default function ShowMoreButton({
         className={`w-full ${
           isOpen
             ? "bg-action_bg_tertiary"
-            : "bg-white outline-surface_border_secondary"
+            : "bg-white outline-surface_border_tertiary"
         }`}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -24,7 +24,11 @@ export default function ShowMoreButton({
             {title}
           </div>
           <div className="flex items-center gap-[12.5px]">
-            <div className="text-typeface_primary text-body-regular-cap-height">
+            <div
+              className={`${
+                isOpen ? "text-typeface_primary" : "text-typeface_secondary"
+              }  text-body-regular-cap-height`}
+            >
               {subtitle}
             </div>
             {isOpen ? (

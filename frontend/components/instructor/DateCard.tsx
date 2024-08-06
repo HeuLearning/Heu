@@ -1,6 +1,6 @@
 export default function DateCard({ month, day }) {
   return (
-    <div className="inline-flex h-[56px] w-[56px] flex-col items-center justify-center space-y-[4px] rounded-[10px] bg-white px-[8px] pb-[8px] pt-[12px] align-middle shadow-[0_25px_70px_-18px_rgba(0,0,0,0.3)]">
+    <div className="inline-flex h-[56px] w-[56px] flex-col items-center justify-center space-y-[4px] rounded-[10px] bg-white px-[8px] pb-[8px] pt-[12px] align-middle drop-shadow-200">
       <h1 className="font-semibold uppercase text-[#FE0909] text-[12px] leading-cap-height">
         {month}
       </h1>

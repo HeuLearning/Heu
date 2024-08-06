@@ -1,7 +1,7 @@
 import CompletionBar from "./CompletionBar";
 import InfoCard from "./InfoCard";
 
-export default function Phase({
+export default function PhaseCard({
   type,
   title,
   time,

@@ -1,0 +1,37 @@
+.mini_class_block {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mini_class_block::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  z-index: -2;
+}
+
+.mini_class_block:hover::before {
+  background-color: var(--surface_bg_secondary);
+  cursor: pointer;
+  border-radius: 14px;
+}
+
+.selected::before {
+  background-color: var(--surface_bg_secondary);
+  border-radius: 14px;
+}
+
+.dateCard {
+  padding: 0 8px 0 0;
+}
+
+.noDateCard {
+  padding: 8px;
+}

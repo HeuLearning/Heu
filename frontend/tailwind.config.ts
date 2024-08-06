@@ -54,6 +54,20 @@ export default {
       lineHeight: {
         "cap-height": "0.8",
       },
+      height: {
+        "to-bottom": "calc(100vh - 64px)",
+      },
+      dropShadow: {
+        "25": ["0 1px 2px rgba(0, 0, 0, 0.05)", "0 0 2px rgba(0, 0, 0, 0.05)"],
+        "50": "0 2px 4px rgba(0, 0, 0, 0.07)",
+        "75": "0 4px 20px rgba(0, 0, 0, 0.05)",
+        "100": [
+          "0 8px 8px rgba(0, 0, 0, 0.02)",
+          "0 2px 8px rgba(0, 0, 0, 0.08)",
+        ],
+        "150": "0 12px 48px rgba(0, 0, 0, 0.08)",
+        "200": "0 24px 64px rgba(0, 0, 0, 0.07)",
+      },
     },
   },
   plugins: [
@@ -77,6 +91,7 @@ export default {
           ),
           "--action_bg_tertiary": theme("colors.action_bg_tertiary"),
           "--action_border_primary": theme("colors.action_border_primary"),
+          "--action_border_secondary": theme("colors.action_border_secondary"),
           "--surface_bg_primary": theme("colors.surface_bg_primary"),
           "--surface_bg_secondary": theme("colors.surface_bg_secondary"),
           "--surface_bg_tertiary": theme("colors.surface_bg_tertiary"),
@@ -247,6 +262,10 @@ export default {
           return {
             [`.outline-${colorName}`]: {
               outline: `1px solid ${value}`,
+              "outline-offset": "-1px", // This ensures the outline is inside
+            },
+            [`.outline-dashed-${colorName}`]: {
+              outline: `1px dashed ${value}`,
               "outline-offset": "-1px", // This ensures the outline is inside
             },
           };

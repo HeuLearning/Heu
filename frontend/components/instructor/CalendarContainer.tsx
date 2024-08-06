@@ -5,11 +5,19 @@ import Divider from "./Divider";
 import Calendar from "./Calendar";
 import { useState } from "react";
 import { useResponsive } from "./ResponsiveContext";
+import styles from "./MiniClassBlock.module.css";
+import { useSessions } from "./SessionsContext";
 
-export default function CalendarContainer({ upcomingSessions }) {
+export default function CalendarContainer({
+  activeSessionByDate,
+  setActiveSessionByDate,
+  activeSessionId,
+  setActiveSessionId,
+}) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [visibleMonth, setVisibleMonth] = useState(new Date());
   const [activeTab, setActiveTab] = useState("Monthly");
+  const { upcomingSessions } = useSessions();
 
   const handleToggle = (selectedOption) => {
     setActiveTab(selectedOption);
@@ -43,7 +51,7 @@ export default function CalendarContainer({ upcomingSessions }) {
     return (
       <div
         id="calendar-container"
-        className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary p-[24px] outline-surface_border_secondary"
+        className="relative flex h-full  w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary p-[24px] outline-surface_border_tertiary"
       >
         <div className="custom-calendar-header flex justify-between pb-[48px]">
           <span className="text-typeface_primary leading-tight text-h1">
@@ -93,17 +101,20 @@ export default function CalendarContainer({ upcomingSessions }) {
         <Calendar
           visibleMonth={visibleMonth}
           setVisibleMonth={setVisibleMonth}
-          upcomingSessions={upcomingSessions}
           activeTab={activeTab}
           onToggle={handleToggle}
+          activeSessionByDate={activeSessionByDate}
+          activeSessionId={activeSessionId}
+          setActiveSessionByDate={setActiveSessionByDate}
+          setActiveSessionId={setActiveSessionId}
         />
         {activeTab === "Monthly" && (
           <div>
             <div className="mx-[-24px] border-[1px] border-surface_border_tertiary"></div>
-            <p className="py-[24px] text-typeface_secondary text-body-semibold">
+            <p className="pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold">
               Coming up
             </p>
-            <div className="upcoming-events">
+            <div className="upcoming-events flex flex-col items-center">
               {/* assumes that past sessions have been removed from array */}
               {upcomingSessions
                 .slice(0, Math.min(upcomingSessions.length, 3))
@@ -111,24 +122,20 @@ export default function CalendarContainer({ upcomingSessions }) {
                   index === 0 ? (
                     <MiniClassBlock
                       dateCard={true}
-                      date={[session.dayOfTheWeek, session.month, session.day]}
-                      startTime={session.startTime}
-                      endTime={session.endTime}
-                      status={session.status}
+                      sessionId={session.id}
+                      activeSessionId={activeSessionId}
+                      setActiveSessionId={setActiveSessionId}
+                      setActiveSessionByDate={setActiveSessionByDate}
                     />
                   ) : (
                     <div>
                       <Divider />
                       <MiniClassBlock
                         key={session.id}
-                        date={[
-                          session.dayOfTheWeek,
-                          session.month,
-                          session.day,
-                        ]}
-                        startTime={session.startTime}
-                        endTime={session.endTime}
-                        status={session.status}
+                        sessionId={session.id}
+                        activeSessionId={activeSessionId}
+                        setActiveSessionId={setActiveSessionId}
+                        setActiveSessionByDate={setActiveSessionByDate}
                       />
                     </div>
                   )
@@ -137,26 +144,35 @@ export default function CalendarContainer({ upcomingSessions }) {
           </div>
         )}
         {activeTab === "Daily" && (
-          <div className="daily-events mt-[24px] h-[548px] overflow-auto">
-            {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
+          <div className="h-[548px] overflow-y-auto no-scrollbar">
+            <div className="daily-events mt-[4px] flex flex-col items-center">
+              {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
             only dateCard for most upcoming session */}
-            {upcomingSessions
-              .filter((session) => session.month === visibleMonthName)
-              .map((session, index, filteredSessions) => (
-                <div>
-                  {index > 0 && index < filteredSessions.length && <Divider />}
-                  <MiniClassBlock
-                    dateCard={
-                      index === 0 &&
-                      filteredSessions[0].id === upcomingSessions[0].id
-                    }
-                    date={[session.dayOfTheWeek, session.month, session.day]}
-                    startTime={session.startTime}
-                    endTime={session.endTime}
-                    status={session.status}
-                  />
-                </div>
-              ))}
+              {upcomingSessions
+                .filter(
+                  (session) =>
+                    new Date(session.start_time).getMonth() ===
+                    visibleMonth.getMonth()
+                )
+                .map((session, index, filteredSessions) => (
+                  <div key={session.id}>
+                    {index > 0 && index < filteredSessions.length && (
+                      <Divider />
+                    )}
+                    <MiniClassBlock
+                      dateCard={
+                        index === 0 &&
+                        filteredSessions[0].id === upcomingSessions[0].id
+                      }
+                      sessionId={session.id}
+                      activeSessionId={activeSessionId}
+                      setActiveSessionId={setActiveSessionId}
+                      setActiveSessionByDate={setActiveSessionByDate}
+                      isDaily={true}
+                    />
+                  </div>
+                ))}
+            </div>
           </div>
         )}
       </div>

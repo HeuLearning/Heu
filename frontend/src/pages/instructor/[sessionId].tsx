@@ -14,10 +14,13 @@ import { PopUpProvider } from "components/instructor/PopUpContext";
 import EnhancedPopUp from "components/instructor/EnhancedPopUp";
 import ClassModeContainer from "components/instructor/ClassModeContainer";
 import { useRouter } from "next/router";
+import { SessionsProvider } from "components/instructor/SessionsContext";
+import { DndContext } from "@dnd-kit/core";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
-    const { req, res } = ctx;
+    const { req, res, query } = ctx;
+    const { sessionId } = query;
     const session = await getSession(req, res);
 
     if (!session) {
@@ -61,6 +64,8 @@ export const getServerSideProps = withPageAuthRequired({
     return {
       props: {
         role: role || "unknown",
+        sessionId: sessionId || null,
+        accessToken: session.accessToken || null,
       },
     };
   },
@@ -68,6 +73,8 @@ export const getServerSideProps = withPageAuthRequired({
 
 export default function InstructorHome({
   role,
+  sessionId,
+  accessToken,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
 
@@ -88,11 +95,15 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <PopUpProvider>
-          <Navbar />
-          <ClassModeContainer />
-          <EnhancedPopUp />
-        </PopUpProvider>
+        <SessionsProvider accessToken={accessToken}>
+          <DndContext>
+            <PopUpProvider>
+              <Navbar />
+              <ClassModeContainer sessionId={sessionId} />
+              <EnhancedPopUp />
+            </PopUpProvider>
+          </DndContext>
+        </SessionsProvider>
       </div>
     </>
   );
