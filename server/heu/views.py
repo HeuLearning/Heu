@@ -117,11 +117,22 @@ class GetUserRole(APIView):
         
         return user_info
 
+
+    def dispatch(self, request, *args, **kwargs):
+        print("GetUserRole dispatch method called")
+        return super().dispatch(request, *args, **kwargs)
+    
     def get(self, request):
-        print("what hte fuck")
+        print("GetUserRole.get method called")
+        print(f"Request META: {request.META}")
+        print(f"Request headers: {request.headers}")
+        
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            print(f"Authorization header: {auth_header[:20]}...")
+
             if not auth_header.startswith('Bearer '):
+                print("ERROR: Invalid authorization header")
                 raise AuthenticationFailed("Invalid authorization header")
 
             token = auth_header.split(' ')[1]
