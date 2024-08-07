@@ -1613,7 +1613,7 @@ class SessionPhasesView(APIView):
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         return user_info
 
-    def get(self, request, session_id):
+    def get(self, request, session_pk):
         try:
             # Authenticate user
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
@@ -1625,7 +1625,7 @@ class SessionPhasesView(APIView):
 
             # Get the session
             try:
-                session = Session.objects.get(id=session_id)
+                session = Session.objects.get(id=session_pk)
             except Session.DoesNotExist:
                 return Response({"error": "Session not found"}, status=404)
 
@@ -1675,8 +1675,8 @@ class SessionPhasesView(APIView):
                 })
 
             return Response({
-                "session_id": session_id,
-                "lesson_plan_id": lesson_plan.id,
+                "session_id": session_pk,
+                "lesson_plan_id": lesson_plan.pk,
                 "lesson_plan_name": lesson_plan.name,
                 "phases": phases_data
             })
@@ -1705,7 +1705,7 @@ class PhaseModulesView(APIView):
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         return user_info
 
-    def get(self, request, phase_id):
+    def get(self, request, phase_pk):
         try:
             # Authenticate user
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
@@ -1717,7 +1717,7 @@ class PhaseModulesView(APIView):
 
             # Get the phase
             try:
-                phase = Phase.objects.get(id=phase_id)
+                phase = Phase.objects.get(id=phase_pk)
             except Phase.DoesNotExist:
                 return Response({"error": "Phase not found"}, status=404)
 
@@ -1752,7 +1752,7 @@ class PhaseModulesView(APIView):
                 })
 
             return Response({
-                "phase_id": phase_id,
+                "phase_id": phase_pk,
                 "phase_name": phase.name,
                 "modules": modules_data
             })
