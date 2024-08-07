@@ -1,3 +1,4 @@
+from io import open_code
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator 
 from django.contrib.auth.models import AbstractUser
@@ -106,6 +107,36 @@ class InstructorApplicationInstance(models.Model):
     approver = models.ForeignKey(AdminData, null=True, blank=True, on_delete=models.SET_NULL)
     def __str__(self):
         return f'{self.id} {self.instructor_id} {self.accepted}'
+    
+class HardCodedQuestionCounter(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    order = models.IntegerField()
+
+class Module(models.Model):
+    name = models.CharField(default="Nickname for Module")
+    questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
+    def __str__(self):
+        return f'{self.id} {self.name}'
+
+class ModuleCounter(models.Model):
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    order = models.IntegerField()
+
+class Phase(models.Model):
+    name = models.CharField(default="Nickname for Phase")
+    modules =  models.ManyToManyField(ModuleCounter, related_name="module_counter")
+    def __str__(self):
+        return f'{self.id} {self.name}'
+    
+class PhaseCounter(models.Model):
+    phase = models.ForeignKey(Phase, on_delete=models.CASCADE)
+    order = models.IntegerField()
+
+class LessonPlan(models.Model):
+    name = models.CharField(default="Nickname for Lesson Plan")
+    phases =  models.ManyToManyField(PhaseCounter, related_name="phase_counter")
+    def __str__(self):
+        return f'{self.id} {self.name}'
 
 class SessionRequirements(models.Model):
     learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.CASCADE)
@@ -123,6 +154,7 @@ class Session(models.Model):
     learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.SET_NULL, null=True, blank=True)
     enrolled_students = ArrayField(
         models.CharField(max_length=255),  # This will store CustomUser IDs
         blank=True,
