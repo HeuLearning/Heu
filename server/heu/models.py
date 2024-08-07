@@ -107,6 +107,24 @@ class InstructorApplicationInstance(models.Model):
     def __str__(self):
         return f'{self.id} {self.instructor_id} {self.accepted}'
 
+class Module(models.Model):
+    name = models.CharField(default="Nickname for Module")
+    questions = ArrayField(models.ForeignKey(Question, on_delete=models.SET_NULL), default=list)
+    def __str__(self):
+        return f'{self.id} {self.name}'
+
+class Phase(models.Model):
+    name = models.CharField(default="Nickname for Phase")
+    modules =  ArrayField(models.ForeignKey(Module, on_delete=models.SET_NULL), default=list)
+    def __str__(self):
+        return f'{self.id} {self.name}'
+
+class LessonPlan(models.Model):
+    name = models.CharField(default="Nickname for Lesson Plan")
+    phases =  ArrayField(models.ForeignKey(Phase, on_delete=models.SET_NULL), default=list)
+    def __str__(self):
+        return f'{self.id} {self.name}'
+
 class SessionRequirements(models.Model):
     learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.CASCADE)
     minimum_session_hours = models.IntegerField(default=1)
@@ -123,6 +141,7 @@ class Session(models.Model):
     learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
+    lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.SET_NULL)
     enrolled_students = ArrayField(
         models.CharField(max_length=255),  # This will store CustomUser IDs
         blank=True,
