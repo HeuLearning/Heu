@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
 from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
-from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements, SessionApprovalToken
+from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements, SessionApprovalToken, Phase, Module, PhaseCounter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError, PermissionDenied
@@ -1596,7 +1596,174 @@ class LoginUserView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+class SessionPhasesView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request, session_id):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get the session
+            try:
+                session = Session.objects.get(id=session_id)
+            except Session.DoesNotExist:
+                return Response({"error": "Session not found"}, status=404)
+
+            # Check if the user is an instructor for this session
+            if user_id not in session.instructors:
+                raise PermissionDenied("User is not an instructor for this session")
+
+            # Get the lesson plan associated with the session
+            lesson_plan = session.lesson_plan
+            if not lesson_plan:
+                return Response({"error": "No lesson plan associated with this session"}, status=404)
+
+            # Get all phases for this lesson plan
+            phase_counters = lesson_plan.phases.all().order_by('order')
+            phases_data = []
+
+            for phase_counter in phase_counters:
+                phase = phase_counter.phase
+                module_counters = phase.modules.all().order_by('order')
+                modules_data = []
+
+                for module_counter in module_counters:
+                    module = module_counter.module
+                    # question_counters = module.questions.all().order_by('order')
+                    # questions_data = []
+
+                    # for question_counter in question_counters:
+                    #     question = question_counter.question
+                    #     questions_data.append({
+                    #         "id": question.custom_id,
+                    #         "text": question.text,
+                    #         "audio": question.audio,
+                    #         "image": question.image,
+                    #         "json": question.json
+                    #     })
+
+                    modules_data.append({
+                        "id": module.id,
+                        "name": module.name,
+                        # "questions": questions_data
+                    })
+
+                phases_data.append({
+                    "id": phase.id,
+                    "name": phase.name,
+                    "modules": modules_data
+                })
+
+            return Response({
+                "session_id": session_id,
+                "lesson_plan_id": lesson_plan.id,
+                "lesson_plan_name": lesson_plan.name,
+                "phases": phases_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in SessionPhasesView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+class PhaseModulesView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request, phase_id):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get the phase
+            try:
+                phase = Phase.objects.get(id=phase_id)
+            except Phase.DoesNotExist:
+                return Response({"error": "Phase not found"}, status=404)
+
+            # TODO: Add appropriate permission check here
+            # For example, check if the user is an instructor for a session that includes this phase
+            # This will depend on your specific authorization requirements
+
+            # Get all modules for this phase
+            module_counters = phase.modules.all().order_by('order')
+            modules_data = []
+
+            for module_counter in module_counters:
+                module = module_counter.module
+                # question_counters = module.questions.all().order_by('order')
+                # questions_data = []
+
+                # for question_counter in question_counters:
+                #     question = question_counter.question
+                #     questions_data.append({
+                #         "id": question.custom_id,
+                #         "text": question.text,
+                #         "audio": question.audio,
+                #         "image": question.image,
+                #         "json": question.json
+                #     })
+
+                modules_data.append({
+                    "id": module.id,
+                    "name": module.name,
+                    # "questions": questions_data
+                })
+
+            return Response({
+                "phase_id": phase_id,
+                "phase_name": phase.name,
+                "modules": modules_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in PhaseModulesView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
 class InstructorApplicationTemplateView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
@@ -1740,7 +1907,7 @@ class InstructorApplicationTemplateView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in InstructorApplicationTemplateView POST: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-        
+
 class InstructorApplicationInstanceAdminView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
