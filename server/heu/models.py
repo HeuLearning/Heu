@@ -115,6 +115,7 @@ class HardCodedQuestionCounter(models.Model):
 class Module(models.Model):
     name = models.CharField(default="Nickname for Module")
     questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
+    suggested_duration = models.IntegerField()
     def __str__(self):
         return f'{self.id} {self.name}'
 

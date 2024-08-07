@@ -1747,6 +1747,7 @@ class PhaseModulesView(APIView):
                 modules_data.append({
                     "id": module.id,
                     "name": module.name,
+                    "suggested_duration": module.suggested_duration,
                     # "questions": questions_data
                 })
 
