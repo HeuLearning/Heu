@@ -87,6 +87,16 @@ WSGI_APPLICATION = 'server.wsgi.application'
 
 CSP_FRAME_ANCESTORS = "'none'"
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_RENDERER_CLASSES': [
+#         'rest_framework.renderers.JSONRenderer',
+#     ],
+#     # 'EXCEPTION_HANDLER': 'messages_api.views.api_exception_handler',
+#     # 'DEFAULT_AUTHENTICATION_CLASSES': [
+#     #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+#     # ],
+# }
+
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -94,10 +104,22 @@ REST_FRAMEWORK = {
     # 'EXCEPTION_HANDLER': 'messages_api.views.api_exception_handler',
     # 'DEFAULT_AUTHENTICATION_CLASSES': [
     #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+
     # ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+        'server.auth0backend.Auth0Backend',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
+
 # JWT
+
+
 
 AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
 AUTH0_AUDIENCE = os.environ.get('AUTH0_AUDIENCE')
