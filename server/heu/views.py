@@ -37,6 +37,7 @@ import json
 import re
 import random
 import logging
+import jwt
 from rest_framework.permissions import AllowAny
 
 logger = logging.getLogger(__name__)
@@ -1558,30 +1559,48 @@ class InstructorSessionDetailView(APIView):
         session.instructors = instructors
         session.save()
         return Response({"message": "Successfully removed from teaching this session"})
-        
+
 class LoginUserView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access
 
-    def get_user_info(self, bearer_token):
+    def get_user_info(self, access_token):
         domain = os.environ.get('AUTH0_DOMAIN')
         if not domain:
             logger.error("AUTH0_DOMAIN not set in environment variables")
             raise ValueError("AUTH0_DOMAIN not configured")
         
-        headers = {"Authorization": f'Bearer {bearer_token}'}
+        headers = {"Authorization": f'Bearer {access_token}'}
         response = requests.get(f'https://{domain}/userinfo', headers=headers)
         response.raise_for_status()
         return response.json()
 
-    def get(self, request, format=None):
+    def verify_token(self, token):
+        try:
+            # This is a basic verification. For production, use a proper JWT library
+            # and fetch the public key from Auth0
+            payload = jwt.decode(token, options={"verify_signature": False})
+            return payload
+        except jwt.DecodeError:
+            return None
+
+    def get(self, request):
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-            if not auth_header.startswith('Bearer '):
-                logger.warning("Invalid Authorization header format")
-                return Response({"error": "Invalid Authorization header"}, status=status.HTTP_401_UNAUTHORIZED)
-            
-            bearer_token = auth_header.split(' ')[1]
-            user_info = self.get_user_info(bearer_token)
+            if auth_header.startswith('Bearer '):
+                # Token is present, verify it
+                token = auth_header.split(' ')[1]
+                payload = self.verify_token(token)
+                if not payload:
+                    return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+                user_info = self.get_user_info(token)
+            else:
+                # No token, this is the initial login
+                # The frontend should send the access_token in the request body or as a query parameter
+                access_token = request.GET.get('access_token') or request.data.get('access_token')
+                if not access_token:
+                    return Response({"error": "No access token provided"}, status=status.HTTP_400_BAD_REQUEST)
+                user_info = self.get_user_info(access_token)
+
             logger.info(f"Retrieved user info: {user_info}")
 
             with transaction.atomic():
@@ -1611,8 +1630,7 @@ class LoginUserView(APIView):
         except Exception as e:
             logger.exception("An unexpected error occurred")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        
+
 class SessionPhasesView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
