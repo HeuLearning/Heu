@@ -1679,7 +1679,7 @@ class SessionPhasesView(APIView):
                 phase = phase_counter.phase
                 module_counters = phase.modules.all().order_by('order')
                 modules_data = []
-
+                phase_duration = 0
                 for module_counter in module_counters:
                     module = module_counter.module
                     # question_counters = module.questions.all().order_by('order')
@@ -1698,13 +1698,15 @@ class SessionPhasesView(APIView):
                     modules_data.append({
                         "id": module.id,
                         "name": module.name,
+                        "suggested_duration_seconds": module.suggested_duration_seconds,
                         # "questions": questions_data
                     })
-
+                    phase_duration += module.suggested_duration_seconds
                 phases_data.append({
                     "id": phase.id,
                     "name": phase.name,
-                    "modules": modules_data
+                    "modules": modules_data,
+                    "phase_duration_seconds": phase_duration
                 })
 
             return Response({
@@ -1780,13 +1782,16 @@ class PhaseModulesView(APIView):
                 modules_data.append({
                     "id": module.id,
                     "name": module.name,
-                    "suggested_duration": module.suggested_duration,
+                    "suggested_duration_seconds": module.suggested_duration_seconds,
+                    "description": module.description
                     # "questions": questions_data
                 })
 
             return Response({
                 "phase_id": phase_pk,
                 "phase_name": phase.name,
+                "type": phase.type,
+                "description": phase.description,
                 "modules": modules_data
             })
 

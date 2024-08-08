@@ -115,9 +115,10 @@ class HardCodedQuestionCounter(models.Model):
 class Module(models.Model):
     name = models.CharField(default="Nickname for Module")
     questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
-    suggested_duration = models.IntegerField()
+    suggested_duration_seconds = models.IntegerField()
+    description = models.TextField(default="Default Module")
     def __str__(self):
-        return f'{self.id} {self.name}'
+        return f'{self.id} {self.name} {self.description}'
 
 class ModuleCounter(models.Model):
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
@@ -125,9 +126,11 @@ class ModuleCounter(models.Model):
 
 class Phase(models.Model):
     name = models.CharField(default="Nickname for Phase")
+    type = models.CharField(default="Learning Phase")
+    description = models.TextField(default="Default Learning Phase")
     modules =  models.ManyToManyField(ModuleCounter, related_name="module_counter")
     def __str__(self):
-        return f'{self.id} {self.name}'
+        return f'{self.id} {self.name} {self.type} {self.description}'
     
 class PhaseCounter(models.Model):
     phase = models.ForeignKey(Phase, on_delete=models.CASCADE)
@@ -136,8 +139,9 @@ class PhaseCounter(models.Model):
 class LessonPlan(models.Model):
     name = models.CharField(default="Nickname for Lesson Plan")
     phases =  models.ManyToManyField(PhaseCounter, related_name="phase_counter")
+    description = models.TextField(default="Default Lesson Plan")
     def __str__(self):
-        return f'{self.id} {self.name}'
+        return f'{self.id} {self.name} {self.description}'
 
 class SessionRequirements(models.Model):
     learning_organization_location = models.ForeignKey(LearningOrganizationLocation, on_delete=models.CASCADE)
