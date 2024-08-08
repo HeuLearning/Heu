@@ -92,9 +92,9 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
     # 'EXCEPTION_HANDLER': 'messages_api.views.api_exception_handler',
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
-    ],
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+    # ],
 }
 
 # JWT
