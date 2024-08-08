@@ -190,92 +190,126 @@ class Auth0Middleware:
 #             print(f"Token verification failed: {str(e)}", file=sys.stderr)
 #             return None
 
+    def __call__(self, request):
+        print(f"Auth0Middleware processing request: {request.method} {request.path}", file=sys.stderr)
+        response = self.get_response(request)
+        print("Auth0Middleware processing response", file=sys.stderr)
+        response['Expires'] = 0
+        add_never_cache_headers(response)
+        response['X-XSS-Protection'] = '0'
+        response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
+    
+from channels.middleware import BaseMiddleware
+from channels.db import database_sync_to_async
+from django.contrib.auth.models import AnonymousUser
+import jwt
+from django.conf import settings
+import logging
+import os
 
-# from django.http import JsonResponse
-# from jose import jwt
+logger = logging.getLogger(__name__)
 
+print("Auth0TokenMiddleware module loaded")
 
-# class Auth0Middleware(object):
-#     def __init__(self, get_response):
-#         self.get_response = get_response
+# class Auth0TokenMiddleware(BaseMiddleware):
+#     def __init__(self, inner):
+#         super().__init__(inner)
+#         print("Auth0TokenMiddleware initialized")
 
-#     def __call__(self, request):
+#     async def __call__(self, scope, receive, send):
+#         print("Auth0TokenMiddleware __call__ method entered")
+#         token = self.get_token_from_scope(scope)
 
-        # GET TOKEN
-        # auth = request.META.get('HTTP_AUTHORIZATION')
+#         if token:
+#             print(f"Token found: {token[:10]}...")
+#             user = await self.get_user_from_token(token)
+#             if user.is_authenticated:
+#                 print("User authenticated successfully")
+#             else:
+#                 print("User authentication failed")
+#             scope['user'] = user
+#         else:
+#             print("No token found in request")
+#             scope['user'] = AnonymousUser()
 
-        # if not auth:
-        #     return JsonResponse(data={"code": "authorization_header_missing",
-        #                               "description":
-        #                                   "Authorization header is expected"}, status=401)
+#         return await super().__call__(scope, receive, send)
 
-        # parts = auth.split()
+#     def get_token_from_scope(self, scope):
+#         headers = dict(scope['headers'])
+#         auth_header = headers.get(b'authorization', b'').decode()
+#         if auth_header.startswith('Bearer '):
+#             return auth_header.split(' ')[1]
+        
+#         query_string = scope['query_string'].decode()
+#         query_params = dict(qp.split('=') for qp in query_string.split('&') if '=' in qp)
+#         return query_params.get('token')
 
-        # if parts[0].lower() != "bearer":
-        #     return JsonResponse(data={"code": "invalid_header",
-        #                               "description":
-        #                                   "Authorization header must start with"
-        #                                   "Bearer"}, status=401)
-        # elif len(parts) == 1:
-        #     return JsonResponse(data={"code": "invalid_header",
-        #                               "description": "Token not found"}, status=401)
-        # elif len(parts) > 2:
-        #     return JsonResponse(data={"code": "invalid_header",
-        #                               "description": "Authorization header must be"
-        #                                              "Bearer token"}, status=401)
+#     @database_sync_to_async
+#     def get_user_from_token(self, token):
+#         try:
+#             print(f"Attempting to decode token with audience: {settings.AUTH0_AUDIENCE}")
+#             payload = jwt.decode(
+#                 token, 
+#                 settings.AUTH0_AUDIENCE,
+#                 algorithms=['RS256'],
+#                 audience=settings.AUTH0_AUDIENCE,
+#                 issuer=f'https://{settings.AUTH0_DOMAIN}/'
+#             )
+#             print("Token decoded successfully")
+#             return type('User', (), {'id': payload['sub'], 'is_authenticated': True})()
+#         except jwt.ExpiredSignatureError:
+#             print("Token has expired")
+#         except jwt.InvalidAudienceError:
+#             print(f"Invalid audience. Expected {settings.AUTH0_AUDIENCE}")
+#         except jwt.InvalidIssuerError:
+#             print(f"Invalid issuer. Expected https://{settings.AUTH0_DOMAIN}/")
+#         except jwt.PyJWTError as e:
+#             print(f"JWT validation error: {str(e)}")
+#         return AnonymousUser()
+class Auth0TokenMiddleware(BaseMiddleware):
+    async def __call__(self, scope, receive, send):
+        # Parse the query string
+        query_string = scope['query_string'].decode()
+        query_params = parse_qs(query_string)
+        
+        # Extract the token from the query parameters
+        token = query_params.get('token', [None])[0]
+        # print(token)
+        if token:
+            try:
+                # Verify and decode the token
+                user = await self.get_user_info(token)
+                scope['user'] = user
+                print(f"Authenticated user: {user}")
+            except Exception as e:
+                print(f"Authentication error: {str(e)}")
+                scope['user'] = AnonymousUser()
+        else:
+            print("Token not found in query string")
+            scope['user'] = AnonymousUser()
 
-        # token = parts[1]
+        return await super().__call__(scope, receive, send)
 
-        # # VALIDATE TOKEN
+    @database_sync_to_async
+    def get_user_info(self, bearer_token):
+        domain = settings.AUTH0_DOMAIN
+        headers = {"Authorization": f'Bearer {bearer_token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        print("response ", response.json())
+        return type('User', (), {'is_authenticated': True, 'id': response.json()['sub']})()
 
-        # jwks = AUTH0_PUBLIC_KEY
-        # try:
-        #     unverified_header = jwt.get_unverified_header(token)
-        # except jwt.JWTError:
+        # response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        # response.raise_for_status()  # Raises an HTTPError for bad responses
+        # return response.json()
 
-        #     return JsonResponse(data={"code": "invalid_header",
-        #                               "description": "Invalid header. "
-        #                                              "Use an RS256 signed JWT Access Token"}, status=401)
-
-        # if unverified_header"alg"] == "HS256":
-        #     return JsonResponse(data={"code": "invalid_header",
-        #                               "description": "Invalid header. "
-        #                                              "Use an RS256 signed JWT Access Token"}, status=401)
-
-        # rsa_key = {}
-        # for key in jwks"keys"]:
-        #     if key"kid"] == unverified_header"kid"]:
-        #         rsa_key = {
-        #             "kty": key"kty"],
-        #             "kid": key"kid"],
-        #             "use": key"use"],
-        #             "n": key"n"],
-        #             "e": key"e"]
-        #         }
-        # if rsa_key:
-        #     try:
-        #         jwt.decode(
-        #             token,
-        #             rsa_key,
-        #             algorithms=ALGORITHMS,
-        #             audience=API_AUDIENCE,
-        #             issuer="https://" + AUTH0_DOMAIN + "/"
-        #         )
-
-        #     except jwt.ExpiredSignatureError:
-        #         return JsonResponse(data={"code": "token_expired",
-        #                                   "description": "token is expired"}, status=401)
-        #     except jwt.JWTClaimsError:
-        #         return JsonResponse(data={"code": "invalid_claims",
-        #                                   "description": "incorrect claims,"
-        #                                                  " please check the audience and issuer"}, status=401)
-        #     except Exception:
-        #         return JsonResponse(data={"code": "invalid_header",
-        #                                   "description": "Unable to parse authentication"
-        #                                                  " token."}, status=400)
-        # else:
-        #     return JsonResponse(data={"code": "invalid_header",
-        #                               "description": "Unable to find appropriate key"}, status=401)
-
-        # response = self.get_response(request)
-        # return response
+    @database_sync_to_async
+    def get_user_from_token(self, token):
+        print(token)
+        try:
+            payload = jwt.decode(token, settings.AUTH0_CLIENT_SECRET, algorithms=['HS256'], audience=settings.AUTH0_AUDIENCE)
+            # Here, implement logic to get or create a user based on the Auth0 user info
+            # For now, we'll just return a simple user object
+            return type('User', (), {'is_authenticated': True, 'id': payload['sub']})()
+        except jwt.PyJWTError:
+            return AnonymousUser()

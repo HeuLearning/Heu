@@ -192,3 +192,21 @@ class SessionApprovalToken(models.Model):
 
     def is_valid(self):
         return not self.used and self.expires_at > timezone.now()
+    
+class HardCodedQuestionCounter(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    order = models.IntegerField()
+
+
+class HardCodedModule(models.Model):
+    questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
+
+
+class HardCodedStudentProgress(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer = models.TextField(blank=True, null=True) # maybe shouldn't be null or blank
+    intermediate_answers = ArrayField(models.TextField(), blank=True, null=True, default=list)
+    intermediate_timing = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
+    isRight = models.BooleanField(blank=False, default=False)
+    secondsToAnswer = models.IntegerField(blank=False)
