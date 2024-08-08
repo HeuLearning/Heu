@@ -1611,6 +1611,7 @@ class LoginUserView(APIView):
     
     def get(self, request):
         try:
+            print("trying to log in here")
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if auth_header.startswith('Bearer '):
                 # Token is present, verify it
