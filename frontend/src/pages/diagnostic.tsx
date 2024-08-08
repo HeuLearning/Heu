@@ -1,5 +1,5 @@
 import Head from "next/head";
-import Header from "../../components/header";
+import Header from "../../components/landing_page/header";
 import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { useStartAssessment } from "./api/services/use-start-assessment";
 import { useAssessmentQuestion } from "./api/services/use-assessment-question";

@@ -53,7 +53,7 @@ export const getServerSideProps = withPageAuthRequired({
     }
 
     // if the user is verified then get the related sessions
-    const applicantionOptions = {
+    const applicationOptions = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -63,10 +63,11 @@ export const getServerSideProps = withPageAuthRequired({
 
     let applicationResponse = await fetch(
       `http://localhost:8000/api/instructor-application-instance/${templateId}`,
-      applicantionOptions
+      applicationOptions
     );
     const applicationData = await applicationResponse.json();
     console.log(applicationData);
+
     return {
       props: {
         role: roleType || null,
@@ -103,6 +104,22 @@ export default function Application({ role, application, sessionToken }) {
     }
   }
 
+  async function handleWithdrawApplication(instanceId) {
+    const res = await fetch(
+      `http://localhost:8000/api/instructor-application-instance/delete/${instanceId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${sessionToken}`, // Include the access token
+        },
+      }
+    );
+    if (res.status < 300) {
+      router.push("/instructor/applications");
+    }
+  }
+
   return (
     <>
       <Head>
@@ -116,6 +133,9 @@ export default function Application({ role, application, sessionToken }) {
         />
       </Head>
       <div>
+        <a href="/instructor/applications">
+          <button>Back to all applications</button>
+        </a>
         <h1>
           Instructor Application for {application.learning_organization_name} in{" "}
           {application.learning_organization_location_name}
@@ -124,9 +144,26 @@ export default function Application({ role, application, sessionToken }) {
           {application.google_form_link}
         </a>
         <br></br>
-        <button onClick={() => handleSubmitApplication(application.id)}>
-          Mark as Submitted
-        </button>
+        {application.completed ? (
+          application.reviewed ? (
+            application.accepted ? (
+              <p>Application Accepted!</p>
+            ) : (
+              <p>Application Denied</p>
+            )
+          ) : (
+            <>
+              <p>Status Pending</p>
+              <button onClick={() => handleWithdrawApplication(application.id)}>
+                Withdraw Application
+              </button>
+            </>
+          )
+        ) : (
+          <button onClick={() => handleSubmitApplication(application.id)}>
+            Mark as Submitted
+          </button>
+        )}
       </div>
     </>
   );

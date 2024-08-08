@@ -5,7 +5,7 @@ from .models import (CustomUser, LookupIndex, Question, Assessment,
 AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, 
 LearningOrganizationLocation, Room, Session, SessionPrerequisites, 
 InstructorApplicationTemplate, InstructorApplicationInstance, 
-SessionRequirements, SessionApprovalToken, HardCodedQuestionCounter, HardCodedModule, HardCodedStudentProgress)
+SessionRequirements, SessionApprovalToken, Phase, Module, HardCodedQuestionCounter, PhaseCounter, ModuleCounter, LessonPlan)
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 
@@ -48,6 +48,9 @@ admin.site.register(InstructorApplicationTemplate)
 admin.site.register(InstructorApplicationInstance)
 admin.site.register(SessionRequirements)
 admin.site.register(SessionApprovalToken)
+admin.site.register(Phase)
+admin.site.register(Module)
 admin.site.register(HardCodedQuestionCounter)
-admin.site.register(HardCodedModule)
-admin.site.register(HardCodedStudentProgress)
+admin.site.register(PhaseCounter)
+admin.site.register(ModuleCounter)
+admin.site.register(LessonPlan)

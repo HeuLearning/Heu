@@ -1,9 +1,9 @@
 import Head from "next/head";
 import { Inter } from "next/font/google";
 
-import Header from "../../components/header"
-import Body from "../../components/body"
-import styles from "../styles/Home.module.css"
+import Header from "../../components/landing_page/header";
+import Body from "../../components/landing_page/body";
+import styles from "../styles/Home.module.css";
 import Image from "next/image";
 import { NavBar } from "components/navigation/nav-bar";
 
@@ -24,5 +24,3 @@ export default function Home() {
     </>
   );
 }
-
-

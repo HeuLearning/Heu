@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.http import Http404
 from django.views.generic.detail import DetailView
 from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
-from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements, SessionApprovalToken
+from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements, SessionApprovalToken, Phase, Module, PhaseCounter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import exception_handler
@@ -39,6 +39,8 @@ import json
 import re
 import random
 import logging
+import jwt
+from rest_framework.permissions import AllowAny
 
 User = get_user_model()
 
@@ -137,6 +139,7 @@ class UserCRUD(APIView):
 #         })
 
 class GetUserRole(APIView):
+    # permission_classes = [AllowAny]
     def get_user_info(self, token):
         # Check cache first
         cache_key = f'user_info_{token[:10]}'  # Use part of the token as cache key
@@ -160,6 +163,54 @@ class GetUserRole(APIView):
         
         return user_info
 
+
+    def dispatch(self, request, *args, **kwargs):
+        print("GetUserRole dispatch method called")
+        return super().dispatch(request, *args, **kwargs)
+    
+
+    def get_or_create_user(self, user_info):
+        user_id = user_info['sub']
+        email = user_info.get('email', '')
+        nickname = user_info.get('nickname', '')
+        
+        if not email:
+            raise ValidationError("Email is required for user creation")
+
+        try:
+            # Try to get the user by user_id first
+            user = CustomUser.objects.get(user_id=user_id)
+            # Update user information if it has changed
+            user.email = email
+            user.username = nickname or email  # Use nickname if available, otherwise use email
+            user.save()
+            return user, False  # User found and updated
+        except CustomUser.DoesNotExist:
+            pass
+
+        # If user doesn't exist, try to create one
+        try:
+            user = CustomUser.objects.create(
+                user_id=user_id,
+                email=email,
+                username=nickname or email,  # Use nickname if available, otherwise use email
+            )
+            return user, True  # New user created
+        except:
+            # logger.error(f"IntegrityError while creating user: {str(e)}")
+            # If creation fails due to integrity error, try to fetch by email
+            try:
+                user = CustomUser.objects.get(email=email)
+                # Update user_id if it's not set
+                if not user.user_id:
+                    user.user_id = user_id
+                    user.save()
+                return user, False  # Existing user found by email
+            except CustomUser.DoesNotExist:
+                logger.error(f"Failed to create or retrieve user for {email}")
+                raise ValidationError("Unable to create or retrieve user")
+
+    # Usage in your view
     def get(self, request):
         # print("here")
         print("get user role", request.user)
@@ -167,24 +218,14 @@ class GetUserRole(APIView):
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
                 raise AuthenticationFailed("Invalid authorization header")
-
+            
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
-
-            # Assuming CustomUser has these fields
-            user, created = CustomUser.objects.get_or_create(
-                user_id=user_info['sub'],
-                defaults={
-                    'email': user_info.get('email', ''),
-                    'user_type': user_info.get('user_type', '')  # Make sure Auth0 provides this
-                }
-            )
-
-            # Simplified role data retrieval
-            role_data = {
-                'verified': False  # Default value
-            }
-
+            
+            user, created = self.get_or_create_user(user_info)
+            
+            # Simplified role data retrieval (unchanged)
+            role_data = {'verified': False}
             if user.user_type in ['in', 'ad', 'hs', 'st']:
                 role_model = {
                     'in': InstructorData,
@@ -192,21 +233,80 @@ class GetUserRole(APIView):
                     'hs': HeuStaffData,
                     'st': StudentData
                 }[user.user_type]
-                
                 role_instance = role_model.objects.filter(user_id=user.user_id).first()
                 if role_instance:
                     role_data['verified'] = getattr(role_instance, 'verified', False)
-
+            
             return Response({
                 "role": user.user_type,
                 "verified": role_data['verified']
             })
-
         except AuthenticationFailed as e:
             return Response({"error": str(e)}, status=401)
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=400)
         except Exception as e:
             logger.error(f"Unexpected error in GetUserRole: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
+        
+    # def get(self, request):
+    #     print("GetUserRole.get method called")
+    #     print(f"Request META: {request.META}")
+    #     print(f"Request headers: {request.headers}")
+        
+    #     try:
+    #         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    #         print(f"Authorization header: {auth_header[:20]}...")
+
+    #         if not auth_header.startswith('Bearer '):
+    #             print("ERROR: Invalid authorization header")
+    #             raise AuthenticationFailed("Invalid authorization header")
+
+    #         token = auth_header.split(' ')[1]
+    #         user_info = self.get_user_info(token)
+
+    #         print(user_info['sub'])
+    #         # Assuming CustomUser has these fields
+    #         user, created = CustomUser.objects.get_or_create(
+    #             user_id=user_info['sub'],
+    #             # defaults={
+    #             #     'email': user_info.get('email', ''),
+    #             #     # 'user_type': user_info.get('user_type', '')  # Make sure Auth0 provides this
+    #             # }
+    #         )
+
+    #         # Update user's ID if it's not set
+    #         if not user.user_id:
+    #             user.user_id = user_info['sub']
+    #             user.save()
+
+    #         # Simplified role data retrieval
+    #         role_data = {
+    #             'verified': False  # Default value
+    #         }
+
+    #         if user.user_type in ['in', 'ad', 'hs', 'st']:
+    #             role_model = {
+    #                 'in': InstructorData,
+    #                 'ad': AdminData,
+    #                 'hs': HeuStaffData,
+    #                 'st': StudentData
+    #             }[user.user_type]
+                
+    #             role_instance = role_model.objects.filter(user_id=user.user_id).first()
+    #             if role_instance:
+    #                 role_data['verified'] = getattr(role_instance, 'verified', False)
+
+    #         return Response({
+    #             "role": user.user_type,
+    #             "verified": role_data['verified']
+    #         })
+
+    #     except AuthenticationFailed as e:
+    #         return Response({"error": str(e)}, status=401)
+    #     except Exception as e:
+    #         logger.error(f"Unexpected error in GetUserRole: {str(e)}")
+    #         return Response({"error": "An unexpected error occurred"}, status=500)
         
 # check if the user has done this before
 class StartAssessment(APIView):
@@ -524,6 +624,8 @@ class UserSessionsView(APIView):
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
+                instructor_ids = session.instructors or []
+                instructors = CustomUser.objects.filter(user_id__in=instructor_ids).values('first_name', 'last_name')
                 return_ls.append({
                     "start_time": session.start_time,
                     "end_time": session.end_time,
@@ -534,6 +636,7 @@ class UserSessionsView(APIView):
                     "location": session.learning_organization_location.name,
                     "isEnrolled": user_id in enrolled,
                     "isWaitlisted": user_id in waitlisted,
+                    "instructors": list(instructors),
                     "id": session.id
                 })
             return Response(return_ls)
@@ -712,6 +815,9 @@ class AdminSessionsView(APIView):
                 for session in sessions:
                     enrolled = session.enrolled_students or []
                     waitlisted = session.waitlist_students or []
+                    instructor_ids = session.instructors or []
+                    instructors = CustomUser.objects.filter(user_id__in=instructor_ids).values('first_name', 'last_name', 'user_id')
+                    
                     sessions_data.append({
                         "id": session.id,
                         "start_time": session.start_time,
@@ -722,7 +828,8 @@ class AdminSessionsView(APIView):
                         "learning_organization": learning_organization.name,
                         "location": location.name,
                         "approved": session.approved,
-                        "viewed": session.viewed
+                        "viewed": session.viewed,
+                        "instructors": list(instructors),
                     })
 
                 all_sessions_data.append({
@@ -1330,15 +1437,188 @@ class AdminSessionDetailView(APIView):
             logger.error(f"Unexpected error in AdminSessionDetailView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
         
+class InstructorSessionsView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get InstructorData for the user
+            try:
+                instructor_data = InstructorData.objects.get(user_id=user_id)
+                if not instructor_data.verified:
+                    raise PermissionDenied("Instructor is not verified")
+            except InstructorData.DoesNotExist:
+                raise PermissionDenied("User is not an instructor")
+
+            # Get all sessions for this instructor
+            # sessions = Session.objects.filter(instructors__contains=[user_id]).select_related(
+            #     'learning_organization_location__learning_organization'
+            # )
+            sessions = Session.objects.filter(instructors__contains=[user_id]).select_related(
+                'learning_organization_location__learning_organization'
+            )
+
+            sessions_data = []
+            for session in sessions:
+                location = session.learning_organization_location
+                learning_organization = location.learning_organization
+
+                enrolled = session.enrolled_students or []
+                waitlisted = session.waitlist_students or []
+
+                # Calculate max capacity for this location
+                max_capacity = Room.objects.filter(
+                    learning_organization=learning_organization,
+                    learning_organization_location=location
+                ).aggregate(total_capacity=Sum('max_capacity'))['total_capacity'] or 0
+
+                # Fetch other instructors for this session
+                other_instructor_ids = [id for id in (session.instructors or []) if id != user_id]
+                other_instructors = CustomUser.objects.filter(user_id__in=other_instructor_ids).values('first_name', 'last_name', 'user_id')
+
+                sessions_data.append({
+                    "id": session.id,
+                    "start_time": session.start_time,
+                    "end_time": session.end_time,
+                    "max_capacity": max_capacity,
+                    "num_enrolled": len(enrolled),
+                    "num_waitlist": len(waitlisted),
+                    "learning_organization_name": learning_organization.name,
+                    "location_name": location.name,
+                    "approved": session.approved,
+                    "viewed": session.viewed,
+                    "other_instructors": list(other_instructors)
+                })
+
+            return Response({
+                "instructor_id": user_id,
+                "sessions": sessions_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorSessionsView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+
+class InstructorSessionDetailView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get_session(self, session_pk):
+        try:
+            return Session.objects.get(id=session_pk)
+        except Session.DoesNotExist:
+            raise NotFound("Session not found")
+
+    @transaction.atomic
+    def post(self, request, session_pk, format=None):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            u_id = user_info['sub']
+
+            # Verify that the user is an instructor
+            try:
+                instructor_data = InstructorData.objects.get(user_id=u_id)
+                if not instructor_data.verified:
+                    raise PermissionDenied("Instructor is not verified")
+            except InstructorData.DoesNotExist:
+                raise PermissionDenied("User is not an instructor")
+
+            session = self.get_session(session_pk)
+            if not session.approved:
+                raise PermissionDenied("This session is not approved for instructor assignment.")
+            
+            body = json.loads(request.body)
+            task = body.get("task")
+
+            if task == "sign_up":
+                return self.sign_up_instructor(session, u_id)
+            elif task == "remove":
+                return self.remove_instructor(session, u_id)
+            else:
+                raise ValidationError("Unknown task")
+
+        except (AuthenticationFailed, NotFound, ValidationError, PermissionDenied) as e:
+            return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in InstructorSessionDetailView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+        
+    def sign_up_instructor(self, session, u_id):
+        instructors = session.instructors or []
+        if u_id in instructors:
+            return Response({"message": "Already signed up to teach this session"})
+        instructors.append(u_id)
+        session.instructors = instructors
+        session.save()
+        return Response({"message": "Successfully signed up to teach"})
+
+    def remove_instructor(self, session, u_id):
+        instructors = session.instructors or []
+        if u_id not in instructors:
+            return Response({"message": "Not signed up to teach this session"})
+        instructors.remove(u_id)
+        session.instructors = instructors
+        session.save()
+        return Response({"message": "Successfully removed from teaching this session"})
+    
 class LoginUserView(APIView):
     # permission_classes = [IsAuthenticated]
     # permission_classes = [AllowAny]  # Allow any user to access this view
 
-    def get_user_info(self, bearer_token):
+    def get_user_info(self, access_token):
         domain = os.environ.get('AUTH0_DOMAIN')
-        headers = {"Authorization": f'Bearer {bearer_token}'}
+        if not domain:
+            logger.error("AUTH0_DOMAIN not set in environment variables")
+            raise ValueError("AUTH0_DOMAIN not configured")
+        headers = {"Authorization": f'Bearer {access_token}'}
         response = requests.get(f'https://{domain}/userinfo', headers=headers)
-        response.raise_for_status()  # Raises an HTTPError for bad responses
+        response.raise_for_status()
         return response.json()
 
     def post(self, request):
@@ -1404,10 +1684,34 @@ class LoginUserView(APIView):
     #     response.raise_for_status()  # Raises an HTTPError for bad responses
     #     return response.json()
 
-    def get(self, request, format=None):
+    def verify_token(self, token):
         try:
-            bearer_token = request.META.get('HTTP_AUTHORIZATION', '').split(' ')[1]
-            user_info = self.get_user_info(bearer_token)
+            # This is a basic verification. For production, use a proper JWT library
+            # and fetch the public key from Auth0
+            payload = jwt.decode(token, options={"verify_signature": False})
+            return payload
+        except jwt.DecodeError:
+            return None
+
+    def get(self, request):
+        try:
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if auth_header.startswith('Bearer '):
+                # Token is present, verify it
+                token = auth_header.split(' ')[1]
+                payload = self.verify_token(token)
+                if not payload:
+                    return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+                user_info = self.get_user_info(token)
+            else:
+                # No token, this is the initial login
+                # The frontend should send the access_token in the request body or as a query parameter
+                access_token = request.GET.get('access_token') or request.data.get('access_token')
+                if not access_token:
+                    return Response({"error": "No access token provided"}, status=status.HTTP_400_BAD_REQUEST)
+                user_info = self.get_user_info(access_token)
+
+            logger.info(f"Retrieved user info: {user_info}")
 
             with transaction.atomic():
                 user, created = CustomUser.objects.update_or_create(
@@ -1420,18 +1724,200 @@ class LoginUserView(APIView):
                     }
                 )
 
-            if created:
-                return Response({"message": "User created", "user_id": user.user_id}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({"message": "User updated", "user_id": user.user_id}, status=status.HTTP_200_OK)
+                if created:
+                    logger.info(f"Created new user: {user.user_id}")
+                    return Response({"message": "User created", "user_id": user.user_id}, status=status.HTTP_201_CREATED)
+                else:
+                    logger.info(f"Updated existing user: {user.user_id}")
+                    return Response({"message": "User updated", "user_id": user.user_id}, status=status.HTTP_200_OK)
 
         except requests.RequestException as e:
+            logger.error(f"Failed to retrieve user info from Auth0: {str(e)}")
             return Response({"error": "Failed to retrieve user info from Auth0"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except ValidationError as e:
+            logger.error(f"Validation error: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception("An unexpected error occurred")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+class SessionPhasesView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request, session_pk):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get the session
+            try:
+                session = Session.objects.get(id=session_pk)
+            except Session.DoesNotExist:
+                return Response({"error": "Session not found"}, status=404)
+
+            # Check if the user is an instructor for this session
+            if user_id not in session.instructors:
+                raise PermissionDenied("User is not an instructor for this session")
+
+            # Get the lesson plan associated with the session
+            lesson_plan = session.lesson_plan
+            if not lesson_plan:
+                return Response({"error": "No lesson plan associated with this session"}, status=404)
+
+            # Get all phases for this lesson plan
+            phase_counters = lesson_plan.phases.all().order_by('order')
+            phases_data = []
+
+            for phase_counter in phase_counters:
+                phase = phase_counter.phase
+                module_counters = phase.modules.all().order_by('order')
+                modules_data = []
+                phase_duration = 0
+                for module_counter in module_counters:
+                    module = module_counter.module
+                    # question_counters = module.questions.all().order_by('order')
+                    # questions_data = []
+
+                    # for question_counter in question_counters:
+                    #     question = question_counter.question
+                    #     questions_data.append({
+                    #         "id": question.custom_id,
+                    #         "text": question.text,
+                    #         "audio": question.audio,
+                    #         "image": question.image,
+                    #         "json": question.json
+                    #     })
+
+                    modules_data.append({
+                        "id": module.id,
+                        "name": module.name,
+                        "suggested_duration_seconds": module.suggested_duration_seconds,
+                        "description": module.description,
+                        # "questions": questions_data
+                    })
+                    phase_duration += module.suggested_duration_seconds
+                phases_data.append({
+                    "id": phase.id,
+                    "name": phase.name,
+                    "modules": modules_data,
+                    "phase_duration_seconds": phase_duration,
+                    "type": phase.type,
+                    "description": phase.description
+                })
+
+            return Response({
+                "session_id": session_pk,
+                "lesson_plan_id": lesson_plan.pk,
+                "lesson_plan_name": lesson_plan.name,
+                "lesson_plan_description": lesson_plan.description,
+                "phases": phases_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in SessionPhasesView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
+class PhaseModulesView(APIView):
+    def get_user_info(self, token):
+        cache_key = f'user_info_{token[:10]}'
+        cached_info = cache.get(cache_key)
+        if cached_info:
+            return cached_info
+        domain = os.environ.get('AUTH0_DOMAIN')
+        headers = {"Authorization": f'Bearer {token}'}
+        response = requests.get(f'https://{domain}/userinfo', headers=headers)
+        if response.status_code != 200:
+            logger.error(f"Auth0 returned status code {response.status_code}")
+            raise AuthenticationFailed("Failed to retrieve user info")
+        user_info = response.json()
+        cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
+        return user_info
+
+    def get(self, request, phase_pk):
+        try:
+            # Authenticate user
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            if not auth_header.startswith('Bearer '):
+                raise AuthenticationFailed("Invalid authorization header")
+            token = auth_header.split(' ')[1]
+            user_info = self.get_user_info(token)
+            user_id = user_info['sub']
+
+            # Get the phase
+            try:
+                phase = Phase.objects.get(id=phase_pk)
+            except Phase.DoesNotExist:
+                return Response({"error": "Phase not found"}, status=404)
+
+            # TODO: Add appropriate permission check here
+            # For example, check if the user is an instructor for a session that includes this phase
+            # This will depend on your specific authorization requirements
+
+            # Get all modules for this phase
+            module_counters = phase.modules.all().order_by('order')
+            modules_data = []
+
+            for module_counter in module_counters:
+                module = module_counter.module
+                # question_counters = module.questions.all().order_by('order')
+                # questions_data = []
+
+                # for question_counter in question_counters:
+                #     question = question_counter.question
+                #     questions_data.append({
+                #         "id": question.custom_id,
+                #         "text": question.text,
+                #         "audio": question.audio,
+                #         "image": question.image,
+                #         "json": question.json
+                #     })
+
+                modules_data.append({
+                    "id": module.id,
+                    "name": module.name,
+                    "suggested_duration_seconds": module.suggested_duration_seconds,
+                    "description": module.description
+                    # "questions": questions_data
+                })
+
+            return Response({
+                "phase_id": phase_pk,
+                "phase_name": phase.name,
+                "type": phase.type,
+                "description": phase.description,
+                "modules": modules_data
+            })
+
+        except AuthenticationFailed as e:
+            return Response({"error": str(e)}, status=401)
+        except PermissionDenied as e:
+            return Response({"error": str(e)}, status=403)
+        except Exception as e:
+            logger.error(f"Unexpected error in PhaseModulesView: {str(e)}")
+            return Response({"error": "An unexpected error occurred"}, status=500)
+
 class InstructorApplicationTemplateView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
@@ -1575,7 +2061,7 @@ class InstructorApplicationTemplateView(APIView):
         except Exception as e:
             logger.error(f"Unexpected error in InstructorApplicationTemplateView POST: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
-        
+
 class InstructorApplicationInstanceAdminView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'

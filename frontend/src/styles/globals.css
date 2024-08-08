@@ -1,43 +1,21 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import "../../components/instructor/Calendar.module.css";
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+* {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+}
+
+html,
 body {
-  background-color: #f5e4ff;
-  align-items: center;
-  overflow-x: hidden;
-  margin-left: 22vw;
-  margin-right: 22vw;
-  margin-top: 5vw;
-  margin-bottom: 5vw;
-}
-
-@media only screen and (max-width: 500px) {
-  body {
-    margin-left: 10vw;
-    margin-right: 10vw;
-  }
-  .circle {
-    left: 51vw !important;
-    top: 99vw !important;
-  }
-
-  .squiggle {
-    left: 52.5vw !important;
-    top: 114.8vw !important;
-  }
-}
-
-@media only screen and (min-width: 501px) and (max-width: 768px) {
-  body {
-    margin-left: 12vw;
-    margin-right: 12vw;
-  }
-  .circle {
-    left: 51.4vw !important;
-    top: 63vw !important;
-  }
-
-  .squiggle {
-    left: 52.2vw !important;
-    top: 78vw !important;
-  }
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  background-color: #f5f5f5;
 }
 
 ul,
@@ -69,4 +47,8 @@ a:hover {
 
 .nav-bar {
   padding-bottom: 2vw;
+}
+
+button {
+  line-height: 0;
 }

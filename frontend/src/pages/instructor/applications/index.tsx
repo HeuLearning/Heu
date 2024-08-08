@@ -6,6 +6,7 @@ import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
+import { useState, useCallback, useRef } from "react";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -66,12 +67,6 @@ export const getServerSideProps = withPageAuthRequired({
     const locationData = await locationResponse.json();
     console.log(locationData);
 
-    let instructorResponse = await fetch(
-      "http://localhost:8000/api/instructor-applications-instructor",
-      locationOptions
-    );
-    const instructorData = await instructorResponse.json();
-
     return {
       props: {
         role: roleType || null,
@@ -104,15 +99,30 @@ export default function InstructorApplications({
 
       <div>
         {locations.active_templates.map((template, index) => (
-          <div>
+          <div key={index}>
             <h1>{template.learning_organization_name}</h1>
             <h2>{template.learning_organization_location_name}</h2>
             {/* <a href={template.google_form_link} target="_blank">
               <h3>{template.google_form_link}</h3>
             </a> */}
-            <a href={`/instructor/applications/${template.id}`}>
-              <button>Apply</button>
-            </a>
+            {template.application_instance ? (
+              template.application_instance.completed ? (
+                <>
+                  <p>Already Applied</p>
+                  <a href={`/instructor/applications/${template.id}`}>
+                    <button>Check Status</button>
+                  </a>
+                </>
+              ) : (
+                <a href={`/instructor/applications/${template.id}`}>
+                  <button>Apply</button>
+                </a>
+              )
+            ) : (
+              <a href={`/instructor/applications/${template.id}`}>
+                <button>Apply</button>
+              </a>
+            )}
           </div>
         ))}
       </div>
