@@ -121,9 +121,9 @@ class GetUserRole(APIView):
         return user_info
 
 
-    def dispatch(self, request, *args, **kwargs):
-        print("GetUserRole dispatch method called")
-        return super().dispatch(request, *args, **kwargs)
+    # def dispatch(self, request, *args, **kwargs):
+    #     print("GetUserRole dispatch method called")
+    #     return super().dispatch(request, *args, **kwargs)
     
 
     def get_or_create_user(self, user_info):
