@@ -1,17 +1,17 @@
-# # # # from django.utils.cache import add_never_cache_headers
+from django.utils.cache import add_never_cache_headers
 
 
-# # # # class Auth0Middleware:
-# # # #     def __init__(self, get_response):
-# # # #         self.get_response = get_response
+class Auth0Middleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-# # # #     def __call__(self, request):
-# # # #         response = self.get_response(request)
-# # # #         response['Expires'] = 0
-# # # #         add_never_cache_headers(response)
-# # # #         response['X-XSS-Protection'] = 0
-# # # #         response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-# # # #         return response
+    def __call__(self, request):
+        response = self.get_response(request)
+        response['Expires'] = 0
+        add_never_cache_headers(response)
+        response['X-XSS-Protection'] = 0
+        response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        return response
 
 # # # import sys
 # # # from typing import Callable
@@ -191,15 +191,15 @@
 #             return None
 
 
-from django.http import JsonResponse
-from jose import jwt
+# from django.http import JsonResponse
+# from jose import jwt
 
 
-class Auth0Middleware(object):
-    def __init__(self, get_response):
-        self.get_response = get_response
+# class Auth0Middleware(object):
+#     def __init__(self, get_response):
+#         self.get_response = get_response
 
-    def __call__(self, request):
+#     def __call__(self, request):
 
         # GET TOKEN
         # auth = request.META.get('HTTP_AUTHORIZATION')
@@ -277,5 +277,5 @@ class Auth0Middleware(object):
         #     return JsonResponse(data={"code": "invalid_header",
         #                               "description": "Unable to find appropriate key"}, status=401)
 
-        response = self.get_response(request)
-        return response
+        # response = self.get_response(request)
+        # return response
