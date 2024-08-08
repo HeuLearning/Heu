@@ -190,15 +190,15 @@ class Auth0Middleware:
 #             print(f"Token verification failed: {str(e)}", file=sys.stderr)
 #             return None
 
-    def __call__(self, request):
-        print(f"Auth0Middleware processing request: {request.method} {request.path}", file=sys.stderr)
-        response = self.get_response(request)
-        print("Auth0Middleware processing response", file=sys.stderr)
-        response['Expires'] = 0
-        add_never_cache_headers(response)
-        response['X-XSS-Protection'] = '0'
-        response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        return response
+    # def __call__(self, request):
+    #     print(f"Auth0Middleware processing request: {request.method} {request.path}", file=sys.stderr)
+    #     response = self.get_response(request)
+    #     print("Auth0Middleware processing response", file=sys.stderr)
+    #     response['Expires'] = 0
+    #     add_never_cache_headers(response)
+    #     response['X-XSS-Protection'] = '0'
+    #     response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    #     return response
     
 from channels.middleware import BaseMiddleware
 from channels.db import database_sync_to_async
@@ -266,50 +266,51 @@ print("Auth0TokenMiddleware module loaded")
 #             print(f"Invalid issuer. Expected https://{settings.AUTH0_DOMAIN}/")
 #         except jwt.PyJWTError as e:
 #             print(f"JWT validation error: {str(e)}")
-#         return AnonymousUser()
-class Auth0TokenMiddleware(BaseMiddleware):
-    async def __call__(self, scope, receive, send):
-        # Parse the query string
-        query_string = scope['query_string'].decode()
-        query_params = parse_qs(query_string)
+# #         return AnonymousUser()
+# class Auth0TokenMiddleware(BaseMiddleware):
+#     async def __call__(self, scope, receive, send):
+#         # Parse the query string
+#         query_string = scope['query_string'].decode()
+#         query_params = parse_qs(query_string)
         
-        # Extract the token from the query parameters
-        token = query_params.get('token', [None])[0]
-        # print(token)
-        if token:
-            try:
-                # Verify and decode the token
-                user = await self.get_user_info(token)
-                scope['user'] = user
-                print(f"Authenticated user: {user}")
-            except Exception as e:
-                print(f"Authentication error: {str(e)}")
-                scope['user'] = AnonymousUser()
-        else:
-            print("Token not found in query string")
-            scope['user'] = AnonymousUser()
+#         # Extract the token from the query parameters
+#         token = query_params.get('token', [None])[0]
+#         # print(token)
+#         if token:
+#             try:
+#                 # Verify and decode the token
+#                 user = await self.get_user_info(token)
+#                 scope['user'] = user
+#                 print(f"Authenticated user: {user}")
+#             except Exception as e:
+#                 print(f"Authentication error: {str(e)}")
+#                 scope['user'] = AnonymousUser()
+#         else:
+#             print("Token not found in query string")
+#             scope['user'] = AnonymousUser()
 
-        return await super().__call__(scope, receive, send)
+#         return await super().__call__(scope, receive, send)
 
-    @database_sync_to_async
-    def get_user_info(self, bearer_token):
-        domain = settings.AUTH0_DOMAIN
-        headers = {"Authorization": f'Bearer {bearer_token}'}
-        response = requests.get(f'https://{domain}/userinfo', headers=headers)
-        print("response ", response.json())
-        return type('User', (), {'is_authenticated': True, 'id': response.json()['sub']})()
+#     @database_sync_to_async
+#     def get_user_info(self, bearer_token):
+#         domain = settings.AUTH0_DOMAIN
+#         headers = {"Authorization": f'Bearer {bearer_token}'}
+#         response = requests.get(f'https://{domain}/userinfo', headers=headers)
+#         print("response ", response.json())
+#         return type('User', (), {'is_authenticated': True, 'id': response.json()['sub']})()
 
-        # response = requests.get(f'https://{domain}/userinfo', headers=headers)
-        # response.raise_for_status()  # Raises an HTTPError for bad responses
-        # return response.json()
+#         # response = requests.get(f'https://{domain}/userinfo', headers=headers)
+#         # response.raise_for_status()  # Raises an HTTPError for bad responses
+#         # return response.json()
 
-    @database_sync_to_async
-    def get_user_from_token(self, token):
-        print(token)
-        try:
-            payload = jwt.decode(token, settings.AUTH0_CLIENT_SECRET, algorithms=['HS256'], audience=settings.AUTH0_AUDIENCE)
-            # Here, implement logic to get or create a user based on the Auth0 user info
-            # For now, we'll just return a simple user object
-            return type('User', (), {'is_authenticated': True, 'id': payload['sub']})()
-        except jwt.PyJWTError:
-            return AnonymousUser()
+#     @database_sync_to_async
+#     def get_user_from_token(self, token):
+#         print(token)
+#         try:
+#             payload = jwt.decode(token, settings.AUTH0_CLIENT_SECRET, algorithms=['HS256'], audience=settings.AUTH0_AUDIENCE)
+#             # Here, implement logic to get or create a user based on the Auth0 user info
+#             # For now, we'll just return a simple user object
+#             return type('User', (), {'is_authenticated': True, 'id': payload['sub']})()
+#         except jwt.PyJWTError:
+#             return AnonymousUser()
+
