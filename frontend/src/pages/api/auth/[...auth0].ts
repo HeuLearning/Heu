@@ -37,7 +37,9 @@ export default handleAuth({
     try {
       await handleCallback(req, res)
       const { accessToken } = await getAccessToken(req, res);
-      console.log(accessToken)
+      console.log("access token?");
+      console.log(accessToken);
+      console.log("access token.");
       const config: AxiosRequestConfig = {
         url: `${apiServerUrl}/check_user`,
         method: "GET",
