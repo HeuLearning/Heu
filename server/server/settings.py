@@ -54,7 +54,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # 'server.middleware.Auth0TokenMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -92,6 +91,16 @@ ASGI_APPLICATION = "server.asgi.application"
 
 CSP_FRAME_ANCESTORS = "'none'"
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_RENDERER_CLASSES': [
+#         'rest_framework.renderers.JSONRenderer',
+#     ],
+#     # 'EXCEPTION_HANDLER': 'messages_api.views.api_exception_handler',
+#     # 'DEFAULT_AUTHENTICATION_CLASSES': [
+#     #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+#     # ],
+# }
+
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -111,7 +120,10 @@ REST_FRAMEWORK = {
     ],
 }
 
+
 # JWT
+
+
 
 AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
 AUTH0_AUDIENCE = os.environ.get('AUTH0_AUDIENCE')
