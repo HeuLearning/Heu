@@ -195,16 +195,6 @@ from django.http import JsonResponse
 from jose import jwt
 
 
-AUTH0_DOMAIN = {YOUR_AUTH0_DOMAIN}
-API_AUDIENCE = {YOUR_API_AUDIENCE}
-ALGORITHMS = "RS256"
-
-"""
-Cache the key available at https://{AUTH0_DOMAIN}/.well-known/jwks.json as a python dict
-"""
-AUTH0_PUBLIC_KEY = {}
-
-
 class Auth0Middleware(object):
     def __init__(self, get_response):
         self.get_response = get_response
