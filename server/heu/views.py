@@ -39,6 +39,8 @@ import random
 import logging
 import jwt
 from rest_framework.permissions import AllowAny
+from jose import jwt
+from jose.exceptions import JWTError
 
 logger = logging.getLogger(__name__)
 
@@ -119,9 +121,9 @@ class GetUserRole(APIView):
         return user_info
 
 
-    def dispatch(self, request, *args, **kwargs):
-        print("GetUserRole dispatch method called")
-        return super().dispatch(request, *args, **kwargs)
+    # def dispatch(self, request, *args, **kwargs):
+    #     print("GetUserRole dispatch method called")
+    #     return super().dispatch(request, *args, **kwargs)
     
 
     def get_or_create_user(self, user_info):
@@ -1575,15 +1577,42 @@ class LoginUserView(APIView):
 
     def verify_token(self, token):
         try:
-            # This is a basic verification. For production, use a proper JWT library
-            # and fetch the public key from Auth0
-            payload = jwt.decode(token, options={"verify_signature": False})
-            return payload
-        except jwt.DecodeError:
+            domain = os.environ.get('AUTH0_DOMAIN')
+            audience = os.environ.get('AUTH0_AUDIENCE')
+            if not domain or not audience:
+                raise ValueError("AUTH0_DOMAIN or AUTH0_AUDIENCE not configured")
+            
+            jwks_url = f'https://{domain}/.well-known/jwks.json'
+            jwks = requests.get(jwks_url).json()
+            unverified_header = jwt.get_unverified_header(token)
+            rsa_key = {}
+            for key in jwks['keys']:
+                if key['kid'] == unverified_header['kid']:
+                    rsa_key = {
+                        'kty': key['kty'],
+                        'kid': key['kid'],
+                        'use': key['use'],
+                        'n': key['n'],
+                        'e': key['e']
+                    }
+            if rsa_key:
+                payload = jwt.decode(
+                    token,
+                    rsa_key,
+                    algorithms=['RS256'],
+                    audience=audience,
+                    issuer=f'https://{domain}/'
+                )
+                return payload
+            raise JWTError("Unable to find appropriate key")
+        except JWTError as e:
+            logger.error(f"Token verification failed: {str(e)}")
             return None
-
+    
     def get(self, request):
+        print("can I please log in here?")
         try:
+            print("trying to log in here")
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if auth_header.startswith('Bearer '):
                 # Token is present, verify it
