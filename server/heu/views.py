@@ -1699,6 +1699,7 @@ class SessionPhasesView(APIView):
                         "id": module.id,
                         "name": module.name,
                         "suggested_duration_seconds": module.suggested_duration_seconds,
+                        "description": module.description,
                         # "questions": questions_data
                     })
                     phase_duration += module.suggested_duration_seconds
@@ -1706,13 +1707,16 @@ class SessionPhasesView(APIView):
                     "id": phase.id,
                     "name": phase.name,
                     "modules": modules_data,
-                    "phase_duration_seconds": phase_duration
+                    "phase_duration_seconds": phase_duration,
+                    "type": phase.type,
+                    "description": phase.description
                 })
 
             return Response({
                 "session_id": session_pk,
                 "lesson_plan_id": lesson_plan.pk,
                 "lesson_plan_name": lesson_plan.name,
+                "lesson_plan_description": lesson_plan.description,
                 "phases": phases_data
             })
 
