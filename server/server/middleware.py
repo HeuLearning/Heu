@@ -26,10 +26,8 @@ class Auth0Middleware:
         print(f"Auth0Middleware processing request: {request.method} {request.path}", file=sys.stderr)
         response = self.get_response(request)
         print("Auth0Middleware processing response", file=sys.stderr)
-        
         response['Expires'] = 0
         add_never_cache_headers(response)
         response['X-XSS-Protection'] = '0'
         response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-        
         return response
