@@ -1559,7 +1559,7 @@ class InstructorSessionDetailView(APIView):
         session.instructors = instructors
         session.save()
         return Response({"message": "Successfully removed from teaching this session"})
-
+    
 class LoginUserView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access
 
@@ -1568,7 +1568,6 @@ class LoginUserView(APIView):
         if not domain:
             logger.error("AUTH0_DOMAIN not set in environment variables")
             raise ValueError("AUTH0_DOMAIN not configured")
-        
         headers = {"Authorization": f'Bearer {access_token}'}
         response = requests.get(f'https://{domain}/userinfo', headers=headers)
         response.raise_for_status()
@@ -1613,13 +1612,13 @@ class LoginUserView(APIView):
                         "last_name": user_info.get("family_name", ""),
                     }
                 )
-            
-            if created:
-                logger.info(f"Created new user: {user.user_id}")
-                return Response({"message": "User created", "user_id": user.user_id}, status=status.HTTP_201_CREATED)
-            else:
-                logger.info(f"Updated existing user: {user.user_id}")
-                return Response({"message": "User updated", "user_id": user.user_id}, status=status.HTTP_200_OK)
+
+                if created:
+                    logger.info(f"Created new user: {user.user_id}")
+                    return Response({"message": "User created", "user_id": user.user_id}, status=status.HTTP_201_CREATED)
+                else:
+                    logger.info(f"Updated existing user: {user.user_id}")
+                    return Response({"message": "User updated", "user_id": user.user_id}, status=status.HTTP_200_OK)
 
         except requests.RequestException as e:
             logger.error(f"Failed to retrieve user info from Auth0: {str(e)}")
@@ -1630,7 +1629,7 @@ class LoginUserView(APIView):
         except Exception as e:
             logger.exception("An unexpected error occurred")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        
 class SessionPhasesView(APIView):
     def get_user_info(self, token):
         cache_key = f'user_info_{token[:10]}'
