@@ -1610,6 +1610,7 @@ class LoginUserView(APIView):
             return None
     
     def get(self, request):
+        print("can I please log in here?")
         try:
             print("trying to log in here")
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
