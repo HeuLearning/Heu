@@ -1,0 +1,16 @@
+.links {
+  margin: 10px;
+}
+
+.linkContainer {
+  display: flex;
+  flex-direction: row;
+}
+
+.form {
+  margin: 10px;
+}
+
+.input {
+  margin-right: 5px;
+}

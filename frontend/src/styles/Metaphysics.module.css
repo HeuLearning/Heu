@@ -1,0 +1,47 @@
+.text {
+  /* display: flex; */
+  /* flex-direction: row; */
+  /* width: 100px; */
+  /* white-space: nowrap; */
+  color: black;
+  display: flex;
+  margin: 5px;
+}
+
+.paragraph {
+  display: flex;
+  flex: row;
+  /* background-color: red; */
+  align-items: center;
+  justify-content: center;
+  max-width: 500px;
+  flex-wrap: wrap;
+}
+
+.body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.title {
+  font-size: larger;
+}
+
+.paragraphContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.comments {
+  padding: 10px;
+}
+
+.bold {
+  font-weight: 800;
+}
+
+.singleComment {
+  margin-bottom: 10px;
+}
