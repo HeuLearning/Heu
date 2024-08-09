@@ -28,42 +28,45 @@ export const getServerSideProps = withPageAuthRequired({
         Authorization: `Bearer ${session.accessToken}`, // Include the access token
       },
     };
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/get-user-role",
+        options
+      );
+      const roleType = await response.json();
+      const role = roleType.role;
+      if (role === "in") {
+        return {
+          redirect: {
+            destination: "/instructor",
+            permanent: false,
+          },
+        };
+      } else if (role === "st") {
+        return {
+          redirect: {
+            destination: "/learner",
+            permanent: false,
+          },
+        };
+      }
+      // if verified then get schedules and stuff
 
-    const response = await fetch(
-      "http://localhost:8000/api/get-user-role",
-      options
-    );
-    const roleType = await response.json();
-    const role = roleType.role;
-    if (role === "in") {
-      return {
-        redirect: {
-          destination: "/instructor",
-          permanent: false,
-        },
-      };
-    } else if (role === "st") {
-      return {
-        redirect: {
-          destination: "/learner",
-          permanent: false,
-        },
-      };
+      if (!roleType.verified) {
+        return {
+          props: {
+            role: roleType || null,
+          },
+        };
+      } else
+        return {
+          props: {
+            role: roleType || null,
+          },
+        };
+    } catch (error) {
+      console.log(error);
     }
-    // if verified then get schedules and stuff
-
-    if (!roleType.verified) {
-      return {
-        props: {
-          role: roleType || null,
-        },
-      };
-    } else
-      return {
-        props: {
-          role: roleType || null,
-        },
-      };
   },
 });
 

@@ -8,13 +8,14 @@ from django.views.generic.detail import DetailView
 from .serializers import (AssessmentSerializer, QuestionSerializer, UserSerializer, AdminDataSerializer, InstructorDataSerializer, StudentDataSerializer, HeuStaffDataSerializer, LearningOrganizationSerializer, LearningOrganizationLocationSerializer, RoomSerializer, SessionSerializer, SessionPrerequisitesSerializer)
 from .models import CustomUser, Question, Assessment, LookupIndex, AdminData, InstructorData, StudentData, HeuStaffData, LearningOrganization, LearningOrganizationLocation, Room, Session, SessionPrerequisites, InstructorApplicationTemplate, InstructorApplicationInstance, SessionRequirements, SessionApprovalToken, Phase, Module, PhaseCounter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError, PermissionDenied
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.throttling import UserRateThrottle
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.db.models import Sum, Count, Q, Prefetch, F
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
@@ -29,6 +30,7 @@ from django.urls import reverse
 from django.conf import settings
 import uuid
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 # from .bert import all_possibilities, remove_diacritics, get_results, get_desi_result, get_results_2
 # from .getcontext import get_context
 import os
@@ -39,6 +41,11 @@ import random
 import logging
 import jwt
 from rest_framework.permissions import AllowAny
+from jose import jwt
+from jose.exceptions import JWTError
+
+User = get_user_model()
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +62,7 @@ class UserCRUD(APIView):
         result = requests.get(url=f'https://{domain}/userinfo', headers=headers).json()
         u = CustomUser.objects.get(user_id=result["sub"])
         u_s = UserSerializer(u)
+        print(u_s)
         role = u_s.data['user_type']
         body = json.loads(request.body)
         if body["purpose"] == "change role":
@@ -93,6 +101,45 @@ class UserCRUD(APIView):
         
         return Response(role_data.data)
 
+# class GetUserRole(APIView):
+#     # authentication_classes = [SessionAuthentication]
+#     # permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         logger.debug(f"GetUserRole: request.user = {request.user}")
+#         logger.debug(f"GetUserRole: request.user type = {type(request.user)}")
+#         logger.debug(f"GetUserRole: request.auth = {request.auth}")
+
+#         if isinstance(request.user, User):
+#             user = request.user
+#         else:
+#             # Fallback: Try to get the user from the database
+#             try:
+#                 user = User.objects.get(user_id=request.user)
+#             except User.DoesNotExist:
+#                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+#         # Retrieve user role information
+#         role_data = {'verified': False}
+#         if user.user_type in ['in', 'ad', 'hs', 'st']:
+#             role_model = {
+#                 'in': InstructorData,
+#                 'ad': AdminData,
+#                 'hs': HeuStaffData,
+#                 'st': StudentData
+#             }[user.user_type]
+#             role_instance = role_model.objects.filter(user_id=user.user_id).first()
+#             if role_instance:
+#                 role_data['verified'] = getattr(role_instance, 'verified', False)
+
+#         return Response({
+#             "user_id": user.user_id,
+#             "username": user.username,
+#             "email": user.email,
+#             "role": user.user_type,
+#             "verified": role_data['verified']
+#         })
+
 class GetUserRole(APIView):
     # permission_classes = [AllowAny]
     def get_user_info(self, token):
@@ -119,9 +166,9 @@ class GetUserRole(APIView):
         return user_info
 
 
-    def dispatch(self, request, *args, **kwargs):
-        print("GetUserRole dispatch method called")
-        return super().dispatch(request, *args, **kwargs)
+    # def dispatch(self, request, *args, **kwargs):
+    #     print("GetUserRole dispatch method called")
+    #     return super().dispatch(request, *args, **kwargs)
     
 
     def get_or_create_user(self, user_info):
@@ -167,6 +214,8 @@ class GetUserRole(APIView):
 
     # Usage in your view
     def get(self, request):
+        # print("here")
+        print("get user role", request.user)
         try:
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if not auth_header.startswith('Bearer '):
@@ -1561,7 +1610,8 @@ class InstructorSessionDetailView(APIView):
         return Response({"message": "Successfully removed from teaching this session"})
     
 class LoginUserView(APIView):
-    permission_classes = [AllowAny]  # Allow unauthenticated access
+    # permission_classes = [IsAuthenticated]
+    # permission_classes = [AllowAny]  # Allow any user to access this view
 
     def get_user_info(self, access_token):
         domain = os.environ.get('AUTH0_DOMAIN')
@@ -1573,17 +1623,107 @@ class LoginUserView(APIView):
         response.raise_for_status()
         return response.json()
 
+    def post(self, request):
+        logger.info("LoginUserView post method started")
+        token = request.data.get('token')
+        if not token:
+            logger.warning("No token provided")
+            return Response({"error": "No token provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info("Attempting to authenticate user")
+        user = authenticate(request, token=token)
+        if user is not None:
+            logger.info(f"User authenticated: {user.user_id}")
+            login(request, user)
+            logger.info("User logged in")
+            return Response({
+                "message": "Login successful",
+                "user_id": user.user_id,
+                "user_type": user.user_type
+            }, status=status.HTTP_200_OK)
+        else:
+            logger.warning("Invalid token")
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+    # def post(self, request, format=None):
+    #     try:
+    #         bearer_token = request.data.get('token')  # Expect token in request data
+    #         if not bearer_token:
+    #             return Response({"error": "No token provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+    #         user_info = self.get_user_info(bearer_token)
+
+    #         with transaction.atomic():
+    #             user, created = CustomUser.objects.update_or_create(
+    #                 user_id=user_info["sub"],
+    #                 defaults={
+    #                     "username": user_info.get("nickname", ""),
+    #                     "email": user_info.get("email", ""),
+    #                     "first_name": user_info.get("given_name", ""),
+    #                     "last_name": user_info.get("family_name", ""),
+    #                 }
+    #             )
+
+    #             # Log the user in (create a Django session)
+    #             login(request, user)
+
+    #         if created:
+    #             return Response({"message": "User created and logged in", "user_id": user.user_id}, status=status.HTTP_201_CREATED)
+    #         else:
+    #             return Response({"message": "User updated and logged in", "user_id": user.user_id}, status=status.HTTP_200_OK)
+
+    #     except requests.RequestException as e:
+    #         return Response({"error": "Failed to retrieve user info from Auth0"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    #     except ValidationError as e:
+    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    #     except Exception as e:
+    #         return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    # def get_user_info(self, bearer_token):
+    #     domain = os.environ.get('AUTH0_DOMAIN')
+    #     headers = {"Authorization": f'Bearer {bearer_token}'}
+    #     response = requests.get(f'https://{domain}/userinfo', headers=headers)
+    #     response.raise_for_status()  # Raises an HTTPError for bad responses
+    #     return response.json()
+
     def verify_token(self, token):
         try:
-            # This is a basic verification. For production, use a proper JWT library
-            # and fetch the public key from Auth0
-            payload = jwt.decode(token, options={"verify_signature": False})
-            return payload
-        except jwt.DecodeError:
+            domain = os.environ.get('AUTH0_DOMAIN')
+            audience = os.environ.get('AUTH0_AUDIENCE')
+            if not domain or not audience:
+                raise ValueError("AUTH0_DOMAIN or AUTH0_AUDIENCE not configured")
+            
+            jwks_url = f'https://{domain}/.well-known/jwks.json'
+            jwks = requests.get(jwks_url).json()
+            unverified_header = jwt.get_unverified_header(token)
+            rsa_key = {}
+            for key in jwks['keys']:
+                if key['kid'] == unverified_header['kid']:
+                    rsa_key = {
+                        'kty': key['kty'],
+                        'kid': key['kid'],
+                        'use': key['use'],
+                        'n': key['n'],
+                        'e': key['e']
+                    }
+            if rsa_key:
+                payload = jwt.decode(
+                    token,
+                    rsa_key,
+                    algorithms=['RS256'],
+                    audience=audience,
+                    issuer=f'https://{domain}/'
+                )
+                return payload
+            raise JWTError("Unable to find appropriate key")
+        except JWTError as e:
+            logger.error(f"Token verification failed: {str(e)}")
             return None
-
+    
     def get(self, request):
+        print("can I please log in here?")
         try:
+            print("trying to log in here")
             auth_header = request.META.get('HTTP_AUTHORIZATION', '')
             if auth_header.startswith('Bearer '):
                 # Token is present, verify it

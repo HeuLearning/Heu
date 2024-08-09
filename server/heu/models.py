@@ -107,14 +107,20 @@ class InstructorApplicationInstance(models.Model):
     approver = models.ForeignKey(AdminData, null=True, blank=True, on_delete=models.SET_NULL)
     def __str__(self):
         return f'{self.id} {self.instructor_id} {self.accepted}'
-    
+
+
 class HardCodedQuestionCounter(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     order = models.IntegerField()
+   
+# class HardCodedQuestionCounter(models.Model):
+#     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+#     order = models.IntegerField()
 
 class Module(models.Model):
     name = models.CharField(default="Nickname for Module")
-    questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
+    questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="module_question_counter")
+    # questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
     suggested_duration_seconds = models.IntegerField()
     description = models.TextField(default="Default Module")
     def __str__(self):
@@ -192,3 +198,18 @@ class SessionApprovalToken(models.Model):
 
     def is_valid(self):
         return not self.used and self.expires_at > timezone.now()
+    
+
+class HardCodedModule(models.Model):
+    # questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="question_counter")
+    questions = models.ManyToManyField(HardCodedQuestionCounter, related_name="hardcoded_module_question_counter")
+
+
+class HardCodedStudentProgress(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer = models.TextField(blank=True, null=True) # maybe shouldn't be null or blank
+    intermediate_answers = ArrayField(models.TextField(), blank=True, null=True, default=list)
+    intermediate_timing = ArrayField(models.IntegerField(), blank=True, null=True, default=list)
+    isRight = models.BooleanField(blank=False, default=False)
+    secondsToAnswer = models.IntegerField(blank=False)

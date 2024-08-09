@@ -38,6 +38,7 @@ ALLOWED_HOSTS = ['https://logion-backend-9dd1f22b3713.herokuapp.com', 'ec2-100-2
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,12 +48,12 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'heu.apps.HeuConfig',
     'server',
+    'inperson',
     'corsheaders',
     'rest_framework',
 ]
 
 MIDDLEWARE = [
-    'server.middleware.Auth0Middleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -62,6 +63,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'server.middleware.Auth0Middleware',
+
 ]
 
 ROOT_URLCONF = 'server.urls'
@@ -82,25 +85,49 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'server.wsgi.application'
+# WSGI_APPLICATION = 'server.wsgi.application'
+ASGI_APPLICATION = "server.asgi.application"
 
 
 CSP_FRAME_ANCESTORS = "'none'"
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_RENDERER_CLASSES': [
+#         'rest_framework.renderers.JSONRenderer',
+#     ],
+#     # 'EXCEPTION_HANDLER': 'messages_api.views.api_exception_handler',
+#     # 'DEFAULT_AUTHENTICATION_CLASSES': [
+#     #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+#     # ],
+# }
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
     # 'EXCEPTION_HANDLER': 'messages_api.views.api_exception_handler',
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+
+    # ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+        # 'server.auth0backend.Auth0Backend',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
+
 # JWT
+
+
 
 AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
 AUTH0_AUDIENCE = os.environ.get('AUTH0_AUDIENCE')
+AUTH0_CLIENT_SECRET = os.environ.get('AUTH0_CLIENT_SECRET')
 
 SIMPLE_JWT = {
     'ALGORITHM': 'RS256',
@@ -238,4 +265,65 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'unique-snowflake',
     }
+}
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+
+import redis
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(f"rediss://:{REDIS_PASSWORD}@db-redis-nyc3-84439-do-user-17041273-0.a.db.ondigitalocean.com:25061")],
+        },
+        # "CONFIG": {
+        #     "hosts": [redis.Redis(
+        #         host="db-redis-nyc3-84439-do-user-17041273-0.a.db.ondigitalocean.com",
+        #         port=25061,
+        #         password=REDIS_PASSWORD,
+        #         ssl=True,
+        #     )],
+        # },
+        # "CONFIG": {
+        #     "hosts": [("db-redis-nyc3-84439-do-user-17041273-0.a.db.ondigitalocean.com", 25061)],
+        #     "password": REDIS_PASSWORD,
+        #     "ssl": True,  # DigitalOcean typically requires SSL
+        # },
+    },
+}
+
+# r = redis.Redis(
+#     host='db-redis-nyc3-84439-do-user-17041273-0.a.db.ondigitalocean.com',
+#     port=25061,
+#     password='your-correct-redis-password',
+#     ssl=True,
+#     ssl_cert_reqs=None
+# )
+AUTHENTICATION_BACKENDS = [
+    'server.auth0backend.Auth0Backend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {  # This is the root logger
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
 }
