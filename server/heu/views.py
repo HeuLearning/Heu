@@ -1997,7 +1997,7 @@ class SessionPhasesView(APIView):
                 return Response({"error": "Session not found"}, status=404)
 
             # Check if the user is an instructor for this session
-            if user_id not in session.instructors:
+            if user_id not in session.confirmed_instructors:
                 raise PermissionDenied("User is not an instructor for this session")
 
             # Get the lesson plan associated with the session
