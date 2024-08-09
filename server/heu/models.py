@@ -166,17 +166,34 @@ class Session(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     lesson_plan = models.ForeignKey(LessonPlan, on_delete=models.SET_NULL, null=True, blank=True)
+
     enrolled_students = ArrayField(
         models.CharField(max_length=255),  # This will store CustomUser IDs
         blank=True,
         default=list
     )
+
     waitlist_students = ArrayField(
         models.CharField(max_length=255),  # This will store CustomUser IDs
         blank=True,
         default=list
     )
-    instructors = ArrayField(
+
+    pending_instructors = ArrayField(
+        models.CharField(max_length=255),
+        null=True,
+        blank=True,
+        default=list
+    )
+
+    confirmed_instructors = ArrayField(
+        models.CharField(max_length=255),
+        null=True,
+        blank=True,
+        default=list
+    )
+
+    canceled_instructors = ArrayField(
         models.CharField(max_length=255),
         null=True,
         blank=True,
