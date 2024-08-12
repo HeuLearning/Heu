@@ -1,5 +1,8 @@
-export default function Divider() {
+export default function Divider({ spacing }) {
   return (
-    <div className="mb-[12px] mt-[12px] border-t border-surface_bg_secondary"></div>
+    <div
+      style={{ marginTop: spacing, marginBottom: spacing }}
+      className="border-t border-surface_bg_secondary"
+    ></div>
   );
 }

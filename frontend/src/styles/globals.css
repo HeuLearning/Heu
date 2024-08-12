@@ -39,6 +39,7 @@ ol {
 
 svg {
   margin: 0;
+  overflow: visible;
 }
 
 a:hover {

@@ -8,7 +8,7 @@ export default function NavButton({ buttonText, onClick = null, selected }) {
   return (
     <Button
       key={buttonText}
-      className={selected ? "navbutton-selected" : "navbutton"}
+      className={selected ? "navbutton-selected shadow-25" : "navbutton"}
       justifyContent={isMobile ? "justify-left" : ""}
       onClick={onClick}
     >

@@ -17,7 +17,7 @@ export default function ToggleButton({ buttonOptions, selected, onToggle }) {
               text-typeface_primary
               ${
                 isSelected
-                  ? "bg-white text-body-semibold-cap-height"
+                  ? "rounded-[8px] bg-white shadow-50 text-body-semibold-cap-height"
                   : "bg-surface_bg_secondary text-body-medium-cap-height"
               }
             `}

@@ -12,16 +12,23 @@ import {
   differenceInDays,
   differenceInMilliseconds,
 } from "date-fns";
+import { useLessonPlan } from "./LessonPlanContext";
+import { useEffect, useState } from "react";
+import RSVPSelector from "./RSVPSelector";
+import { useRouter } from "next/router";
 
 export default function SessionDetailContent({
   sessionId,
   handleShowClassSchedule,
   className = "",
+  lessonPlanData,
+  isLessonPlanLoaded,
 }) {
   // sessionId will be passed in, either as activeSessionId (from SessionDetailSingle) or whichever tab is clicked from SessionDetailTabs
   // if it is null then placeholder
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { upcomingSessions } = useSessions();
+  const { upcomingSessions, getSessionStatus } = useSessions();
+  const { phases, getModules, phaseTimes, lessonPlan } = lessonPlanData;
 
   let session;
   let startDate;
@@ -37,6 +44,14 @@ export default function SessionDetailContent({
     differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000)
   );
   const isUpcoming = differenceInDaysToStart < 14;
+
+  console.log("isLessonPlanLoaded", isLessonPlanLoaded);
+
+  const router = useRouter();
+
+  const handleEnter = () => {
+    router.push("/instructor/" + sessionId);
+  };
 
   return (
     <div
@@ -87,7 +102,9 @@ export default function SessionDetailContent({
               </svg>
               <p className="text-typeface_primary text-body-medium">
                 {sessionId ? (
-                  session.learning_organization
+                  session.learning_organization_name +
+                  ", " +
+                  session.location_name
                 ) : (
                   <Placeholder width={144} height={10} />
                 )}
@@ -98,40 +115,38 @@ export default function SessionDetailContent({
             </p>
             {isMobile ? null : (
               <Button
-                className={
-                  sessionId
-                    ? `bg-surface_bg_secondary text-typeface_primary text-body-semibold-cap-height`
-                    : "button-disabled"
-                }
+                className={sessionId ? "button-tertiary" : "button-disabled"}
               >
                 Get directions
               </Button>
             )}
           </div>
         </div>
-        <div className="session-buttons flex items-center gap-[16px]">
-          {sessionId && isUpcoming ? (
+        <div className="session-buttons flex items-center gap-[16px] pr-[14px]">
+          {sessionId &&
+          getSessionStatus(session) !== "Online" &&
+          getSessionStatus(session) !== "Canceled" &&
+          isUpcoming ? (
             <InfoPill
               icon={true}
-              text={`Starts in ${differenceInDaysToStart} day${
-                differenceInDaysToStart > 1 ? "s" : ""
-              }`}
+              text={
+                differenceInDaysToStart > 0
+                  ? "Starts today"
+                  : `Starts in ${differenceInDaysToStart} day${
+                      differenceInDaysToStart > 1 ? "s" : ""
+                    }`
+              }
             />
           ) : null}
-          {isMobile ? null : (
-            <div className="flex items-center gap-[12px]">
-              <Button
-                className={sessionId ? "button-secondary" : "button-disabled"}
-              >
-                I can't attend
+          {isMobile ? null : session ? (
+            getSessionStatus(session) === "Online" ? (
+              <Button className="button-primary" onClick={handleEnter}>
+                Enter class
               </Button>
-              <Button
-                className={sessionId ? "button-primary" : "button-disabled"}
-              >
-                Confirm
-              </Button>
-            </div>
-          )}
+            ) : (
+              <RSVPSelector session={session} />
+            )
+          ) : null}
         </div>
       </div>
       <div
@@ -223,25 +238,19 @@ export default function SessionDetailContent({
                     />
                   </svg>
                 </div>
-                {sessionId ? (
-                  <div className="flex flex-col gap-[19px]">
-                    <ClassItem
-                      exerciseTitle="Grammar Conjugation"
-                      time="10:00 - 10:15"
-                    />
-                    <ClassItem
-                      exerciseTitle="Grammar Conjugation"
-                      time="10:15 - 10:30"
-                    />
-                    <ClassItem
-                      exerciseTitle="Grammar Conjugation"
-                      time="10:30 - 10:45"
-                    />
-                    <ClassItem
-                      exerciseTitle="Grammar Conjugation"
-                      time="10:45 - 11:00"
-                    />
-                  </div>
+                {sessionId && isLessonPlanLoaded !== "loading" ? (
+                  isLessonPlanLoaded === "no lesson plan" ? (
+                    <div>No learning plan yet</div>
+                  ) : (
+                    <div className="flex flex-col gap-[19px]">
+                      {phases.map((phase) => (
+                        <ClassItem
+                          phaseTitle={phase.name}
+                          time={phaseTimes.get(phase.id)}
+                        />
+                      ))}
+                    </div>
+                  )
                 ) : (
                   <div className="flex flex-col gap-[26px]">
                     {Array.from({ length: 3 }).map((_, index) => (

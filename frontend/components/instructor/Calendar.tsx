@@ -5,6 +5,7 @@ import ToggleButton from "./ToggleButton";
 import { useMemo } from "react";
 import { useSessions } from "./SessionsContext";
 import { isSameDay } from "date-fns";
+import Dot from "./Dot";
 
 export default function Calendar({
   visibleMonth,
@@ -94,16 +95,11 @@ export default function Calendar({
 
     return (
       <div className="relative flex items-center justify-center">
-        <div className="absolute bottom-[0.1px]">
-          <svg
-            width="6"
-            height="6"
-            viewBox="0 0 6 6"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="3" cy="3" r="3" fill={color} />
-          </svg>
+        <div className="absolute bottom-[-8px]">
+          <div
+            className={`${styles.dot}`}
+            style={{ backgroundColor: color }}
+          ></div>
         </div>
       </div>
     );
@@ -138,7 +134,11 @@ export default function Calendar({
   return (
     <>
       <div className="flex flex-col items-center">
-        <div className="w-full pb-[22px]">
+        <div
+          className={`w-full ${
+            activeTab === "Monthly" ? "pb-[22px]" : "pb-[20px]"
+          }`}
+        >
           <ToggleButton
             buttonOptions={["Monthly", "Daily"]}
             selected={activeTab}
@@ -146,7 +146,9 @@ export default function Calendar({
           />
         </div>
         {activeTab === "Monthly" ? (
-          <div className={`-mt-[2px] pb-[24px] ${styles["react-calendar"]}`}>
+          <div
+            className={`-mt-[2px] flex flex-col items-center px-[1px] pb-[24px] ${styles["react-calendar"]}`}
+          >
             <ReactCalendar
               defaultValue={new Date()}
               value={selectedDate}
@@ -165,7 +167,7 @@ export default function Calendar({
               showNeighboringMonth={false}
               tileClassName={({ date, view }) => {
                 if (view === "month") {
-                  const classes = [];
+                  const classes = [styles["calendar-tile"]]; // Add this line
                   if (isBeforeToday(date)) {
                     classes.push(styles["disabled-date"]);
                   }

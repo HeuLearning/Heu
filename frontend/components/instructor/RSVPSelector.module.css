@@ -1,0 +1,11 @@
+.rsvp {
+  display: flex;
+}
+
+.rsvp:hover .rsvp_arrow {
+  color: var(--surface_bg_darkest);
+}
+
+.rsvp_arrow {
+  color: var(--surface_bg_highlight);
+}

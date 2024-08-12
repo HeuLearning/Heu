@@ -1,3 +1,4 @@
+import Dot from "./Dot";
 import ProfilePic from "./ProfilePic";
 
 export default function LearnerItem({ name, status }) {
@@ -13,16 +14,8 @@ export default function LearnerItem({ name, status }) {
         <ProfilePic size={32} />
         <p className="text-typeface_primary text-body-medium">{name}</p>
       </div>
-      <div className="flex items-center gap-[5px]">
-        <svg
-          width="6"
-          height="6"
-          viewBox="0 0 6 6"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="3" cy="3" r="3" fill={fillColor} />
-        </svg>
+      <div className="flex items-center">
+        <Dot color={fillColor} />
         <p className={`text-body-semibold ${textColor}`}>{status}</p>
       </div>
     </div>

@@ -3,7 +3,7 @@ import MobileNavMenu from "./MobileNavMenu";
 
 export default function HamburgerIcon({ onClick }) {
   return (
-    <button className="rounded-full drop-shadow-25" onClick={onClick}>
+    <button className="rounded-full shadow-25" onClick={onClick}>
       <svg
         width="40"
         height="40"

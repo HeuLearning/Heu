@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { isWithinInterval } from "date-fns";
+import { useRouter } from "next/router";
 
 interface Session {
   id: number;
@@ -26,6 +27,8 @@ interface SessionContextType {
   getSessionStatus: (session) => any;
   allSessions: Session[];
   upcomingSessions: Session[];
+  confirmSession: (sessionId) => void;
+  cancelSession: (sessionId) => void;
 }
 
 // create context with initial undefined value
@@ -45,6 +48,11 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 }) => {
   // State to hold the sessions
   const [allSessions, setAllSessions] = useState<Session[]>([]);
+  const router = useRouter();
+
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
 
   // Example effect to fetch sessions (replace with your actual data fetching logic)
   useEffect(() => {
@@ -84,14 +92,13 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
   });
 
   const getSessionStatus = (session) => {
-    let status;
     const startDateWithBuffer = new Date(
       new Date(session.start_time).getTime() - 5 * 60000
     );
     const endDate = new Date(session.end_time);
-    if (session.viewed && session.approved) status = "Confirmed";
-    else if (session.viewed && !session.approved) status = "Canceled";
-    else if (!session.viewed) status = "Pending";
+    let status =
+      session.instructor_status.charAt(0).toUpperCase() +
+      session.instructor_status.slice(1);
     if (
       status === "Confirmed" &&
       isWithinInterval(new Date(), { start: startDateWithBuffer, end: endDate })
@@ -101,9 +108,47 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     return status;
   };
 
+  async function confirmSession(sessionId) {
+    const res = await fetch(
+      `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // Include the access token
+        },
+        body: JSON.stringify({
+          task: "confirm",
+        }),
+      }
+    );
+  }
+
+  async function cancelSession(sessionId) {
+    const res = await fetch(
+      `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // Include the access token
+        },
+        body: JSON.stringify({
+          task: "cancel",
+        }),
+      }
+    );
+  }
+
   return (
     <SessionsContext.Provider
-      value={{ getSessionStatus, allSessions, upcomingSessions }}
+      value={{
+        getSessionStatus,
+        allSessions,
+        upcomingSessions,
+        confirmSession,
+        cancelSession
+      }}
     >
       {children}
     </SessionsContext.Provider>

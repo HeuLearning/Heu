@@ -7,6 +7,7 @@ import HamburgerIcon from "./mobile/HamburgerIcon";
 import { useState } from "react";
 import MobileNavMenu from "./mobile/MobileNavMenu";
 import NavButton from "./NavButton";
+import NotificationButton from "./NotificationButton";
 
 export default function Navbar() {
   const { isMobile, isTablet, isDesktop } = useResponsive();
@@ -46,10 +47,10 @@ export default function Navbar() {
     );
   } else {
     return (
-      <div className="flex items-center justify-between gap-[32px] bg-[#F5F5F5] px-[32px] py-[16px]">
+      <div className="flex items-center justify-between gap-[32px] bg-[#F5F5F5] px-[32px] py-[12px]">
         <div className="flex items-center gap-[32px]">
           <Logo />
-          <div className="flex items-center gap-[12px]">
+          <div className="flex items-center gap-[16px]">
             <NavButton
               buttonText="Dashboard"
               selected={selectedButton === "Dashboard"}
@@ -62,9 +63,9 @@ export default function Navbar() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-[12px]">
+        <div className="flex items-center gap-[16px]">
           <LanguageSelector
-            className="drop-shadow-25"
+            className="shadow-25"
             selected="EN"
             allOptions={[
               ["English", "EN"],
@@ -72,10 +73,7 @@ export default function Navbar() {
               ["Portuguese", "PT"],
             ]}
           />
-          {/* <DropDownSelector
-            selected="blah1"
-            allOptions={["blah1", "blah2", "blah3"]}
-          /> */}
+          <NotificationButton />
           <ProfilePic />
         </div>
       </div>

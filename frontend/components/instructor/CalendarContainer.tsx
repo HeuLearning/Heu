@@ -51,9 +51,9 @@ export default function CalendarContainer({
     return (
       <div
         id="calendar-container"
-        className="relative flex h-full  w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary p-[24px] outline-surface_border_tertiary"
+        className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary p-[16px] outline-surface_border_tertiary"
       >
-        <div className="custom-calendar-header flex justify-between pb-[48px]">
+        <div className="custom-calendar-header flex justify-between px-[8px] pb-[48px] pt-[8px]">
           <span className="text-typeface_primary leading-tight text-h1">
             {visibleMonthName + " " + visibleYearName}
           </span>
@@ -110,8 +110,8 @@ export default function CalendarContainer({
         />
         {activeTab === "Monthly" && (
           <div>
-            <div className="mx-[-24px] border-[1px] border-surface_border_tertiary"></div>
-            <p className="pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold">
+            <div className="mx-[-16px] border-[1px] border-surface_border_tertiary"></div>
+            <p className="px-[8px] pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold">
               Coming up
             </p>
             <div className="upcoming-events flex flex-col items-center">
@@ -129,7 +129,7 @@ export default function CalendarContainer({
                     />
                   ) : (
                     <div>
-                      <Divider />
+                      <Divider spacing={12} />
                       <MiniClassBlock
                         key={session.id}
                         sessionId={session.id}
@@ -145,7 +145,7 @@ export default function CalendarContainer({
         )}
         {activeTab === "Daily" && (
           <div className="h-[548px] overflow-y-auto no-scrollbar">
-            <div className="daily-events mt-[4px] flex flex-col items-center">
+            <div className="daily-events mt-[8px] flex flex-col items-center">
               {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
             only dateCard for most upcoming session */}
               {upcomingSessions
@@ -157,7 +157,7 @@ export default function CalendarContainer({
                 .map((session, index, filteredSessions) => (
                   <div key={session.id}>
                     {index > 0 && index < filteredSessions.length && (
-                      <Divider />
+                      <Divider spacing={12} />
                     )}
                     <MiniClassBlock
                       dateCard={

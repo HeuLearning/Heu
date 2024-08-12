@@ -2,6 +2,8 @@ import styles from "./Checkbox.module.css";
 
 export default function Checkbox() {
   return (
-    <input type="checkbox" className={`${styles.checkbox} appearance-none`} />
+    <div className="flex h-[18px] w-[18px] items-center justify-center">
+      <input type="checkbox" className={`${styles.checkbox} appearance-none`} />
+    </div>
   );
 }

@@ -21,21 +21,34 @@ export default function AudioPlayer({ audioSrc }) {
     audio.addEventListener("loadedmetadata", () => {
       setDuration(audio.duration);
     });
-    audio.addEventListener("timeupdate", () => {
-      setCurrentTime(audio.currentTime);
+    const updateInterval = setInterval(() => {
+      if (!audio.paused) {
+        setCurrentTime(audio.currentTime);
+      }
+    }, 50);
+    audio.addEventListener("ended", () => {
+      setIsPlaying(false);
+      setCurrentTime(audio.duration);
     });
     audioRef.current = audio;
 
     return () => {
       audio.removeEventListener("loadedmetadata", () => {});
-      audio.removeEventListener("timeupdate", () => {});
+      clearInterval(updateInterval);
+      audio.removeEventListener("ended", () => {});
       audio.pause();
     };
   }, [audioSrc]);
 
   const radius = 62;
   const dashArray = radius * Math.PI * 2;
-  const dashOffset = dashArray - (dashArray * (currentTime / duration)) / 100;
+  const lastValidDashOffset = useRef(dashArray);
+  const calculatedDashOffset =
+    dashArray - dashArray * Math.min(currentTime / duration, 1);
+  const dashOffset = isNaN(calculatedDashOffset)
+    ? lastValidDashOffset.current
+    : calculatedDashOffset;
+  lastValidDashOffset.current = dashOffset;
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
@@ -45,9 +58,9 @@ export default function AudioPlayer({ audioSrc }) {
 
   return (
     <div className="relative h-[128px] w-[128px]">
-      <div className="relative flex h-[128px] w-[128px] items-center">
+      <div className="relative flex h-[128px] w-[128px] items-center justify-center">
         <svg
-          className={`absolute center-atop-svg`}
+          className="absolute center-atop-svg"
           width="128"
           height="128"
           viewBox="0 0 128 128"
@@ -60,10 +73,7 @@ export default function AudioPlayer({ audioSrc }) {
             r={radius}
             strokeWidth="2px"
             stroke="var(--surface_bg_secondary)"
-            fill="#a9d8e9"
-            strokeDasharray={dashArray}
-            strokeDashoffset={dashOffset}
-            transform="rotate(-90 100 100)"
+            fill="var(--surface_bg_highlight)"
           />
           <circle
             cx={64}
@@ -71,14 +81,18 @@ export default function AudioPlayer({ audioSrc }) {
             r={radius}
             strokeWidth="2px"
             stroke="var(--surface_bg_dark)"
-            fill="var(--surface_bg_highlight)"
-            strokeDasharray={dashArray}
-            strokeDashoffset={dashOffset}
-            transform="rotate(-90 100 100)"
+            style={{
+              strokeDasharray: dashArray,
+              strokeDashoffset: dashOffset,
+              transition: "stroke-dashoffset 0.05s linear",
+            }}
+            transform={`rotate(-90 64 64)`}
           />
         </svg>
       </div>
-      <AudioButton size={40} togglePlay={togglePlay} isPlaying={isPlaying} />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <AudioButton size={40} togglePlay={togglePlay} isPlaying={isPlaying} />
+      </div>
       <div className="absolute bottom-[22px] left-0 flex w-full items-center justify-center">
         <p
           className={`text-medium text-[12px] ${
