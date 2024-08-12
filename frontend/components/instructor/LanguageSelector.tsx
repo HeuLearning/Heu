@@ -33,7 +33,7 @@ export default function LanguageSelector({
     <div className="relative flex flex-col" ref={dropdownRef}>
       <div className="shown-button">
         <Button
-          className="h-8 w-16 bg-white text-typeface_primary text-body-semibold-cap-height"
+          className={`${className} h-8 w-16 bg-white text-typeface_primary text-body-semibold-cap-height`}
           onClick={() => setIsOpen(!isOpen)}
         >
           <div className="flex items-center gap-[10px]">
@@ -74,7 +74,7 @@ export default function LanguageSelector({
       </div>
       <div className="drop-down">
         {isOpen ? (
-          <div className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] drop-shadow-50">
+          <div className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px]">
             {allOptions.map((option) => (
               <div key={option} style={{ width: "100%" }}>
                 <Button

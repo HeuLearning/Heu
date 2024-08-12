@@ -1,12 +1,17 @@
 .react-calendar {
-  width: 292px;
+  width: 294px;
   max-width: 100%;
+  min-width: 294px;
   line-height: 1.814em;
   color: var(--typeface_primary);
 }
 
 .react-calendar .disabled-date {
   color: var(--typeface_tertiary);
+}
+
+.disabled-date:active {
+  color: white !important;
 }
 
 .react-calendar .scheduled-date {
@@ -65,6 +70,18 @@
   background-color: #e6e6e6;
 }
 
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  display: inline-block;
+  overflow: visible;
+}
+
+.calendar-tile:active .dot {
+  background-color: white !important;
+}
+
 .react-calendar__month-view__weekdays {
   text-align: center;
   text-transform: uppercase;
@@ -120,19 +137,23 @@
 
 .react-calendar__tile {
   max-width: 100%;
-  width: 40px;
-  height: 40px;
+  max-height: 100%;
+  width: 42px !important;
+  height: 42px /* supposed to be 40 by 40 but border eats in */ !important;
   background: none;
   text-align: center;
   line-height: 16px;
   font: inherit;
   font-size: 14px;
   font-weight: 500;
-  border: 2px solid var(--surface_bg_tertiary) !important;
 }
 
 .react-calendar__tile:disabled {
   color: var(--typeface_tertiary);
+}
+
+.react-calendar__month-view__days__day {
+  border: 2px solid var(--surface_bg_tertiary) !important;
 }
 
 .react-calendar__month-view__days__day--neighboringMonth:disabled,
@@ -173,6 +194,12 @@
   border-radius: 100px;
   color: white;
   font-weight: 600;
+}
+
+.react-calendar__tile:active,
+.react-calendar__tile--active:active {
+  background: var(--surface_bg_primary) !important;
+  color: white;
 }
 
 .react-calendar__tile--active:enabled:hover,

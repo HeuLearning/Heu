@@ -8,10 +8,8 @@ export default function ModuleDetail({
   number,
   title,
   description,
-  duration,
-  completion,
+  done,
 }) {
-  const done = completion >= duration;
   return active ? (
     <div
       className={`${styles.module_detail} mb-[4px] flex flex-col gap-[8px] rounded-[10px] bg-white`}
@@ -62,7 +60,7 @@ export default function ModuleDetail({
             >
               <path
                 d="M1.5 4L4.5 7L10.5 1"
-                stroke="#999999"
+                stroke="var(--typeface_secondary)"
                 stroke-width="2"
                 stroke-linecap="round"
               />

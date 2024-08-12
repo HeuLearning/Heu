@@ -5,10 +5,10 @@
 .module_detail::before {
   content: "";
   position: absolute;
-  top: -14px;
+  top: -18px;
   left: -12px;
   width: calc(100% + 24px);
-  height: calc(100% + 28px);
+  height: calc(100% + 32px);
   border-radius: 14px;
   border: 1px solid var(--surface_border_tertiary);
   z-index: -1;

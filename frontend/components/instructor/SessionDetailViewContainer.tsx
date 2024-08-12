@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import PopUp from "./PopUp";
+import SidePopUp from "./SidePopUp";
 import { usePopUp } from "./PopUpContext";
 import XButton from "./XButton";
 import ShowMoreButton from "./ShowMoreButton";
@@ -11,60 +11,64 @@ import { useSessions } from "./SessionsContext";
 import SessionDetailTabs from "./SessionDetailTabs";
 import SessionDetailSingle from "./SessionDetailSingle";
 import ClassSchedulePopUpContainer from "./ClassSchedulePopUpContent";
+import { useLessonPlan } from "./LessonPlanContext";
 
 export default function SessionDetailViewContainer({
   activeSessionId,
   activeSessionByDate,
 }) {
   const { upcomingSessions } = useSessions();
+  const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
+  const [activeSessionKey, setActiveSessionKey] = useState("");
 
-  let session;
-  if (activeSessionId) {
-    session = upcomingSessions.find(
-      (session) => session.id === activeSessionId
-    );
-  }
+  let lessonPlanData = useLessonPlan();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    console.log(lessonPlanData.lessonPlan);
+
+    const checkLessonPlanData = () => {
+      if (isMounted) {
+        if (Object.keys(lessonPlanData.lessonPlan).length === 0) {
+          setIsLessonPlanLoaded("no lesson plan");
+        } else if (Object.keys(lessonPlanData.lessonPlan).length > 0) {
+          setIsLessonPlanLoaded("true");
+        } else {
+          setIsLessonPlanLoaded("loading");
+        }
+      }
+    };
+
+    checkLessonPlanData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [lessonPlanData.lessonPlan.lesson_plan_id, activeSessionKey]);
+
+  useEffect(() => {
+    setIsLessonPlanLoaded("loading");
+    setActiveSessionKey(`${activeSessionId}-${activeSessionByDate}`);
+  }, [activeSessionId, activeSessionByDate]);
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   const { showPopUp, hidePopUp } = usePopUp();
 
-  const phase1Modules = [
-    {
-      id: 1,
-      title: "Instruction",
-      description: "Past perfect conjugation table",
-    },
-    {
-      id: 2,
-      title: "Individual exercise",
-      description: "Kitchen vocabulary",
-    },
-    {
-      id: 3,
-      title: "Instruction",
-      description:
-        "Harder past perfect questions/examples, interactive between instructor + learners",
-    },
-    {
-      id: 4,
-      title: "Individual exercise",
-      description:
-        "Individual questions testing past perfect with kitchen vocabulary",
-    },
-  ];
-
   const handleShowClassSchedule = () => {
     showPopUp({
       id: "class-schedule-popup",
       content: (
-        <PopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
+        <SidePopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
           <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
             Class Schedule
             <XButton onClick={() => hidePopUp("class-schedule-popup")} />
           </div>
-          <ClassSchedulePopUpContainer modules={phase1Modules} />
-        </PopUp>
+          {lessonPlanData.phases && (
+            <ClassSchedulePopUpContainer {...lessonPlanData} />
+          )}
+        </SidePopUp>
       ),
       container: "#dashboard-container", // Ensure this ID exists in your DOM
       style: {
@@ -78,7 +82,10 @@ export default function SessionDetailViewContainer({
     return (
       <div className="h-full">
         <SessionDetailTabs
+          lessonPlanData={lessonPlanData}
+          isLessonPlanLoaded={isLessonPlanLoaded}
           activeSessionByDate={activeSessionByDate}
+          setActiveSessionKey={setActiveSessionKey}
           handleShowClassSchedule={handleShowClassSchedule}
         />
       </div>
@@ -87,6 +94,8 @@ export default function SessionDetailViewContainer({
     return (
       <div className="h-full">
         <SessionDetailSingle
+          lessonPlanData={lessonPlanData}
+          isLessonPlanLoaded={isLessonPlanLoaded}
           activeSessionId={activeSessionId}
           handleShowClassSchedule={handleShowClassSchedule}
         />
@@ -96,6 +105,8 @@ export default function SessionDetailViewContainer({
     return (
       <div className="h-full pl-[24px] pt-[24px]">
         <SessionDetailContent
+          lessonPlanData={lessonPlanData}
+          isLessonPlanLoaded={isLessonPlanLoaded}
           sessionId={null}
           handleShowClassSchedule={handleShowClassSchedule}
         />

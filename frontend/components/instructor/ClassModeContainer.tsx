@@ -9,113 +9,29 @@ import CompletionBar from "./CompletionBar";
 import { useSessions } from "./SessionsContext";
 import { format } from "date-fns";
 import { usePopUp } from "./PopUpContext";
-import PopUp from "./PopUp";
+import SidePopUp from "./SidePopUp";
 import XButton from "./XButton";
 import PhaseLineup from "./PhaseLineup";
 import WordBankItem from "components/exercise/WordBankItem";
 import AudioPlayer from "components/exercise/AudioPlayer";
-import Checkbox from "components/exercise/Checkbox";
-import RadioButton from "components/exercise/RadioButton";
-import CircledLabel from "./CircledLabel";
-import Draggable from "./Draggable";
-import Droppable from "./Droppable";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  DndContext,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  DragOverlay,
+} from "@dnd-kit/core";
 import ImageCard from "components/exercise/ImageCard";
-
-interface Item {
-  id: string;
-  content: string;
-  letter?: string;
-  draggable?: boolean;
-  droppable?: boolean;
-  dropped?: boolean;
-  x?: boolean;
-}
-
-const phases = [
-  {
-    id: 1,
-    type: "exercise",
-    title: "Past perfect + kitchen vocabulary",
-    time: "10:15 - 10:35",
-    duration: 20,
-    completion: 20,
-  },
-  {
-    id: 2,
-    type: "exercise",
-    title: "Grammar conjugation",
-    time: "10:15 - 10:35",
-    duration: 20,
-    completion: 20,
-  },
-  {
-    id: 3,
-    type: "exercise",
-    title: "Grammar conjugation",
-    time: "10:15 - 10:35",
-    duration: 20,
-    completion: 3,
-  },
-  {
-    id: 4,
-    type: "exercise",
-    title: "Grammar conjugation",
-    time: "10:15 - 10:35",
-    duration: 20,
-    completion: 0,
-  },
-  {
-    id: 5,
-    type: "exercise",
-    title: "Grammar conjugation",
-    time: "10:15 - 10:35",
-    duration: 20,
-    completion: 0,
-  },
-  {
-    id: 6,
-    type: "exercise",
-    title: "Grammar conjugation",
-    time: "10:15 - 10:35",
-    duration: 20,
-    completion: 0,
-  },
-];
-
-// duration and completion in min
-const phase1Modules = [
-  {
-    id: 1,
-    title: "Instruction",
-    description: "Past perfect conjugation table",
-    duration: 5,
-    completion: 5,
-  },
-  {
-    id: 2,
-    title: "Individual exercise",
-    description: "Kitchen vocabulary",
-    duration: 5,
-    completion: 2,
-  },
-  {
-    id: 3,
-    title: "Instruction",
-    description:
-      "Harder past perfect questions/examples, interactive between instructor + learners",
-    duration: 5,
-    completion: 0,
-  },
-  {
-    id: 4,
-    title: "Individual exercise",
-    description:
-      "Individual questions testing past perfect with kitchen vocabulary",
-    duration: 5,
-    completion: 0,
-  },
-];
+import Textbox from "components/exercise/Textbox";
+import MinimalExample from "./MinimalExample";
+import ConversationBubble from "components/exercise/ConversationBubble";
+import { useLessonPlan } from "./LessonPlanContext";
+import useStopwatch from "./hooks/useStopwatch";
+import CircledLabel from "./CircledLabel";
+import PopUp from "./PopUp";
 
 const learners = [
   {
@@ -146,23 +62,78 @@ const learners = [
 ];
 
 export default function ClassModeContainer({ sessionId }) {
+  const { phases, getModules, lessonPlan, phaseTimes } = useLessonPlan();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(MouseSensor),
+    useSensor(TouchSensor)
+  );
+
+  const [
+    { isRunning, elapsedTime, elapsedLapTime },
+    { startTimer, stopTimer, resetTimer, lapTimer, setElapsedTime },
+  ] = useStopwatch();
+
   const [activePhaseId, setActivePhaseId] = useState<number | null>(null);
+  const [showInitialClassPage, setShowInitialClassPage] = useState(true);
+  const [activeModuleIndex, setActiveModuleIndex] = useState(0);
+  const [activeItem, setActiveItem] = useState(null);
+  const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
+  const [classStarted, setClassStarted] = useState(false);
+
   const { upcomingSessions } = useSessions();
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const [items, setItems] = useState<Item[]>([
-    { id: "drop1", content: "", droppable: true, dropped: false },
-    { id: "drop2", content: "", droppable: true, dropped: false },
-    { id: "drop3", content: "", droppable: true, dropped: false },
-    { id: "drop4", content: "", droppable: true, dropped: false },
-    { id: "drop5", content: "", droppable: true, dropped: false },
+  const [dropItems, setDropItems] = useState([
+    {
+      id: "drop1",
+      letter: "",
+      content: "",
+      droppable: true,
+      draggable: false,
+      x: false,
+    },
+    {
+      id: "drop2",
+      letter: "",
+      content: "",
+      droppable: true,
+      draggable: false,
+      x: false,
+    },
+    {
+      id: "drop3",
+      letter: "",
+      content: "",
+      droppable: true,
+      draggable: false,
+      x: false,
+    },
+    {
+      id: "drop4",
+      letter: "",
+      content: "",
+      droppable: true,
+      draggable: false,
+      x: false,
+    },
+    {
+      id: "drop5",
+      letter: "",
+      content: "",
+      droppable: true,
+      draggable: false,
+      x: false,
+    },
+  ]);
+  const [dragItems, setDragItems] = useState([
     {
       id: "drag1",
       content: "It's 19 Solo Drive.",
       letter: "A",
       draggable: true,
-      dropped: false,
+      droppable: false,
       x: false,
     },
     {
@@ -170,7 +141,7 @@ export default function ClassModeContainer({ sessionId }) {
       content: "I'm from China.",
       letter: "B",
       draggable: true,
-      dropped: false,
+      droppable: false,
       x: false,
     },
     {
@@ -178,7 +149,7 @@ export default function ClassModeContainer({ sessionId }) {
       content: "I'm Han.",
       letter: "C",
       draggable: true,
-      dropped: false,
+      droppable: false,
       x: false,
     },
     {
@@ -186,7 +157,7 @@ export default function ClassModeContainer({ sessionId }) {
       content: "My teacher is Gracie Smith.",
       letter: "D",
       draggable: true,
-      dropped: false,
+      droppable: false,
       x: false,
     },
     {
@@ -194,14 +165,29 @@ export default function ClassModeContainer({ sessionId }) {
       content: "It's H-A-N.",
       letter: "E",
       draggable: true,
-      dropped: false,
+      droppable: false,
       x: false,
     },
   ]);
 
+  const [placeholders, setPlaceholders] = useState([
+    { id: "placeholder1", droppable: true, placeholder: true },
+    { id: "placeholder2", droppable: true, placeholder: true },
+    { id: "placeholder3", droppable: true, placeholder: true },
+    { id: "placeholder4", droppable: true, placeholder: true },
+    { id: "placeholder5", droppable: true, placeholder: true },
+  ]);
+
+  const [originalDragItems, setOriginalDragItems] = useState([]);
+
+  useEffect(() => {
+    setOriginalDragItems(dragItems);
+  }, []);
+
   const { hidePopUp, showPopUp } = usePopUp();
 
-  const activePhase = phases.find((m) => m.id === activePhaseId);
+  const activePhase = phases.find((phase) => phase.id === activePhaseId);
+  const activeModule = activePhase?.modules[activeModuleIndex];
 
   useEffect(() => {
     const findSession = () => {
@@ -215,77 +201,179 @@ export default function ClassModeContainer({ sessionId }) {
     findSession();
   }, [sessionId, upcomingSessions]);
 
-  const router = useRouter();
+  // set initial activePhaseId
+  useEffect(() => {
+    if (phases.length > 0) {
+      setActivePhaseId(phases[0].id);
+    }
+  }, [phases]);
 
+  useEffect(() => {
+    setActiveModuleIndex(0);
+  }, [activePhaseId]);
+
+  const handleDragDropReset = (id) => {
+    const oldIndex = originalDragItems.findIndex((item) => item.id === id);
+    const originalDragItem = dropItems.find((item) => item.id === id);
+    const originalDropItem = dragItems[oldIndex];
+
+    setDragItems((prevItems) => {
+      const newItems = prevItems.map((item, index) => {
+        if (index === oldIndex) {
+          return { ...originalDragItem, x: false };
+        }
+        return item;
+      });
+      return newItems;
+    });
+    setDropItems((prevItems) => {
+      const newItems = prevItems.map((item, index) => {
+        if (item.id === id) {
+          return { ...originalDropItem };
+        }
+        return item;
+      });
+      return newItems;
+    });
+  };
+
+  useEffect(() => {
+    if (
+      activeModule &&
+      totalElapsedTime.length - 1 === activeModuleIndex &&
+      elapsedTime >=
+        totalElapsedTime[activeModuleIndex] +
+          activeModule.suggested_duration_seconds
+    ) {
+      stopTimer();
+    }
+  }, [elapsedTime, activeModule, activeModuleIndex]);
+
+  const router = useRouter();
   const handleBack = () => {
     router.push("instructor-test");
   };
+
+  function handleDragStart(event) {
+    const newActiveItem = dragItems.find((item) => item.id === event.active.id);
+    setActiveItem(newActiveItem);
+  }
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
     if (over && active) {
-      const overItem = items.find((item) => item.id === over.id);
-      const activeItem = items.find((item) => item.id === active.id);
+      const overItem = dropItems.find((item) => item.id === over.id);
+      const activeItem = dragItems.find((item) => item.id === active.id);
 
-      if (
-        overItem &&
-        activeItem &&
-        ((overItem.droppable && activeItem.draggable) ||
-          (overItem.draggable && activeItem.droppable))
-      ) {
-        setItems((prevItems) => {
+      if (overItem && activeItem) {
+        setDropItems((prevItems) => {
           return prevItems.map((item) => {
             if (item.id === over.id) {
-              return {
-                ...item,
-                content: activeItem.content,
-                letter: activeItem.letter,
-                draggable: false,
-                droppable: false,
-                x: true,
-              };
-            } else if (item.id === active.id) {
-              return {
-                ...item,
-                content: "",
-                letter: "",
-                draggable: false,
-                droppable: true,
-              };
+              return { ...activeItem, x: true };
             }
             return item;
           });
         });
+        setDragItems((prevItems) => {
+          return prevItems.map((item) => {
+            if (item.id === active.id) {
+              return { ...overItem, letter: null };
+            }
+            return item;
+          });
+        });
+        setPlaceholders((prevItems) => {
+          return prevItems.map((item) => {
+            if (item.id.charAt(-1) === active.id.charAt(-1)) {
+              return { ...item, droppable: false };
+            }
+          });
+        });
       }
+    }
+    setActiveItem(null);
+  };
+
+  const handleNextModule = (module, index) => {
+    totalElapsedTime.push(
+      totalElapsedTime[index] + module.suggested_duration_seconds
+    );
+    setElapsedTime(totalElapsedTime[index + 1]);
+    startTimer();
+    lapTimer();
+    setActiveModuleIndex(index + 1);
+  };
+
+  console.log(activeModuleIndex);
+  console.log(totalElapsedTime);
+
+  const handleNextPhase = () => {
+    const currentPhaseIndex = phases.findIndex(
+      (phase) => phase.id === activePhaseId
+    );
+    if (currentPhaseIndex < phases.length - 1) {
+      const nextPhase = phases[currentPhaseIndex + 1];
+      setActivePhaseId(nextPhase.id);
+      setActiveModuleIndex(0); // Reset to the first module of the new phase
+      setTotalElapsedTime([0]); // Add a new elapsed time for the new phase
+      setElapsedTime(0); // Reset elapsed time for the new phase
+      resetTimer();
+      startTimer(); // Start the timer for the new phase
     }
   };
 
-  const handleDragDropReset = (id) => {
-    setItems((prevItems) => {
-      return prevItems.map((item) => {
-        if (item.id === id) {
-          return {
-            ...item,
-            draggable: true,
-            droppable: false,
-            x: false,
-          };
-        }
-        return item;
-      });
+  const handleEndClass = () => {
+    alert("Class finished");
+    router.push("instructor-test");
+  };
+
+  const handleEndClassPopUp = () => {
+    showPopUp({
+      id: "end-class-popup",
+      content: (
+        <PopUp
+          header="End class"
+          primaryButtonText="End class"
+          secondaryButtonText="Cancel"
+          primaryButtonOnClick={() => handleEndClass()}
+          secondaryButtonOnClick={() => hidePopUp("end-class-popup")}
+          popUpId="end-class-popup"
+        >
+          <p className="text-typeface_primary text-body-regular">
+            Are you sure you'd like to proceed and end the current class?
+          </p>
+        </PopUp>
+      ),
+      container: null, // Ensure this ID exists in your DOM
+      style: {
+        overlay: "bg-surface_bg_darkest bg-opacity-[0.5]",
+      },
+      height: "auto",
     });
   };
 
-  const handleNextModule = (module) => {
-    module.completion = module.duration;
+  const handleResetTimer = () => {
+    resetTimer();
+    setActiveModuleIndex(0);
+    setActivePhaseId(phases[0].id);
+    setTotalElapsedTime([0]);
+    setClassStarted(false);
+  };
+
+  const handleStartClass = () => {
+    setShowInitialClassPage(false);
+    if (!classStarted) {
+      startTimer();
+    }
+    setClassStarted(true);
   };
 
   const handleShowLearners = () => {
     showPopUp({
       id: "learners-popup",
       content: (
-        <PopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
+        <SidePopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
           <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
             Learners
             <XButton onClick={() => hidePopUp("learners-popup")} />
@@ -295,7 +383,7 @@ export default function ClassModeContainer({ sessionId }) {
               <LearnerItem name={learner.name} status={learner.status} />
             ))}
           </div>
-        </PopUp>
+        </SidePopUp>
       ),
       container: "#class-mode-container", // Ensure this ID exists in your DOM
       style: {
@@ -305,17 +393,20 @@ export default function ClassModeContainer({ sessionId }) {
     });
   };
 
-  const displayPhaseLineup = () => {
+  const displayPhaseLineup = (phaseId) => {
     showPopUp({
       id: "phase-lineup-popup",
       content: (
-        <PopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
+        <SidePopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
           <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
             Modules in this phase
             <XButton onClick={() => hidePopUp("phase-lineup-popup")} />
           </div>
-          <PhaseLineup modules={phase1Modules} />
-        </PopUp>
+          <PhaseLineup
+            modules={getModules(phaseId)}
+            activeModuleIndex={activeModuleIndex}
+          />
+        </SidePopUp>
       ),
       container: "#class-mode-container", // Ensure this ID exists in your DOM
       style: {
@@ -326,11 +417,11 @@ export default function ClassModeContainer({ sessionId }) {
   };
 
   const PhaseDetails = ({ phase, onBack }) => (
-    <div className="flex flex-col gap-[8px]">
+    <div className="flex h-full flex-col gap-[8px]">
       <ClassModeHeaderBar
         onBack={onBack}
-        iconName={phase.type}
-        title={phase.title}
+        iconName={"practice"}
+        title={phase.name}
         rightSide={
           <div className="flex items-center gap-[12px]">
             <button onClick={handleShowLearners}>
@@ -353,7 +444,7 @@ export default function ClassModeContainer({ sessionId }) {
                 />
               </svg>
             </button>
-            <button onClick={displayPhaseLineup}>
+            <button onClick={() => displayPhaseLineup(phase.id)}>
               <svg
                 width="32"
                 height="32"
@@ -378,100 +469,153 @@ export default function ClassModeContainer({ sessionId }) {
           </div>
         }
       />
-      <div className="flex gap-[24px]">
-        <div className="w-[243px]">
-          <WordBankItem id="1" letter="1">
-            What's your name?
-          </WordBankItem>
-          <WordBankItem id="2" letter="2">
-            How do you spell your name?
-          </WordBankItem>
-          <WordBankItem id="3" letter="3">
-            Where are you from?
-          </WordBankItem>
-          <WordBankItem id="4" letter="4">
-            What's your address?
-          </WordBankItem>
-          <WordBankItem id="5" letter="5">
-            Who's your teacher?
-          </WordBankItem>
-        </div>
-        <div>
-          {Array.from({ length: 5 }).map(() => (
-            <div className="p-[8px]">
-              <svg
-                width="17"
-                height="16"
-                viewBox="0 0 17 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M7 11.25L10.5 7.75L7 4.25"
-                  stroke="var(--surface_bg_darkest)"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </div>
-          ))}
-        </div>
-        <DndContext
-          onDragEnd={handleDragEnd}
-          collisionDetection={closestCenter}
-        >
-          <div className="flex gap-4">
-            <div className="flex w-[263px] flex-col gap-[4px] rounded-[14px] bg-surface_bg_secondary p-[4px]">
-              {items
-                .filter((item) => item.id.includes("drop"))
-                .map((item) => (
-                  <WordBankItem
-                    key={item.id}
-                    id={item.id}
-                    letter={item.letter}
-                    draggable={item.draggable}
-                    droppable={item.droppable}
-                    x={item.x}
-                    handleReset={() => handleDragDropReset(item.id)}
-                  >
-                    {item.content}
-                  </WordBankItem>
-                ))}
-            </div>
-            <div className="flex w-[263px] flex-col gap-[4px] rounded-[14px] bg-surface_bg_secondary p-[4px]">
-              {items
-                .filter((item) => item.id.includes("drag"))
-                .map((item) => (
-                  <WordBankItem
-                    key={item.id}
-                    id={item.id}
-                    letter={item.letter}
-                    draggable={item.draggable}
-                    droppable={item.droppable}
-                    x={item.x}
-                    handleReset={() => handleDragDropReset(item.id)}
-                  >
-                    {item.content}
-                  </WordBankItem>
-                ))}
+      <div className="flex h-full flex-col">
+        <div className="flex h-[550px] flex-col gap-[28px] rounded-[10px] p-[18px] outline-surface_border_tertiary">
+          <div className="flex items-center gap-[12px]">
+            <CircledLabel
+              bgColor="var(--surface_bg_darkest)"
+              textColor="text-typeface_highlight"
+            >
+              {activeModuleIndex + 1}
+            </CircledLabel>
+            <div className="text-typeface_primary text-body-semibold">
+              {activeModule.name}
             </div>
           </div>
-        </DndContext>
-        <ImageCard
-          caption="bedroom"
-          imageLink="https://media.istockphoto.com/id/1444929379/photo/square-wooden-mock-up-with-sofa-and-green-plants-on-white-wall-in-living-room-3d-illustration.jpg?b=1&s=612x612&w=0&k=20&c=UYpyRLHPyuXcA9EltpNvsl58NXrggXq53jdwhmLFNbE="
-        />
-        <AudioPlayer audioSrc="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" />
-      </div>
-      <div className="flex items-center justify-between gap-[24px] px-[24px] py-[18px]">
-        <div className="flex flex-grow gap-[4px]">
-          {phase1Modules.map((module) => (
-            <CompletionBar percentage={module.completion / module.duration} />
-          ))}
+          <div>
+            <div className="flex gap-[24px]">
+              <div className="w-[243px]">
+                <WordBankItem id="1" letter="1">
+                  What's your name?
+                </WordBankItem>
+                <WordBankItem id="2" letter="2">
+                  How do you spell your name?
+                </WordBankItem>
+                <WordBankItem id="3" letter="3">
+                  Where are you from?
+                </WordBankItem>
+                <WordBankItem id="4" letter="4">
+                  What's your address?
+                </WordBankItem>
+                <WordBankItem id="5" letter="5">
+                  Who's your teacher?
+                </WordBankItem>
+              </div>
+              <div>
+                {Array.from({ length: 5 }).map(() => (
+                  <div className="p-[8px]">
+                    <svg
+                      width="17"
+                      height="16"
+                      viewBox="0 0 17 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M7 11.25L10.5 7.75L7 4.25"
+                        stroke="var(--surface_bg_darkest)"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                  </div>
+                ))}
+              </div>
+              <DndContext
+                sensors={sensors}
+                onDragEnd={handleDragEnd}
+                collisionDetection={closestCenter}
+              >
+                <div className="flex gap-4">
+                  <div className="flex w-[263px] flex-col gap-[4px] rounded-[14px] bg-surface_bg_secondary p-[4px]">
+                    {dropItems.map((item) => (
+                      <WordBankItem
+                        key={item.id}
+                        id={item.id}
+                        letter={item.letter}
+                        droppable={item.droppable}
+                        x={item.x}
+                        handleReset={() => handleDragDropReset(item.id)}
+                      >
+                        {item.content}
+                      </WordBankItem>
+                    ))}
+                  </div>
+                  <div className="relative flex w-[263px] flex-col rounded-[14px] bg-surface_bg_secondary p-[4px]">
+                    <div className="z-[2] flex w-full flex-col gap-[4px]">
+                      {dragItems.map((item) => (
+                        <WordBankItem
+                          key={item.id}
+                          id={item.id}
+                          letter={item.letter}
+                          draggable={item.draggable}
+                          x={item.x}
+                        >
+                          {item.content}
+                        </WordBankItem>
+                      ))}
+                    </div>
+                    <div className="border-1px absolute left-0 top-0 z-[0] flex w-[263px] flex-col gap-[4px] rounded-[14px] border-dashed border-surface_border_primary p-[4px]">
+                      {placeholders.map((item) => (
+                        <WordBankItem
+                          id={item.id}
+                          droppable={item.droppable}
+                          placeholder={item.placeholder}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div></div>
+                <div>{"elapsedTime:" + elapsedTime}</div>
+                <div>{"elapsed time in module: " + elapsedLapTime}</div>
+              </DndContext>
+            </div>
+          </div>
         </div>
-        <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
-          {phase.time}
-        </p>
+        <div className="flex items-center justify-between gap-[24px] px-[24px] py-[18px]">
+          <div className="flex flex-grow gap-[4px]">
+            {getModules(activePhase.id).map((module, index) => (
+              <CompletionBar
+                percentage={
+                  activeModuleIndex === index
+                    ? elapsedLapTime / module.suggested_duration_seconds
+                    : activeModuleIndex > index
+                    ? 1
+                    : 0
+                }
+              />
+            ))}
+          </div>
+          <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
+            {phaseTimes.get(phase.id)}
+          </p>
+          <Button
+            className={
+              Math.min(
+                elapsedLapTime,
+                activeModule.suggested_duration_seconds
+              ) /
+                activeModule.suggested_duration_seconds >
+              0.05
+                ? "button-primary"
+                : "button-disabled"
+            }
+            onClick={
+              activeModuleIndex === activePhase.modules.length - 1
+                ? phases.indexOf(activePhase) === phases.length - 1
+                  ? () => handleEndClass()
+                  : () => handleNextPhase()
+                : () => handleNextModule(activeModule, activeModuleIndex)
+            }
+          >
+            {activeModuleIndex === activePhase.modules.length - 1
+              ? phases.indexOf(activePhase) === phases.length - 1
+                ? "End class"
+                : "Next phase"
+              : "Next module"}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -482,16 +626,10 @@ export default function ClassModeContainer({ sessionId }) {
         id="class-mode-container"
         className="relative mb-4 ml-4 mr-4 flex min-h-[600px] flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
       >
-        {activePhase ? (
-          <PhaseDetails
-            phase={activePhase}
-            onBack={() => setActivePhaseId(null)}
-          />
-        ) : (
+        {showInitialClassPage ? (
           <div>
             <ClassModeHeaderBar
               onBack={handleBack}
-              iconName="calendar"
               title={
                 session?.start_time
                   ? format(new Date(session.start_time), "eeee, MMMM do")
@@ -505,26 +643,59 @@ export default function ClassModeContainer({ sessionId }) {
                   : "Loading..."
               }
               rightSide={
-                <Button className="button-primary">Start class</Button>
+                <div className="flex gap-[12px]">
+                  {classStarted && (
+                    <Button
+                      className="button-tertiary"
+                      onClick={handleEndClassPopUp}
+                    >
+                      End class
+                    </Button>
+                  )}
+                  <Button className="button-primary" onClick={handleStartClass}>
+                    {!classStarted ? "Start class" : "Continue class"}
+                  </Button>
+                  <Button
+                    className="button-secondary"
+                    onClick={handleResetTimer}
+                  >
+                    Reset
+                  </Button>
+                </div>
               }
             />
             <div className="flex flex-grow justify-between gap-[24px]">
               <div className="grid flex-grow grid-cols-3 grid-rows-2 gap-[16px]">
-                {phases.map((phase) => (
+                {phases.map((phase, index) => (
                   <PhaseCard
-                    className="cursor-pointer"
                     type={phase.type}
-                    title={phase.title}
-                    time={phase.time}
-                    duration={phase.duration}
-                    completion={phase.completion}
-                    onClick={() => setActivePhaseId(phase.id)}
+                    title={phase.name}
+                    time={phaseTimes.get(phase.id)}
+                    percentage={
+                      activePhase === phase
+                        ? elapsedTime / phase.phase_duration_seconds
+                        : phases.indexOf(activePhase) > index
+                        ? 1
+                        : 0
+                    }
+                    status={
+                      phases.indexOf(activePhase) > index
+                        ? "done"
+                        : activePhase === phase
+                        ? "active"
+                        : ""
+                    }
                   />
                 ))}
               </div>
-              <ClassDetailsContainer />
+              <ClassDetailsContainer lessonPlan={lessonPlan} />
             </div>
           </div>
+        ) : (
+          <PhaseDetails
+            phase={activePhase}
+            onBack={() => setShowInitialClassPage(true)}
+          />
         )}
       </div>
     );

@@ -57,14 +57,11 @@ export default {
       height: {
         "to-bottom": "calc(100vh - 64px)",
       },
-      dropShadow: {
-        "25": ["0 1px 2px rgba(0, 0, 0, 0.05)", "0 0 2px rgba(0, 0, 0, 0.05)"],
+      boxShadow: {
+        "25": "0px 1px 2px 0px rgba(0, 0, 0, 0.05), 0px 0px 2px 0px rgba(0, 0, 0, 0.05)",
         "50": "0 2px 4px rgba(0, 0, 0, 0.07)",
         "75": "0 4px 20px rgba(0, 0, 0, 0.05)",
-        "100": [
-          "0 8px 8px rgba(0, 0, 0, 0.02)",
-          "0 2px 8px rgba(0, 0, 0, 0.08)",
-        ],
+        "100": "0 8px 8px rgba(0, 0, 0, 0.02), 0 2px 8px rgba(0, 0, 0, 0.08)",
         "150": "0 12px 48px rgba(0, 0, 0, 0.08)",
         "200": "0 24px 64px rgba(0, 0, 0, 0.07)",
       },
@@ -146,9 +143,16 @@ export default {
             outline: "1px solid " + theme("colors.surface_border_tertiary"),
           },
         },
+        ".button-tertiary": {
+          backgroundColor: theme("colors.surface_bg_secondary"),
+          fontSize: "14px",
+          fontWeight: 600,
+          letterSpacing: "-0.28px", // -2% of 14px
+          lineHeight: "0.8",
+          color: theme("colors.typeface_primary"),
+        },
         ".navbutton-selected": {
           backgroundColor: theme("colors.action_bg_secondary"),
-          boxShadow: "0px 1px 2px 0px rgb(0 0 0 / 7%)",
           fontWeight: 600,
           fontSize: "14px",
           letterSpacing: "-0.28px", // -2% of 14px
@@ -167,6 +171,64 @@ export default {
           },
           "&:disabled": {
             color: theme("colors.typeface_tertiray"),
+          },
+        },
+        ".rsvp-selector": {
+          backgroundColor: theme("colors.action_bg_primary"),
+          fontSize: "14px",
+          fontWeight: 600,
+          letterSpacing: "-0.28px",
+          lineHeight: "0.8",
+          color: theme("colors.typeface_highlight"),
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_secondary"),
+            outline: "1px solid " + theme("colors.surface_border_tertiary"),
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.07)",
+            color: theme("colors.typeface_primary"),
+          },
+        },
+        ".menu-item": {
+          backgroundColor: theme("colors.surface_bg_highlight"),
+          fontSize: "14px",
+          fontWeight: 400,
+          letterSpacing: "-0.14px", // -1% of 14px
+          lineHeight: "0.8",
+          color: theme("colors.typeface_primary"),
+          "&:hover": {
+            backgroundColor: theme("colors.surface_bg_secondary"),
+            fontWeight: 600,
+            letterSpacing: "-0.28px", // -2% of 14px
+          },
+        },
+        ".x-button-primary": {
+          backgroundColor: theme("colors.action_bg_primary"),
+          color: theme("colors.typeface_highlight"),
+          borderRadius: "100%",
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_primary_hover"),
+          },
+          "&:active": {
+            backgroundColor: theme("colors.action_bg_primary_press"),
+          },
+          "&:disabled": {
+            backgroundColor: theme("colors.action_bg_tertiary"),
+            color: theme("colors.surface_border_primary"),
+          },
+        },
+        ".x-button-secondary": {
+          borderRadius: "100%",
+          backgroundColor: theme("colors.action_bg_secondary"),
+          color: theme("colors.action_bg_primary"),
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_secondary_hover"),
+            outline: "1px solid " + theme("colors.action_border_secondary"),
+          },
+          "&:active": {
+            backgroundColor: theme("colors.action_bg_secondary_press"),
+          },
+          "&:disabled": {
+            backgroundColor: theme("colors.action_bg_tertiary"),
+            color: theme("colors.surface_border_primary"),
           },
         },
       });

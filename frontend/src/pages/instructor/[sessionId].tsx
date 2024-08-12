@@ -16,6 +16,7 @@ import ClassModeContainer from "components/instructor/ClassModeContainer";
 import { useRouter } from "next/router";
 import { SessionsProvider } from "components/instructor/SessionsContext";
 import { DndContext } from "@dnd-kit/core";
+import { LessonPlanProvider } from "components/instructor/LessonPlanContext";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -61,6 +62,7 @@ export const getServerSideProps = withPageAuthRequired({
         },
       };
     }
+
     return {
       props: {
         role: role || "unknown",
@@ -77,7 +79,6 @@ export default function InstructorHome({
   accessToken,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
-
   return (
     <>
       <Head>
@@ -96,13 +97,18 @@ export default function InstructorHome({
 
       <div>
         <SessionsProvider accessToken={accessToken}>
-          <DndContext>
-            <PopUpProvider>
-              <Navbar />
-              <ClassModeContainer sessionId={sessionId} />
-              <EnhancedPopUp />
-            </PopUpProvider>
-          </DndContext>
+          <LessonPlanProvider
+            sessionId={sessionId.toString()}
+            accessToken={accessToken}
+          >
+            <DndContext>
+              <PopUpProvider>
+                <Navbar />
+                <ClassModeContainer sessionId={sessionId} />
+                <EnhancedPopUp />
+              </PopUpProvider>
+            </DndContext>
+          </LessonPlanProvider>
         </SessionsProvider>
       </div>
     </>

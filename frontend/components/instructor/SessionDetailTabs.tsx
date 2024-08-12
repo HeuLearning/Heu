@@ -5,8 +5,11 @@ import { useMemo, useEffect, useState } from "react";
 import SessionTab from "./SessionTab";
 
 export default function SessionDetailTabs({
+  lessonPlanData,
   activeSessionByDate,
   handleShowClassSchedule,
+  isLessonPlanLoaded,
+  setActiveSessionKey,
 }) {
   const { upcomingSessions, getSessionStatus } = useSessions();
   const filteredSessions = useMemo(
@@ -23,11 +26,13 @@ export default function SessionDetailTabs({
   useEffect(() => {
     if (filteredSessions.length > 0) {
       setActiveSessionTab(filteredSessions[0].id);
+      setActiveSessionKey(filteredSessions[0].id);
     }
   }, [filteredSessions]);
 
   const handleChangeSession = (sessionId) => {
     setActiveSessionTab(sessionId);
+    setActiveSessionKey(sessionId);
   };
 
   return (
@@ -48,6 +53,8 @@ export default function SessionDetailTabs({
       </div>
       <div className="ml-[24px] h-full border-t-[1px] border-surface_border_tertiary pt-[24px]">
         <SessionDetailContent
+          isLessonPlanLoaded={isLessonPlanLoaded}
+          lessonPlanData={lessonPlanData}
           sessionId={activeSessionTab}
           handleShowClassSchedule={handleShowClassSchedule}
         />

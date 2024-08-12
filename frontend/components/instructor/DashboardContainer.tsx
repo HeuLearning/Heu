@@ -3,16 +3,28 @@ import SessionDetailViewContainer from "./SessionDetailViewContainer";
 import { useResponsive } from "./ResponsiveContext";
 import MobileDetailView from "components/instructor/mobile/MobileDetailView";
 import MobileDashboard from "components/instructor/mobile/MobileDashboard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSessions } from "./SessionsContext";
+import { LessonPlanProvider } from "./LessonPlanContext";
 
-export default function DashboardContainer() {
+export default function DashboardContainer({ accessToken }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [activeSessionByDate, setActiveSessionByDate] = useState(null);
 
-  // website navbar = 72, bottom margin = 15
-  const dashboardHeight = window.innerHeight - 72 - 15;
+  // website navbar = 64, bottom margin = 15
+  const dashboardHeight = window.innerHeight - 64 - 15;
+
+  const renderSessionDetailViewContainer = () => (
+    <div className="flex-grow">
+      <LessonPlanProvider sessionId={activeSessionId} accessToken={accessToken}>
+        <SessionDetailViewContainer
+          activeSessionByDate={activeSessionByDate}
+          activeSessionId={activeSessionId}
+        />
+      </LessonPlanProvider>
+    </div>
+  );
 
   if (isMobile) {
     return (
@@ -40,12 +52,7 @@ export default function DashboardContainer() {
             setActiveSessionId={setActiveSessionId}
           />
         </div>
-        <div className="flex-grow">
-          <SessionDetailViewContainer
-            activeSessionByDate={activeSessionByDate}
-            activeSessionId={activeSessionId}
-          />
-        </div>
+        {renderSessionDetailViewContainer()}
       </div>
     );
   }

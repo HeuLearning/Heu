@@ -40,10 +40,7 @@ export default function DropDownSelector({
 
   return (
     <div className="relative flex flex-col" ref={dropdownRef}>
-      <div
-        className={`shown-button  ${selectedButtonStyling}`}
-        ref={shownButtonRef}
-      >
+      <div className={`${selectedButtonStyling}`} ref={shownButtonRef}>
         <Button
           className="bg-white text-typeface_primary text-body-semibold-cap-height"
           onClick={() => setIsOpen(!isOpen)}
@@ -60,7 +57,7 @@ export default function DropDownSelector({
               >
                 <path
                   d="M8.5 5.5L5 2L1.5 5.5"
-                  stroke="var(--surface_bg_dark)"
+                  stroke="var(--surface_bg_darkest)"
                   stroke-width="2"
                   stroke-linecap="round"
                 />
@@ -75,7 +72,7 @@ export default function DropDownSelector({
               >
                 <path
                   d="M1.5 1.5L5 5L8.5 1.5"
-                  stroke="var(--surface_bg_dark)"
+                  stroke="var(--surface_bg_darkest)"
                   stroke-width="2"
                   stroke-linecap="round"
                 />
@@ -88,7 +85,7 @@ export default function DropDownSelector({
         {isOpen ? (
           <div
             style={{ minWidth: `${dropdownWidth}px` }}
-            className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] drop-shadow-50"
+            className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px]"
           >
             {allOptions.map((option) => (
               <div key={option} style={{ width: "100%" }}>

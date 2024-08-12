@@ -3,7 +3,7 @@ import Button from "./Button";
 
 export default function ClassModeHeaderBar({
   onBack,
-  iconName,
+  iconName = "",
   title,
   subtitle = "",
   rightSide,
@@ -24,7 +24,7 @@ export default function ClassModeHeaderBar({
         />
       </svg>
     );
-  } else if (iconName === "exercise") {
+  } else if (iconName === "practice") {
     Icon = () => (
       <svg
         width="20"
@@ -45,7 +45,7 @@ export default function ClassModeHeaderBar({
       <div className="flex items-center gap-[16px]">
         <BackButton onClick={onBack} />
         <div className="flex gap-[8px]">
-          <Icon />
+          {iconName && <Icon />}
           <h3 className="text-typeface_primary text-h3">{title}</h3>
         </div>
         <h3 className="text-typeface_secondary text-h3">{subtitle}</h3>

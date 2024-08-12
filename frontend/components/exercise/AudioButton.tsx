@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from "react";
 
 export default function AudioButton({ size, togglePlay, isPlaying }) {
   return (
-    <button onClick={togglePlay}>
+    <button onClick={togglePlay} className="relative">
       <svg
-        className="absolute drop-shadow-75 center-atop-svg"
+        className="shadow-75"
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}
@@ -20,7 +20,7 @@ export default function AudioButton({ size, togglePlay, isPlaying }) {
       </svg>
       {isPlaying ? (
         <svg
-          className="absolute center-atop-svg"
+          className="center-atop-svg"
           width="16"
           height="16"
           viewBox="0 0 16 16"
@@ -34,7 +34,7 @@ export default function AudioButton({ size, togglePlay, isPlaying }) {
         </svg>
       ) : (
         <svg
-          className="absolute center-atop-svg"
+          className="center-atop-svg"
           width="16"
           height="16"
           viewBox="0 0 16 16"

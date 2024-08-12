@@ -110,7 +110,7 @@ export default function InstructorHome({
         <SessionsProvider accessToken={accessToken}>
           <PopUpProvider>
             <Navbar />
-            <DashboardContainer />
+            <DashboardContainer accessToken={accessToken} />
             <EnhancedPopUp />
           </PopUpProvider>
         </SessionsProvider>
