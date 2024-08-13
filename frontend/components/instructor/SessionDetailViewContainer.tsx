@@ -8,14 +8,12 @@ import { useResponsive } from "./ResponsiveContext";
 import MobileDetailView from "components/instructor/mobile/MobileDetailView";
 import SessionDetailContent from "./SessionDetailContent";
 import { useSessions } from "./SessionsContext";
-import SessionDetailTabs from "./SessionDetailTabs";
 import SessionDetailSingle from "./SessionDetailSingle";
 import ClassSchedulePopUpContainer from "./ClassSchedulePopUpContent";
 import { useLessonPlan } from "./LessonPlanContext";
 
 export default function SessionDetailViewContainer({
   activeSessionId,
-  activeSessionByDate,
 }) {
   const { upcomingSessions } = useSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
@@ -49,8 +47,7 @@ export default function SessionDetailViewContainer({
 
   useEffect(() => {
     setIsLessonPlanLoaded("loading");
-    setActiveSessionKey(`${activeSessionId}-${activeSessionByDate}`);
-  }, [activeSessionId, activeSessionByDate]);
+  }, [activeSessionId]);
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
@@ -78,19 +75,7 @@ export default function SessionDetailViewContainer({
     });
   };
 
-  if (activeSessionByDate)
-    return (
-      <div className="h-full">
-        <SessionDetailTabs
-          lessonPlanData={lessonPlanData}
-          isLessonPlanLoaded={isLessonPlanLoaded}
-          activeSessionByDate={activeSessionByDate}
-          setActiveSessionKey={setActiveSessionKey}
-          handleShowClassSchedule={handleShowClassSchedule}
-        />
-      </div>
-    );
-  else if (activeSessionId)
+  if (activeSessionId)
     return (
       <div className="h-full">
         <SessionDetailSingle

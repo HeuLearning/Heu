@@ -6,53 +6,40 @@ import { useMemo } from "react";
 import { useSessions } from "./SessionsContext";
 import { isSameDay } from "date-fns";
 import Dot from "./Dot";
+import MenuItem from "./MenuItem";
+import { format } from "date-fns";
 
 export default function Calendar({
   visibleMonth,
   setVisibleMonth,
   activeTab,
   onToggle,
-  activeSessionByDate,
-  setActiveSessionByDate,
   activeSessionId,
   setActiveSessionId,
+  sessionMap,
 }) {
   const { getSessionStatus, allSessions, upcomingSessions } = useSessions();
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const createSessionMap = () => {
-    const sessionMap = new Map();
-    allSessions.forEach((session) => {
-      const startDate = new Date(session.start_time);
-      const year = startDate.getFullYear();
-      const month = startDate.getMonth();
-      const day = startDate.getDate();
-      // key in the map based on the session day online, not time
-      const dateKey = `${year}-${month}-${day}`;
-      const status = getSessionStatus(session);
-      sessionMap.set(dateKey, status);
-    });
-    return sessionMap;
-  };
-
-  const sessionMap = useMemo(() => createSessionMap(), [upcomingSessions]);
+  const [multipleDates, setMultipleDates] = useState([]);
 
   const displaySessions = (date) => {
     const sessions = upcomingSessions.filter((session) =>
       isSameDay(new Date(session.start_time), date)
     );
     if (sessions.length === 0) {
-      setActiveSessionByDate(null);
       setActiveSessionId(null);
     } else if (sessions.length > 1) {
       setSelectedDate(date);
-      setActiveSessionByDate(date);
+      showMultipleSessionPopUp(sessions);
       setActiveSessionId(null);
     } else {
       setSelectedDate(date);
       setActiveSessionId(sessions[0].id);
-      setActiveSessionByDate(null);
     }
+  };
+
+  const showMultipleSessionPopUp = (multipleSessions) => {
+    setMultipleDates(multipleSessions);
   };
 
   const navigationLabel = ({ date, label }) => {
@@ -69,7 +56,6 @@ export default function Calendar({
   };
 
   const tileContent = ({ date, view }) => {
-    let color = "";
     if (view !== "month") return null;
 
     let isSelected;
@@ -78,28 +64,31 @@ export default function Calendar({
       selectedDate &&
       date.toDateString() === new Date(selectedDate).toDateString();
     const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    const status = sessionMap.get(dateKey);
+    let color = sessionMap?.get(dateKey) || [];
 
-    // circle color
-    if (status === "Canceled")
-      color = isSelected ? "white" : "var(--typeface_tertiary)";
-    else if (status === "Confirmed" || status === "Online")
-      color = isSelected ? "white" : "var(--status_fg_positive)";
-    else if (status === "Pending")
-      color = isSelected ? "white" : "var(--typeface_primary)";
-    if (color === "") return null;
-
-    if (isBeforeToday(date) && !isSelected) {
-      color = "var(--typeface_tertiary)"; // Grey for past dates
+    if (sessionMap) {
+      if (isBeforeToday(date) && !isSelected) {
+        color = color.map(() => "var(--typeface_tertiary)"); // Grey for past dates
+      } else if (isSelected) {
+        color = color.map(() => "white");
+      }
     }
-
     return (
       <div className="relative flex items-center justify-center">
-        <div className="absolute bottom-[-8px]">
-          <div
-            className={`${styles.dot}`}
-            style={{ backgroundColor: color }}
-          ></div>
+        <div className="absolute bottom-[2px] flex items-center gap-[2px]">
+          {Array.isArray(color) &&
+            color.map((dotColor, index) => (
+              <svg
+                key={index}
+                width="4"
+                height="4"
+                viewBox="0 0 4 4"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="2" cy="2" r="2" fill={dotColor} />
+              </svg>
+            ))}
         </div>
       </div>
     );
@@ -119,9 +108,7 @@ export default function Calendar({
   }, [upcomingSessions]);
 
   useEffect(() => {
-    if (activeSessionByDate) {
-      setSelectedDate(new Date(activeSessionByDate));
-    } else if (activeSessionId) {
+    if (activeSessionId) {
       const session = allSessions.find(
         (session) => session.id === activeSessionId
       );
@@ -129,7 +116,7 @@ export default function Calendar({
         setSelectedDate(new Date(session.start_time));
       }
     }
-  }, [activeSessionByDate, activeSessionId, allSessions]);
+  }, [activeSessionId, allSessions]);
 
   return (
     <>
@@ -145,53 +132,63 @@ export default function Calendar({
             onToggle={onToggle}
           />
         </div>
-        {activeTab === "Monthly" ? (
-          <div
-            className={`-mt-[2px] flex flex-col items-center px-[1px] pb-[24px] ${styles["react-calendar"]}`}
-          >
-            <ReactCalendar
-              defaultValue={new Date()}
-              value={selectedDate}
-              calendarType={"gregory"}
-              activeStartDate={visibleMonth}
-              onActiveStartDateChange={({ activeStartDate }) =>
-                setVisibleMonth(activeStartDate)
-              }
-              navigationLabel={navigationLabel}
-              minDetail="month"
-              maxDetail="month"
-              next2Label={null}
-              prev2Label={null}
-              showNavigation={false}
-              formatShortWeekday={formatShortWeekday} // changes Mon -> M etc.
-              showNeighboringMonth={false}
-              tileClassName={({ date, view }) => {
-                if (view === "month") {
-                  const classes = [styles["calendar-tile"]]; // Add this line
-                  if (isBeforeToday(date)) {
-                    classes.push(styles["disabled-date"]);
-                  }
-                  const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-                  const status = sessionMap.get(dateKey);
-                  if (
-                    !isBeforeToday(date) &&
-                    (status === "Pending" ||
-                      status === "Confirmed" ||
-                      status === "Online")
-                  ) {
-                    classes.push("calendar-day-special");
-                  }
-                  return classes.join(" ");
+        {activeTab === "Monthly" && (
+          <div>
+            {multipleDates &&
+              multipleDates.map((session) => (
+                <MenuItem onClick={() => setActiveSessionId(session.id)}>
+                  {format(session.start_time, "h:mma") +
+                    " - " +
+                    format(session.end_time, "h:mma")}
+                </MenuItem>
+              ))}
+            <div
+              className={`-mt-[2px] flex flex-col items-center px-[1px] pb-[24px] ${styles["react-calendar"]}`}
+            >
+              <ReactCalendar
+                defaultValue={new Date()}
+                value={selectedDate}
+                calendarType={"gregory"}
+                activeStartDate={visibleMonth}
+                onActiveStartDateChange={({ activeStartDate }) =>
+                  setVisibleMonth(activeStartDate)
                 }
-              }}
-              tileContent={tileContent}
-              onClickDay={(clickedDay) => {
-                setSelectedDate(clickedDay);
-                displaySessions(clickedDay);
-              }}
-            />
+                navigationLabel={navigationLabel}
+                minDetail="month"
+                maxDetail="month"
+                next2Label={null}
+                prev2Label={null}
+                showNavigation={false}
+                formatShortWeekday={formatShortWeekday} // changes Mon -> M etc.
+                showNeighboringMonth={false}
+                tileClassName={({ date, view }) => {
+                  if (view === "month") {
+                    const classes = [styles["calendar-tile"]]; // Add this line
+                    if (isBeforeToday(date)) {
+                      classes.push(styles["disabled-date"]);
+                    }
+                    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+                    const status = sessionMap.get(dateKey);
+                    if (
+                      !isBeforeToday(date) &&
+                      (status === "Pending" ||
+                        status === "Confirmed" ||
+                        status === "Online")
+                    ) {
+                      classes.push("calendar-day-special");
+                    }
+                    return classes.join(" ");
+                  }
+                }}
+                tileContent={tileContent}
+                onClickDay={(clickedDay) => {
+                  setSelectedDate(clickedDay);
+                  displaySessions(clickedDay);
+                }}
+              />
+            </div>
           </div>
-        ) : null}
+        )}
       </div>
     </>
   );

@@ -3,21 +3,19 @@ import DateCard from "./DateCard";
 import MiniClassBlock from "./MiniClassBlock";
 import Divider from "./Divider";
 import Calendar from "./Calendar";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useResponsive } from "./ResponsiveContext";
 import styles from "./MiniClassBlock.module.css";
 import { useSessions } from "./SessionsContext";
 
 export default function CalendarContainer({
-  activeSessionByDate,
-  setActiveSessionByDate,
   activeSessionId,
   setActiveSessionId,
 }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [visibleMonth, setVisibleMonth] = useState(new Date());
   const [activeTab, setActiveTab] = useState("Monthly");
-  const { upcomingSessions } = useSessions();
+  const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
 
   const handleToggle = (selectedOption) => {
     setActiveTab(selectedOption);
@@ -44,6 +42,82 @@ export default function CalendarContainer({
   const visibleYearName = visibleMonth.toLocaleDateString("default", {
     year: "numeric",
   });
+
+  const createSessionMap = () => {
+    const sessionMap = new Map();
+    allSessions.forEach((session) => {
+      const startDate = new Date(session.start_time);
+      const year = startDate.getFullYear();
+      const month = startDate.getMonth();
+      const day = startDate.getDate();
+      // key in the map based on the session day online, not time
+      const dateKey = `${year}-${month}-${day}`;
+      const status = getSessionStatus(session);
+      // circle color
+      let color = [];
+      if (status === "Canceled") color.push("var(--typeface_tertiary)");
+      else if (status === "Confirmed" || status === "Online")
+        color.push("var(--status_fg_positive)");
+      else if (status === "Pending") color.push("var(--typeface_primary)");
+
+      if (sessionMap.get(dateKey)) {
+        sessionMap.get(dateKey).push(color);
+      } else {
+        sessionMap.set(dateKey, color);
+      }
+    });
+    return sessionMap;
+  };
+
+  const sessionMap = useMemo(() => createSessionMap(), [allSessions]);
+
+  const renderDailySessions = () => {
+    return upcomingSessions
+      .filter(
+        (session) =>
+          new Date(session.start_time).getMonth() === visibleMonth.getMonth()
+      )
+      .map((session, index, filteredSessions) => {
+        const currentDate = new Date(session.start_time);
+        const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
+        const previousDate =
+          index > 0 ? new Date(filteredSessions[index - 1].start_time) : null;
+        const previousDateKey = previousDate
+          ? `${previousDate.getFullYear()}-${previousDate.getMonth()}-${previousDate.getDate()}`
+          : null;
+        return (
+          <div key={session.id}>
+            {index > 0 && index < filteredSessions.length && (
+              <Divider spacing={12} />
+            )}
+            {currentDateKey === previousDateKey ? (
+              <MiniClassBlock
+                dateCard={
+                  index === 0 &&
+                  filteredSessions[0].id === upcomingSessions[0].id
+                }
+                sessionId={session.id}
+                activeSessionId={activeSessionId}
+                setActiveSessionId={setActiveSessionId}
+                isDaily={true}
+                arrow={true}
+              />
+            ) : (
+              <MiniClassBlock
+                dateCard={
+                  index === 0 &&
+                  filteredSessions[0].id === upcomingSessions[0].id
+                }
+                sessionId={session.id}
+                activeSessionId={activeSessionId}
+                setActiveSessionId={setActiveSessionId}
+                isDaily={true}
+              />
+            )}
+          </div>
+        );
+      });
+  };
 
   if (isMobile) {
     return <div></div>;
@@ -103,10 +177,9 @@ export default function CalendarContainer({
           setVisibleMonth={setVisibleMonth}
           activeTab={activeTab}
           onToggle={handleToggle}
-          activeSessionByDate={activeSessionByDate}
           activeSessionId={activeSessionId}
-          setActiveSessionByDate={setActiveSessionByDate}
           setActiveSessionId={setActiveSessionId}
+          sessionMap={sessionMap}
         />
         {activeTab === "Monthly" && (
           <div>
@@ -125,7 +198,6 @@ export default function CalendarContainer({
                       sessionId={session.id}
                       activeSessionId={activeSessionId}
                       setActiveSessionId={setActiveSessionId}
-                      setActiveSessionByDate={setActiveSessionByDate}
                     />
                   ) : (
                     <div>
@@ -135,7 +207,6 @@ export default function CalendarContainer({
                         sessionId={session.id}
                         activeSessionId={activeSessionId}
                         setActiveSessionId={setActiveSessionId}
-                        setActiveSessionByDate={setActiveSessionByDate}
                       />
                     </div>
                   )
@@ -144,34 +215,11 @@ export default function CalendarContainer({
           </div>
         )}
         {activeTab === "Daily" && (
-          <div className="h-[548px] overflow-y-auto no-scrollbar">
+          <div className="h-[548px] overflow-y-auto hide-default-scrollbar">
             <div className="daily-events mt-[8px] flex flex-col items-center">
               {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
             only dateCard for most upcoming session */}
-              {upcomingSessions
-                .filter(
-                  (session) =>
-                    new Date(session.start_time).getMonth() ===
-                    visibleMonth.getMonth()
-                )
-                .map((session, index, filteredSessions) => (
-                  <div key={session.id}>
-                    {index > 0 && index < filteredSessions.length && (
-                      <Divider spacing={12} />
-                    )}
-                    <MiniClassBlock
-                      dateCard={
-                        index === 0 &&
-                        filteredSessions[0].id === upcomingSessions[0].id
-                      }
-                      sessionId={session.id}
-                      activeSessionId={activeSessionId}
-                      setActiveSessionId={setActiveSessionId}
-                      setActiveSessionByDate={setActiveSessionByDate}
-                      isDaily={true}
-                    />
-                  </div>
-                ))}
+              {renderDailySessions()}
             </div>
           </div>
         )}
