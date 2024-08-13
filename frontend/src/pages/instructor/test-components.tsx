@@ -110,16 +110,16 @@ export default function InstructorHome({
           <div className="bg-surface_bg_primary">
             <MobileDetailView
               backgroundColor="bg-surface_bg_highlight"
-              className="px-[0px] pt-[24px]"
+              className="px-[16px] pt-[24px]"
               headerContent={
-                <div className="flex items-center gap-[12px] px-[16px]">
+                <div className="flex items-center gap-[12px]">
                   <h3 className="text-typeface_primary text-h3">
                     Class Schedule
                   </h3>
                 </div>
               }
             >
-              <div className="px-[16px]">
+              <div className="pb-[81px]">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
                 pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
                 vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
@@ -140,13 +140,34 @@ export default function InstructorHome({
                 vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
                 lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
                 fermentum turpis gravida sLorem ipsum dolor sit amet,
-                consectetur adipiscing elit. Vivamus pellentesque auctor
+                consectetur adipiscing elit. Vivamus pellentesque auctor. Lorem
+                ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+                pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
+                vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
+                nunc nibh, finibus quis maximus ac, euismod a risus. Duis cursus
+                id urna at gravida.erra massa vel tempor tempus. Nunc gravida
+                cursus venenatis. Integer placerat eleifend nisi a commodo.
+                Phasellus non fermentum leo, at posuere purus. Maecenas rhoncus
+                pulvinar neque, et condimentum odio laoreet vitae. Nulla
+                molestie dui vitae faucibus dapibus. Donec pharetra lacus mi, at
+                consectetur urna iaculis sit amet. Etiam a velit fermentum
+                turpis gravida slentesque auctor scelerisque. Quisque dictum
+                nunc ut vehicula vehicula. Ut at mi eu nisi tempor vehicula non
+                at lacus. Sed nunc nibh, finibus quis maximus ac, euismod a
+                risus. Duis cursus id urna at gravida.erra massa vel tempor
+                tempus. Nunc gravida cursus venenatis. Integer placerat eleifend
+                nisi a commodo. Phasellus non fermentum leo, at posuere purus.
+                Maecenas rhoncus pulvinar neque, et condimentum odio laoreet
+                vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
+                lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
+                fermentum turpis gravida sLorem ipsum dolor sit amet,
+                consectetur adipiscing elit. Vivamus pellentesque auctor.
               </div>
-              <ButtonBar
-                primaryButtonText="Accept Swap"
-                secondaryButtonText="Decline"
-              />
             </MobileDetailView>
+            <ButtonBar
+              primaryButtonText="Accept Swap"
+              secondaryButtonText="Decline"
+            />
           </div>
           <EnhancedPopUp />
         </PopUpProvider>
