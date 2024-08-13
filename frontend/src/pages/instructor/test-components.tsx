@@ -110,16 +110,16 @@ export default function InstructorHome({
           <div className="bg-surface_bg_primary">
             <MobileDetailView
               backgroundColor="bg-surface_bg_highlight"
-              className="px-[16px] pt-[24px]"
+              className="px-[0px] pt-[24px]"
               headerContent={
-                <div className="flex items-center gap-[12px]">
+                <div className="flex items-center gap-[12px] px-[16px]">
                   <h3 className="text-typeface_primary text-h3">
                     Class Schedule
                   </h3>
                 </div>
               }
             >
-              <div>
+              <div className="px-[16px]">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
                 pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
                 vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
@@ -139,9 +139,13 @@ export default function InstructorHome({
                 Maecenas rhoncus pulvinar neque, et condimentum odio laoreet
                 vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
                 lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
-                fermentum turpis gravida s
+                fermentum turpis gravida sLorem ipsum dolor sit amet,
+                consectetur adipiscing elit. Vivamus pellentesque auctor
               </div>
-              <ButtonBar />
+              <ButtonBar
+                primaryButtonText="Accept Swap"
+                secondaryButtonText="Decline"
+              />
             </MobileDetailView>
           </div>
           <EnhancedPopUp />
