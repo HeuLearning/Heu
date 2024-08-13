@@ -187,6 +187,12 @@ export default {
             color: theme("colors.typeface_primary"),
           },
         },
+        ".language-selector": {
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_tertiary"),
+            color: theme("colors.typeface_primary"),
+          },
+        },
         ".menu-item": {
           backgroundColor: theme("colors.surface_bg_highlight"),
           fontSize: "14px",
@@ -306,7 +312,7 @@ export default {
           lineHeight: "0.8",
           color: theme("colors.typeface_tertiary"),
         },
-        ".no-scrollbar": {
+        ".hide-default-scrollbar": {
           "-ms-overflow-style": "none",
           /* Firefox */
           "scrollbar-width": "none",

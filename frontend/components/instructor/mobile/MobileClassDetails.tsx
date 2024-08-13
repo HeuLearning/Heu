@@ -10,7 +10,6 @@ import BackButton from "../BackButton";
 
 export default function MobileClassDetails({
   activeSessionId,
-  activeSessionByDate,
   closeClassDetails,
 }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
@@ -74,7 +73,7 @@ export default function MobileClassDetails({
             </div>
           }
         >
-          <ClassSchedulePopUpContainer modules={phase1Modules} />
+          <ClassSchedulePopUpContainer phases={phase1Modules} />
         </MobileDetailView>
       </div>
     </div>
