@@ -12,6 +12,8 @@ import EnhancedPopUp from "components/instructor/EnhancedPopUp";
 import { useRouter } from "next/router";
 import { useResponsive } from "components/instructor/ResponsiveContext";
 import ButtonBar from "components/instructor/mobile/ButtonBar";
+import MobileClassDetails from "components/instructor/mobile/MobileClassDetails";
+import MobileDetailView from "components/instructor/mobile/MobileDetailView";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -105,7 +107,43 @@ export default function InstructorHome({
 
       <div>
         <PopUpProvider>
-          <ButtonBar />
+          <div className="bg-surface_bg_primary">
+            <MobileDetailView
+              backgroundColor="bg-surface_bg_highlight"
+              className="px-[16px] pt-[24px]"
+              headerContent={
+                <div className="flex items-center gap-[12px]">
+                  <h3 className="text-typeface_primary text-h3">
+                    Class Schedule
+                  </h3>
+                </div>
+              }
+            >
+              <div>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+                pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
+                vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
+                nunc nibh, finibus quis maximus ac, euismod a risus. Duis cursus
+                id urna at gravida.erra massa vel tempor tempus. Nunc gravida
+                cursus venenatis. Integer placerat eleifend nisi a commodo.
+                Phasellus non fermentum leo, at posuere purus. Maecenas rhoncus
+                pulvinar neque, et condimentum odio laoreet vitae. Nulla
+                molestie dui vitae faucibus dapibus. Donec pharetra lacus mi, at
+                consectetur urna iaculis sit amet. Etiam a velit fermentum
+                turpis gravida slentesque auctor scelerisque. Quisque dictum
+                nunc ut vehicula vehicula. Ut at mi eu nisi tempor vehicula non
+                at lacus. Sed nunc nibh, finibus quis maximus ac, euismod a
+                risus. Duis cursus id urna at gravida.erra massa vel tempor
+                tempus. Nunc gravida cursus venenatis. Integer placerat eleifend
+                nisi a commodo. Phasellus non fermentum leo, at posuere purus.
+                Maecenas rhoncus pulvinar neque, et condimentum odio laoreet
+                vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
+                lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
+                fermentum turpis gravida s
+              </div>
+              <ButtonBar />
+            </MobileDetailView>
+          </div>
           <EnhancedPopUp />
         </PopUpProvider>
       </div>

@@ -1,3 +1,3 @@
 export default function ButtonBar() {
-  return <div>hi kate!</div>;
+  return <div>hi jeremy!</div>;
 }

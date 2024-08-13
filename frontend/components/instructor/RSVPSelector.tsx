@@ -79,7 +79,7 @@ export default function RSVPSelector({ session }) {
           color={
             status === "Confirmed"
               ? "var(--status_fg_positive)"
-              : "var(--status_fg_negative)"
+              : "var(--typeface_tertiary)"
           }
         />
         {status}
