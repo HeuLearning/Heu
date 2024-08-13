@@ -119,7 +119,7 @@ export default function InstructorHome({
                 </div>
               }
             >
-              <div>
+              <div className="pb-[81px]">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
                 pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
                 vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
@@ -139,10 +139,35 @@ export default function InstructorHome({
                 Maecenas rhoncus pulvinar neque, et condimentum odio laoreet
                 vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
                 lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
-                fermentum turpis gravida s
+                fermentum turpis gravida sLorem ipsum dolor sit amet,
+                consectetur adipiscing elit. Vivamus pellentesque auctor. Lorem
+                ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+                pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
+                vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
+                nunc nibh, finibus quis maximus ac, euismod a risus. Duis cursus
+                id urna at gravida.erra massa vel tempor tempus. Nunc gravida
+                cursus venenatis. Integer placerat eleifend nisi a commodo.
+                Phasellus non fermentum leo, at posuere purus. Maecenas rhoncus
+                pulvinar neque, et condimentum odio laoreet vitae. Nulla
+                molestie dui vitae faucibus dapibus. Donec pharetra lacus mi, at
+                consectetur urna iaculis sit amet. Etiam a velit fermentum
+                turpis gravida slentesque auctor scelerisque. Quisque dictum
+                nunc ut vehicula vehicula. Ut at mi eu nisi tempor vehicula non
+                at lacus. Sed nunc nibh, finibus quis maximus ac, euismod a
+                risus. Duis cursus id urna at gravida.erra massa vel tempor
+                tempus. Nunc gravida cursus venenatis. Integer placerat eleifend
+                nisi a commodo. Phasellus non fermentum leo, at posuere purus.
+                Maecenas rhoncus pulvinar neque, et condimentum odio laoreet
+                vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
+                lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
+                fermentum turpis gravida sLorem ipsum dolor sit amet,
+                consectetur adipiscing elit. Vivamus pellentesque auctor.
               </div>
-              <ButtonBar />
             </MobileDetailView>
+            <ButtonBar
+              primaryButtonText="Accept Swap"
+              secondaryButtonText="Decline"
+            />
           </div>
           <EnhancedPopUp />
         </PopUpProvider>
