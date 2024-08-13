@@ -664,8 +664,19 @@ export default function ClassModeContainer({ sessionId }) {
                 </div>
               }
             />
+
             <div className="flex flex-grow justify-between gap-[24px]">
-              <div className="grid flex-grow grid-cols-3 grid-rows-2 gap-[16px]">
+              <div
+                className={`grid flex-grow ${
+                  phases.length === 1
+                    ? "grid-cols-1 grid-rows-1 gap-[16px]"
+                    : phases.length === 2
+                    ? "grid-cols-2 grid-rows-1 gap-[16px]"
+                    : phases.length === 3
+                    ? "grid-cols-3 grid-rows-1 gap-[16px]"
+                    : "grid-cols-3 grid-rows-2 gap-[16px]"
+                }`}
+              >
                 {phases.map((phase, index) => (
                   <PhaseCard
                     type={phase.type}
@@ -685,6 +696,15 @@ export default function ClassModeContainer({ sessionId }) {
                         ? "active"
                         : ""
                     }
+                    className={`${
+                      phases.length === 1
+                        ? "col-span-1 row-span-1 h-full w-full" // Make the single card take full height and width
+                        : phases.length === 2
+                        ? "col-span-2"
+                        : phases.length === 3
+                        ? "row-span-2"
+                        : ""
+                    }`}
                   />
                 ))}
               </div>
