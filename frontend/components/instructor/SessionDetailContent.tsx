@@ -157,7 +157,7 @@ export default function SessionDetailContent({
         <InfoCard
           className={`stat-info-card ${
             isMobile
-              ? "h-[160px] border border-[1px] border-surface_border_tertiary px-[16px] py-[24px]"
+              ? "h-[160px] border-[1px] border-surface_border_tertiary px-[16px] py-[24px]"
               : ""
           }`}
         >
