@@ -14,6 +14,8 @@ import { useResponsive } from "components/instructor/ResponsiveContext";
 import ButtonBar from "components/instructor/mobile/ButtonBar";
 import MobileClassDetails from "components/instructor/mobile/MobileClassDetails";
 import MobileDetailView from "components/instructor/mobile/MobileDetailView";
+import AudioPlayer from "components/exercise/AudioPlayer";
+import AudioPlayer2 from "components/exercise/AudioPlayer-2";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -128,46 +130,13 @@ export default function InstructorHome({
                 cursus venenatis. Integer placerat eleifend nisi a commodo.
                 Phasellus non fermentum leo, at posuere purus. Maecenas rhoncus
                 pulvinar neque, et condimentum odio laoreet vitae. Nulla
-                molestie dui vitae faucibus dapibus. Donec pharetra lacus mi, at
-                consectetur urna iaculis sit amet. Etiam a velit fermentum
-                turpis gravida slentesque auctor scelerisque. Quisque dictum
-                nunc ut vehicula vehicula. Ut at mi eu nisi tempor vehicula non
-                at lacus. Sed nunc nibh, finibus quis maximus ac, euismod a
-                risus. Duis cursus id urna at gravida.erra massa vel tempor
-                tempus. Nunc gravida cursus venenatis. Integer placerat eleifend
-                nisi a commodo. Phasellus non fermentum leo, at posuere purus.
-                Maecenas rhoncus pulvinar neque, et condimentum odio laoreet
-                vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
-                lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
-                fermentum turpis gravida sLorem ipsum dolor sit amet,
-                consectetur adipiscing elit. Vivamus pellentesque auctor. Lorem
-                ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-                pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
-                vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
-                nunc nibh, finibus quis maximus ac, euismod a risus. Duis cursus
-                id urna at gravida.erra massa vel tempor tempus. Nunc gravida
-                cursus venenatis. Integer placerat eleifend nisi a commodo.
-                Phasellus non fermentum leo, at posuere purus. Maecenas rhoncus
-                pulvinar neque, et condimentum odio laoreet vitae. Nulla
-                molestie dui vitae faucibus dapibus. Donec pharetra lacus mi, at
-                consectetur urna iaculis sit amet. Etiam a velit fermentum
-                turpis gravida slentesque auctor scelerisque. Quisque dictum
-                nunc ut vehicula vehicula. Ut at mi eu nisi tempor vehicula non
-                at lacus. Sed nunc nibh, finibus quis maximus ac, euismod a
-                risus. Duis cursus id urna at gravida.erra massa vel tempor
-                tempus. Nunc gravida cursus venenatis. Integer placerat eleifend
-                nisi a commodo. Phasellus non fermentum leo, at posuere purus.
-                Maecenas rhoncus pulvinar neque, et condimentum odio laoreet
-                vitae. Nulla molestie dui vitae faucibus dapibus. Donec pharetra
-                lacus mi, at consectetur urna iaculis sit amet. Etiam a velit
-                fermentum turpis gravida sLorem ipsum dolor sit amet,
-                consectetur adipiscing elit. Vivamus pellentesque auctor.
+                molestie dui vitae faucibus dapibus.
               </div>
+              <AudioPlayer2
+                audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"
+                title="Coffee Shop"
+              ></AudioPlayer2>
             </MobileDetailView>
-            <ButtonBar
-              primaryButtonText="Accept Swap"
-              secondaryButtonText="Decline"
-            />
           </div>
           <EnhancedPopUp />
         </PopUpProvider>
