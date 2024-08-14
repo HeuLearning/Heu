@@ -154,7 +154,13 @@ export default function SessionDetailContent({
           isMobile ? "gap-[24px]" : "gap-[16px]"
         } `}
       >
-        <InfoCard className="stat-info-card">
+        <InfoCard
+          className={`stat-info-card ${
+            isMobile
+              ? "h-[160px] border-[1px] border-surface_border_tertiary px-[16px] py-[24px]"
+              : ""
+          }`}
+        >
           {sessionId ? (
             <ClassStats
               svgBgColor="surface_bg_secondary"
