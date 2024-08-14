@@ -24,6 +24,7 @@ export default function LanguageSelector({
     };
   }, []);
 
+  // kate's comment
   const handleSelect = (option) => {
     setSelectedButton(option);
     setIsOpen(false);
