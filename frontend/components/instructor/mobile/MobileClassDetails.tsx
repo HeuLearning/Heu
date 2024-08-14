@@ -1,31 +1,59 @@
 import MobileDetailView from "./MobileDetailView";
 import XButton from "../XButton";
 import SessionDetailContent from "../SessionDetailContent";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useResponsive } from "../ResponsiveContext";
 import { useSessions } from "../SessionsContext";
 import { format } from "date-fns";
 import ClassSchedulePopUpContainer from "../ClassSchedulePopUpContent";
 import BackButton from "../BackButton";
+import { useLessonPlan } from "../LessonPlanContext";
 
 export default function MobileClassDetails({
   activeSessionId,
   closeClassDetails,
 }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { upcomingSessions } = useSessions();
+  const { allSessions, upcomingSessions, getSessionStatus } = useSessions();
+  const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
   const [isClassSchedShown, setIsClassSchedShown] = useState(false);
 
-  let session;
-  let startDate;
-  let endDate;
-  if (activeSessionId) {
-    session = upcomingSessions.find(
-      (session) => session.id === activeSessionId
-    );
-    startDate = new Date(session.start_time);
-    endDate = new Date(session.end_time);
-  }
+  let lessonPlanData = useLessonPlan();
+  const session = useMemo(() => {
+    return activeSessionId
+      ? allSessions.find((session) => session.id === activeSessionId)
+      : null;
+  }, [activeSessionId, allSessions]);
+
+  const startDate = new Date(session.start_time);
+  const endDate = new Date(session.end_time);
+
+  const sessionStatus = useMemo(() => {
+    return session ? getSessionStatus(session) : null;
+  }, [session, getSessionStatus]);
+
+  useEffect(() => {
+    let newState = "loading";
+
+    if (!session) {
+      newState = "loading";
+    } else if (sessionStatus === "Pending") {
+      newState = "not confirmed instructor";
+    } else if (sessionStatus === "Canceled") {
+      newState = "canceled session";
+    } else if (lessonPlanData.error === "lesson plan not found") {
+      newState = "no lesson plan";
+    } else if (
+      !lessonPlanData.isLoading &&
+      Object.keys(lessonPlanData.lessonPlan).length > 0
+    ) {
+      newState = "true";
+    }
+
+    if (newState !== isLessonPlanLoaded) {
+      setIsLessonPlanLoaded(newState);
+    }
+  }, [session, sessionStatus, lessonPlanData, isLessonPlanLoaded]);
 
   const handleShowClassSchedule = () => {
     setIsClassSchedShown(true);
@@ -34,31 +62,6 @@ export default function MobileClassDetails({
   const hideClassSchedule = () => {
     setIsClassSchedShown(false);
   };
-
-  const phase1Modules = [
-    {
-      id: 1,
-      title: "Instruction",
-      description: "Past perfect conjugation table",
-    },
-    {
-      id: 2,
-      title: "Individual exercise",
-      description: "Kitchen vocabulary",
-    },
-    {
-      id: 3,
-      title: "Instruction",
-      description:
-        "Harder past perfect questions/examples, interactive between instructor + learners",
-    },
-    {
-      id: 4,
-      title: "Individual exercise",
-      description:
-        "Individual questions testing past perfect with kitchen vocabulary",
-    },
-  ];
 
   return isClassSchedShown ? (
     <div>
@@ -73,7 +76,7 @@ export default function MobileClassDetails({
             </div>
           }
         >
-          <ClassSchedulePopUpContainer phases={phase1Modules} />
+          <ClassSchedulePopUpContainer {...lessonPlanData} />
         </MobileDetailView>
       </div>
     </div>
@@ -106,6 +109,8 @@ export default function MobileClassDetails({
       >
         <div className="overflow-y-auto">
           <SessionDetailContent
+            lessonPlanData={lessonPlanData}
+            isLessonPlanLoaded={isLessonPlanLoaded}
             sessionId={activeSessionId}
             handleShowClassSchedule={handleShowClassSchedule}
           />

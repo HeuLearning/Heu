@@ -91,6 +91,8 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     return endTime > new Date();
   });
 
+  console.log({ ...allSessions });
+
   const getSessionStatus = (session) => {
     const startDateWithBuffer = new Date(
       new Date(session.start_time).getTime() - 5 * 60000
@@ -147,7 +149,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         allSessions,
         upcomingSessions,
         confirmSession,
-        cancelSession
+        cancelSession,
       }}
     >
       {children}

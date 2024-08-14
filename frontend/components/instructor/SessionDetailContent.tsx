@@ -27,7 +27,7 @@ export default function SessionDetailContent({
   // sessionId will be passed in, either as activeSessionId (from SessionDetailSingle) or whichever tab is clicked from SessionDetailTabs
   // if it is null then placeholder
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { upcomingSessions, getSessionStatus } = useSessions();
+  const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
   const { phases, getModules, phaseTimes, lessonPlan } = lessonPlanData;
 
   let session;
@@ -35,7 +35,7 @@ export default function SessionDetailContent({
   let endDate;
 
   if (sessionId) {
-    session = upcomingSessions.find((session) => session.id === sessionId);
+    session = allSessions.find((session) => session.id === sessionId);
     startDate = new Date(session.start_time);
     endDate = new Date(session.end_time);
   }
@@ -43,7 +43,7 @@ export default function SessionDetailContent({
   const differenceInDaysToStart = Math.round(
     differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000)
   );
-  const isUpcoming = differenceInDaysToStart < 14;
+  const isUpcoming = differenceInDaysToStart < 14 && endDate > new Date();
 
   console.log("isLessonPlanLoaded", isLessonPlanLoaded);
 
@@ -143,7 +143,7 @@ export default function SessionDetailContent({
               <Button className="button-primary" onClick={handleEnter}>
                 Enter class
               </Button>
-            ) : (
+            ) : new Date(session.end_time) < new Date() ? null : (
               <RSVPSelector session={session} />
             )
           ) : null}
@@ -239,8 +239,15 @@ export default function SessionDetailContent({
                   </svg>
                 </div>
                 {sessionId && isLessonPlanLoaded !== "loading" ? (
-                  isLessonPlanLoaded === "no lesson plan" ? (
-                    <div>No learning plan yet</div>
+                  isLessonPlanLoaded === "not confirmed instructor" ? (
+                    <div>
+                      You cannot see the lesson plan until you've confirmed the
+                      session.
+                    </div>
+                  ) : isLessonPlanLoaded === "canceled session" ? (
+                    <div>This session was canceled.</div>
+                  ) : isLessonPlanLoaded === "no lesson plan" ? (
+                    <div>No lesson plan yet</div>
                   ) : (
                     <div className="flex flex-col gap-[19px]">
                       {phases.map((phase) => (

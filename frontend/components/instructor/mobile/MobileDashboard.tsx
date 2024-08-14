@@ -7,6 +7,7 @@ import MobileClassDetails from "./MobileClassDetails";
 import MobileDetailView from "./MobileDetailView";
 import { useSessions } from "../SessionsContext";
 import { useState, useEffect, useRef } from "react";
+import { LessonPlanProvider } from "../LessonPlanContext";
 
 const selectedDay = (val) => {};
 
@@ -14,8 +15,7 @@ const selectedDay = (val) => {};
 export default function MobileDashboard({
   activeSessionId,
   setActiveSessionId,
-  activeSessionByDate,
-  setActiveSessionByDate,
+  accessToken,
 }) {
   const { showPopUp, hidePopUp } = usePopUp();
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
@@ -42,11 +42,15 @@ export default function MobileDashboard({
     showPopUp({
       id: "mobile-class-details-popup",
       content: (
-        <MobileClassDetails
-          closeClassDetails={closeClassDetails}
-          activeSessionId={sessionId}
-          activeSessionByDate={activeSessionByDate}
-        />
+        <LessonPlanProvider
+          sessionId={activeSessionId}
+          accessToken={accessToken}
+        >
+          <MobileClassDetails
+            closeClassDetails={closeClassDetails}
+            activeSessionId={sessionId}
+          />
+        </LessonPlanProvider>
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
@@ -83,7 +87,7 @@ export default function MobileDashboard({
       <div>
         <div className="border-[1px] border-surface_bg_secondary"></div>
         <div
-          className={`sessions overflow-y-auto px-[24px] pt-[8px] no-scrollbar`}
+          className={`sessions no-scrollbar overflow-y-auto px-[24px] pt-[24px]`}
           style={{ height: scrollContainerHeight }}
         >
           {/* assumes that past sessions have been removed from array */}
@@ -94,18 +98,16 @@ export default function MobileDashboard({
                 sessionId={session.id}
                 activeSessionId={activeSessionId}
                 setActiveSessionId={setActiveSessionId}
-                setActiveSessionByDate={setActiveSessionByDate}
                 handleMobileShowClassDetails={handleMobileShowClassDetails}
               />
             ) : (
               <div>
-                <Divider />
+                <Divider spacing={8} />
                 <MiniClassBlock
                   key={session.id}
                   sessionId={session.id}
                   activeSessionId={activeSessionId}
                   setActiveSessionId={setActiveSessionId}
-                  setActiveSessionByDate={setActiveSessionByDate}
                   handleMobileShowClassDetails={handleMobileShowClassDetails}
                 />
               </div>

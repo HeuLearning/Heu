@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import SidePopUp from "./SidePopUp";
 import { usePopUp } from "./PopUpContext";
 import XButton from "./XButton";
@@ -12,42 +12,43 @@ import SessionDetailSingle from "./SessionDetailSingle";
 import ClassSchedulePopUpContainer from "./ClassSchedulePopUpContent";
 import { useLessonPlan } from "./LessonPlanContext";
 
-export default function SessionDetailViewContainer({
-  activeSessionId,
-}) {
-  const { upcomingSessions } = useSessions();
+export default function SessionDetailViewContainer({ activeSessionId }) {
+  const { allSessions, getSessionStatus } = useSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
-  const [activeSessionKey, setActiveSessionKey] = useState("");
 
   let lessonPlanData = useLessonPlan();
+  const session = useMemo(() => {
+    return activeSessionId
+      ? allSessions.find((session) => session.id === activeSessionId)
+      : null;
+  }, [activeSessionId, allSessions]);
+
+  const sessionStatus = useMemo(() => {
+    return session ? getSessionStatus(session) : null;
+  }, [session, getSessionStatus]);
 
   useEffect(() => {
-    let isMounted = true;
+    let newState = "loading";
 
-    console.log(lessonPlanData.lessonPlan);
+    if (!session) {
+      newState = "loading";
+    } else if (sessionStatus === "Pending") {
+      newState = "not confirmed instructor";
+    } else if (sessionStatus === "Canceled") {
+      newState = "canceled session";
+    } else if (lessonPlanData.error === "lesson plan not found") {
+      newState = "no lesson plan";
+    } else if (
+      !lessonPlanData.isLoading &&
+      Object.keys(lessonPlanData.lessonPlan).length > 0
+    ) {
+      newState = "true";
+    }
 
-    const checkLessonPlanData = () => {
-      if (isMounted) {
-        if (Object.keys(lessonPlanData.lessonPlan).length === 0) {
-          setIsLessonPlanLoaded("no lesson plan");
-        } else if (Object.keys(lessonPlanData.lessonPlan).length > 0) {
-          setIsLessonPlanLoaded("true");
-        } else {
-          setIsLessonPlanLoaded("loading");
-        }
-      }
-    };
-
-    checkLessonPlanData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [lessonPlanData.lessonPlan.lesson_plan_id, activeSessionKey]);
-
-  useEffect(() => {
-    setIsLessonPlanLoaded("loading");
-  }, [activeSessionId]);
+    if (newState !== isLessonPlanLoaded) {
+      setIsLessonPlanLoaded(newState);
+    }
+  }, [session, sessionStatus, lessonPlanData, isLessonPlanLoaded]);
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 

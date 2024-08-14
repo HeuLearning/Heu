@@ -28,6 +28,7 @@ export default function DashboardContainer({ accessToken }) {
         <MobileDashboard
           activeSessionId={activeSessionId}
           setActiveSessionId={setActiveSessionId}
+          accessToken={accessToken}
         />
       </div>
     );
