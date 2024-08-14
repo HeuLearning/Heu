@@ -1,5 +1,5 @@
 import ReactCalendar from "react-calendar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./Calendar.module.css";
 import ToggleButton from "./ToggleButton";
 import { useMemo } from "react";
@@ -8,6 +8,7 @@ import { isSameDay } from "date-fns";
 import Dot from "./Dot";
 import MenuItem from "./MenuItem";
 import { format } from "date-fns";
+import Divider from "./Divider";
 
 export default function Calendar({
   visibleMonth,
@@ -21,16 +22,23 @@ export default function Calendar({
   const { getSessionStatus, allSessions, upcomingSessions } = useSessions();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [multipleDates, setMultipleDates] = useState([]);
+  const [popUpPosition, setPopUpPosition] = useState({ bottom: 0, left: 0 });
 
-  const displaySessions = (date) => {
-    const sessions = upcomingSessions.filter((session) =>
+  const displaySessions = (date, calendarElement = null) => {
+    const sessions = allSessions.filter((session) =>
+      isSameDay(new Date(session.start_time), date)
+    );
+    const upcoming = upcomingSessions.filter((session) =>
       isSameDay(new Date(session.start_time), date)
     );
     if (sessions.length === 0) {
       setActiveSessionId(null);
-    } else if (sessions.length > 1) {
+    } else if (sessions.length > 1 && calendarElement === null) {
       setSelectedDate(date);
-      showMultipleSessionPopUp(sessions);
+      setActiveSessionId(upcoming[0].id);
+    } else if (sessions.length > 1) {
+      showMultipleSessionPopUp(sessions, date, calendarElement);
+      setSelectedDate(date);
       setActiveSessionId(null);
     } else {
       setSelectedDate(date);
@@ -38,8 +46,27 @@ export default function Calendar({
     }
   };
 
-  const showMultipleSessionPopUp = (multipleSessions) => {
+  const showMultipleSessionPopUp = (
+    multipleSessions,
+    date,
+    calendarElement
+  ) => {
     setMultipleDates(multipleSessions);
+    if (calendarElement) {
+      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      const tileElement = calendarElement.querySelector(
+        `[data-date="${dateKey}"]`
+      );
+      if (tileElement) {
+        const tileRect = tileElement.getBoundingClientRect();
+        const calendarRect = calendarElement.getBoundingClientRect();
+
+        setPopUpPosition({
+          bottom: calendarRect.bottom - tileRect.top + 39, // Position above the tile
+          left: tileRect.left - calendarRect.left + tileRect.width / 2, // Centered
+        });
+      }
+    }
   };
 
   const navigationLabel = ({ date, label }) => {
@@ -74,7 +101,10 @@ export default function Calendar({
       }
     }
     return (
-      <div className="relative flex items-center justify-center">
+      <div
+        className="relative flex items-center justify-center"
+        data-date={dateKey}
+      >
         <div className="absolute bottom-[2px] flex items-center gap-[2px]">
           {Array.isArray(color) &&
             color.map((dotColor, index) => (
@@ -118,6 +148,22 @@ export default function Calendar({
     }
   }, [activeSessionId, allSessions]);
 
+  const dropdownRef = useRef(null);
+  const calendarContainerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setMultipleDates([]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
       <div className="flex flex-col items-center">
@@ -133,15 +179,40 @@ export default function Calendar({
           />
         </div>
         {activeTab === "Monthly" && (
-          <div>
-            {multipleDates &&
-              multipleDates.map((session) => (
-                <MenuItem onClick={() => setActiveSessionId(session.id)}>
-                  {format(session.start_time, "h:mma") +
-                    " - " +
-                    format(session.end_time, "h:mma")}
-                </MenuItem>
-              ))}
+          <div className="relative" ref={calendarContainerRef}>
+            <div
+              className="absolute z-10"
+              ref={dropdownRef}
+              style={{
+                bottom: `${popUpPosition.bottom}px`,
+                left: `${popUpPosition.left}px`,
+                transform: "translateX(-50%)", // This centers the popup horizontally
+              }}
+            >
+              {multipleDates.length !== 0 && (
+                <div className="rounded-[10px] bg-surface_bg_highlight p-[4px] shadow-150">
+                  {multipleDates.map((session, index) => (
+                    <>
+                      {index > 0 && (
+                        <div className="px-[6px]">
+                          <Divider spacing={4} />
+                        </div>
+                      )}
+                      <MenuItem
+                        onClick={() => {
+                          setActiveSessionId(session.id);
+                          setMultipleDates([]);
+                        }}
+                      >
+                        {format(session.start_time, "h:mma") +
+                          " - " +
+                          format(session.end_time, "h:mma")}
+                      </MenuItem>
+                    </>
+                  ))}
+                </div>
+              )}
+            </div>
             <div
               className={`-mt-[2px] flex flex-col items-center px-[1px] pb-[24px] ${styles["react-calendar"]}`}
             >
@@ -183,7 +254,7 @@ export default function Calendar({
                 tileContent={tileContent}
                 onClickDay={(clickedDay) => {
                   setSelectedDate(clickedDay);
-                  displaySessions(clickedDay);
+                  displaySessions(clickedDay, calendarContainerRef.current);
                 }}
               />
             </div>

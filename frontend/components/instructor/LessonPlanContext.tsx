@@ -38,6 +38,8 @@ interface LessonPlanContextType {
   phases: Phase[];
   getModules: (phaseId: number) => Module[] | undefined;
   phaseTimes;
+  isLoading;
+  error;
 }
 
 // create context with initial undefined value
@@ -83,12 +85,12 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
         if (response.status === 404) {
           setLessonPlan(null);
-          console.log("lesson plan not found");
+          setError("lesson plan not found");
+          setIsLoading(false);
           return;
-        }
-
-        if (!response.ok) {
+        } else if (!response.ok) {
           setLessonPlan(null);
+          setIsLoading(false);
           return;
         }
 
@@ -159,6 +161,8 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
         phases: phases,
         getModules,
         phaseTimes: phaseTimes,
+        isLoading,
+        error,
       }}
     >
       {children}
