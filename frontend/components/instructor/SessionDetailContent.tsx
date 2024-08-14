@@ -130,7 +130,7 @@ export default function SessionDetailContent({
             <InfoPill
               icon={true}
               text={
-                differenceInDaysToStart > 0
+                differenceInDaysToStart === 0
                   ? "Starts today"
                   : `Starts in ${differenceInDaysToStart} day${
                       differenceInDaysToStart > 1 ? "s" : ""

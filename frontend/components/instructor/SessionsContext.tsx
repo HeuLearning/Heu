@@ -101,7 +101,9 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     let status =
       session.instructor_status.charAt(0).toUpperCase() +
       session.instructor_status.slice(1);
-    if (
+    if (endDate < new Date() && status === "Confirmed") {
+      status = "Attended";
+    } else if (
       status === "Confirmed" &&
       isWithinInterval(new Date(), { start: startDateWithBuffer, end: endDate })
     ) {
