@@ -5,18 +5,23 @@ export default function HamburgerIcon({ onClick }) {
   return (
     <button className="rounded-full shadow-25" onClick={onClick}>
       <svg
-        width="40"
-        height="40"
-        viewBox="0 0 40 40"
+        width="44"
+        height="44"
+        viewBox="0 0 44 44"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <circle cx="20" cy="20" r="20" fill="white" />
+        <rect
+          width="44"
+          height="44"
+          rx="22"
+          fill="var(--action_bg_secondary)"
+        />
         <path
           fill-rule="evenodd"
           clip-rule="evenodd"
-          d="M24 15C24.5523 15 25 15.4477 25 16C25 16.5523 24.5523 17 24 17L16 17C15.4477 17 15 16.5523 15 16C15 15.4477 15.4477 15 16 15H24ZM24 19C24.5523 19 25 19.4477 25 20C25 20.5523 24.5523 21 24 21H16C15.4477 21 15 20.5523 15 20C15 19.4477 15.4477 19 16 19L24 19ZM25 24C25 23.4477 24.5523 23 24 23L16 23C15.4477 23 15 23.4477 15 24C15 24.5523 15.4477 25 16 25H24C24.5523 25 25 24.5523 25 24Z"
-          fill="var(--surface_bg_darkest)"
+          d="M26 17C26.5523 17 27 17.4477 27 18C27 18.5523 26.5523 19 26 19L18 19C17.4477 19 17 18.5523 17 18C17 17.4477 17.4477 17 18 17H26ZM26 21C26.5523 21 27 21.4477 27 22C27 22.5523 26.5523 23 26 23H18C17.4477 23 17 22.5523 17 22C17 21.4477 17.4477 21 18 21L26 21ZM27 26C27 25.4477 26.5523 25 26 25L18 25C17.4477 25 17 25.4477 17 26C17 26.5523 17.4477 27 18 27H26C26.5523 27 27 26.5523 27 26Z"
+          fill="var(--action_bg_primary)"
         />
       </svg>
     </button>

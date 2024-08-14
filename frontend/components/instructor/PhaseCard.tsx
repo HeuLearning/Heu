@@ -43,8 +43,8 @@ export default function PhaseCard({
         <h2
           className={
             status === "done"
-              ? "font-semibold text-typeface_secondary"
-              : "font-semibold text-typeface_primary"
+              ? "text-typeface_secondary text-body-semibold"
+              : "text-typeface_primary text-body-semibold"
           }
         >
           {title}

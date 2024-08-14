@@ -261,43 +261,43 @@ export default function HorizontalDatePicker({
 
   return (
     <div className="flex w-full flex-col">
-      <div className="custom-calendar-header sticky flex items-center justify-between px-[16px] pb-[16px] pt-[24px]">
-        <span className="text-typeface_primary leading-tight text-h1">
+      <div className="custom-calendar-header sticky flex items-center justify-between px-[16px] pb-[24px] pt-[16px]">
+        <button className="custom-navigation-button" onClick={prevMonth}>
+          <svg
+            width="40"
+            height="40"
+            viewBox="0 0 40 40"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="0.5"
+              y="0.5"
+              width="39"
+              height="39"
+              rx="19.5"
+              fill="white"
+            />
+            <rect
+              x="0.5"
+              y="0.5"
+              width="39"
+              height="39"
+              rx="19.5"
+              stroke="var(--action_border_secondary)"
+            />
+            <path
+              d="M21.5 16.25L18 19.75L21.5 23.25"
+              stroke="var(--action_bg_primary)"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+        <span className="text-typeface_primary leading-tight text-h3">
           {format(currentMonth, "MMMM yyyy")}
         </span>
         <div className="flex space-x-[12px]">
-          <button className="custom-navigation-button" onClick={prevMonth}>
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 40 40"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                x="0.5"
-                y="0.5"
-                width="39"
-                height="39"
-                rx="19.5"
-                fill="white"
-              />
-              <rect
-                x="0.5"
-                y="0.5"
-                width="39"
-                height="39"
-                rx="19.5"
-                stroke="var(--action_border_secondary)"
-              />
-              <path
-                d="M21.5 16.25L18 19.75L21.5 23.25"
-                stroke="var(--action_bg_primary)"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
           <button className="custom-navigation-button" onClick={nextMonth}>
             <svg
               width="40"
@@ -334,7 +334,7 @@ export default function HorizontalDatePicker({
       </div>
       <div
         id={"container"}
-        className={`pb-[18px] ${styles.dateListScrollable}`}
+        className={`pb-[8px] ${styles.dateListScrollable}`}
         ref={scrollContainerRef}
       >
         {renderDays()}

@@ -242,58 +242,184 @@ export default {
     function ({ addUtilities, theme }) {
       addUtilities({
         ".text-h1": {
+          fontSize: "32px",
+          fontWeight: 400,
+          letterSpacing: "-0.64px", // -2% of 32px
+          lineHeight: "38.7px",
+          "@screen lg": {
+            fontSize: "26px",
+            fontWeight: 400,
+            letterSpacing: "-0.52px", // -2% of 26px
+            lineHeight: "26px",
+          },
+        },
+        ".text-h1-desktop": {
           fontSize: "26px",
           fontWeight: 400,
           letterSpacing: "-0.52px", // -2% of 26px
           lineHeight: "26px",
         },
+        ".text-h1-mobile": {
+          fontSize: "32px",
+          fontWeight: 400,
+          letterSpacing: "-0.64px", // -2% of 32px
+          lineHeight: "38.7px",
+        },
         ".text-h2": {
+          fontSize: "24px",
+          fontWeight: 500,
+          letterSpacing: "-0.24px", // -1% of 24px
+          lineHeight: "29px",
+          "@screen lg": {
+            fontSize: "20px",
+            fontWeight: 500,
+            letterSpacing: "0px", // 0%
+            lineHeight: "24px",
+          },
+        },
+        ".text-h2-desktop": {
           fontSize: "20px",
           fontWeight: 500,
           letterSpacing: "0px", // 0%
           lineHeight: "24px",
         },
+        ".text-h2-mobile": {
+          fontSize: "24px",
+          fontWeight: 500,
+          letterSpacing: "-0.24px", // -1% of 24px
+          lineHeight: "29px",
+        },
         ".text-h3": {
+          fontSize: "20px",
+          fontWeight: 500,
+          letterSpacing: "-0.20px", // -1% of 20px
+          lineHeight: "24.2px",
+          "@screen lg": {
+            fontSize: "18px",
+            fontWeight: 500,
+            letterSpacing: "-0.36px", // -2% of 18px
+            lineHeight: "22px",
+          },
+        },
+        ".text-h3-desktop": {
           fontSize: "18px",
           fontWeight: 500,
           letterSpacing: "-0.36px", // -2% of 18px
           lineHeight: "22px",
         },
+        ".text-h3-mobile": {
+          fontSize: "20px",
+          fontWeight: 500,
+          letterSpacing: "-0.20px", // -1% of 20px
+          lineHeight: "24.2px",
+        },
         ".text-body-regular": {
+          fontSize: "16px",
+          fontWeight: 400,
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "26px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 400,
+            letterSpacing: "-0.14px", // -1% of 14px
+            lineHeight: "24px",
+          },
+        },
+        ".text-body-regular-desktop": {
           fontSize: "14px",
           fontWeight: 400,
           letterSpacing: "-0.14px", // -1% of 14px
           lineHeight: "24px",
         },
+        ".text-body-regular-mobile": {
+          fontSize: "16px",
+          fontWeight: 400,
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "26px",
+        },
         ".text-body-medium": {
+          fontSize: "16px",
+          fontWeight: 500,
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 500,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "17px",
+          },
+        },
+        ".text-body-medium-desktop": {
           fontSize: "14px",
           fontWeight: 500,
           letterSpacing: "-0.28px", // -2% of 14px
           lineHeight: "17px",
+        },
+        ".text-body-medium-mobile": {
+          fontSize: "16px",
+          fontWeight: 500,
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
         },
         ".text-body-semibold": {
+          fontSize: "16px",
+          fontWeight: 600,
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 600,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "17px",
+          },
+        },
+        ".text-body-semibold-desktop": {
           fontSize: "14px",
           fontWeight: 600,
           letterSpacing: "-0.28px", // -2% of 14px
           lineHeight: "17px",
         },
+        ".text-body-semibold-mobile": {
+          fontSize: "16px",
+          fontWeight: 600,
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+        },
         ".text-body-regular-cap-height": {
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 400,
-          letterSpacing: "-0.14px", // -1% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "0.9",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 400,
+            letterSpacing: "-0.14px", // -1% of 14px
+            lineHeight: "0.8",
+          },
         },
         ".text-body-medium-cap-height": {
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 500,
-          letterSpacing: "-0.28px", // -2% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "0.9",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 500,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "0.8",
+          },
         },
         ".text-body-semibold-cap-height": {
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 600,
-          letterSpacing: "-0.28px", // -2% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "0.9",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 600,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "0.8",
+          },
         },
         ".center-atop-svg": {
           position: "absolute",

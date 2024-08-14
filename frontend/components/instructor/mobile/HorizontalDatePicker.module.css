@@ -41,6 +41,7 @@
   color: var(--typeface_primary);
   margin: 4px 0 0 0;
   text-align: center;
+  padding-bottom: 12px;
 }
 
 /* day number */

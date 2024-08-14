@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import AudioButton from "./AudioButton";
 import { useResponsive } from "../instructor/ResponsiveContext";
-import AudioPlayer2 from "./AudioPlayer2";
+import AudioPlayerMobile from "./AudioPlayerMobile";
 
 export default function AudioPlayer({ audioSrc, title }) {
   const [duration, setDuration] = useState(0);
@@ -12,7 +12,9 @@ export default function AudioPlayer({ audioSrc, title }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   if (isMobile) {
-    return <AudioPlayer2 audioSrc={audioSrc} title={title}></AudioPlayer2>;
+    return (
+      <AudioPlayerMobile audioSrc={audioSrc} title={title}></AudioPlayerMobile>
+    );
   }
 
   const togglePlay = () => {
