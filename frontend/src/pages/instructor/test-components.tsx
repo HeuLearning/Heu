@@ -15,7 +15,7 @@ import ButtonBar from "components/instructor/mobile/ButtonBar";
 import MobileClassDetails from "components/instructor/mobile/MobileClassDetails";
 import MobileDetailView from "components/instructor/mobile/MobileDetailView";
 import AudioPlayer from "components/exercise/AudioPlayer";
-import AudioPlayer2 from "components/exercise/AudioPlayer-2";
+import AudioPlayer2 from "components/exercise/AudioPlayer2";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
