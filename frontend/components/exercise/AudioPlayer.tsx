@@ -1,11 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import AudioButton from "./AudioButton";
+import { useResponsive } from "../instructor/ResponsiveContext";
+import AudioPlayer2 from "./AudioPlayer2";
 
-export default function AudioPlayer({ audioSrc }) {
+export default function AudioPlayer({ audioSrc, title }) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
+
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+
+  if (isMobile) {
+    return <AudioPlayer2 audioSrc={audioSrc} title={title}></AudioPlayer2>;
+  }
 
   const togglePlay = () => {
     if (isPlaying) {
