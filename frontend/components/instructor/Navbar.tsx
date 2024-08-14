@@ -35,9 +35,9 @@ export default function Navbar() {
           </div>
         ) : (
           <div>
-            <div className="flex h-[64px] items-center justify-center bg-[#F5F5F5]">
+            <div className="flex items-center justify-center bg-[#F5F5F5] py-[10px]">
               <Logo />
-              <div className="absolute left-[16px]">
+              <div className="absolute left-[16px] top-[10px]">
                 <HamburgerIcon onClick={displayMobileNavMenu} />
               </div>
             </div>

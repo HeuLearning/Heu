@@ -35,7 +35,7 @@ const AudioButton = ({ size, togglePlay, isPlaying }) => (
   </button>
 );
 
-export default function RectangularAudioPlayer({ audioSrc, title }) {
+export default function AudioPlayerMobile({ audioSrc, title }) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);

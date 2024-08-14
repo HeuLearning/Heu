@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import ClassSchedulePopUpContainer from "../ClassSchedulePopUpContent";
 import BackButton from "../BackButton";
 import { useLessonPlan } from "../LessonPlanContext";
+import ButtonBar from "./ButtonBar";
 
 export default function MobileClassDetails({
   activeSessionId,
@@ -116,6 +117,7 @@ export default function MobileClassDetails({
           />
         </div>
       </MobileDetailView>
+      <ButtonBar primaryButtonText="RSVP" />
     </div>
   );
 }

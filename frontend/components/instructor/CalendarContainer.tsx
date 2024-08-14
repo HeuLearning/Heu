@@ -119,6 +119,51 @@ export default function CalendarContainer({
       });
   };
 
+  const renderUpcomingSessions = () => {
+    /* assumes that past sessions have been removed from array */
+    const next3Sessions = upcomingSessions.slice(
+      0,
+      Math.min(upcomingSessions.length, 3)
+    );
+    return next3Sessions.map((session, index) => {
+      const currentDate = new Date(session.start_time);
+      const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
+      const previousDate =
+        index > 0 ? new Date(next3Sessions[index - 1].start_time) : null;
+      const previousDateKey = previousDate
+        ? `${previousDate.getFullYear()}-${previousDate.getMonth()}-${previousDate.getDate()}`
+        : null;
+      return index === 0 ? (
+        <MiniClassBlock
+          dateCard={true}
+          sessionId={session.id}
+          activeSessionId={activeSessionId}
+          setActiveSessionId={setActiveSessionId}
+        />
+      ) : (
+        <div>
+          <Divider spacing={12} />
+          {currentDateKey === previousDateKey ? (
+            <MiniClassBlock
+              key={session.id}
+              sessionId={session.id}
+              activeSessionId={activeSessionId}
+              setActiveSessionId={setActiveSessionId}
+              arrow={true}
+            />
+          ) : (
+            <MiniClassBlock
+              key={session.id}
+              sessionId={session.id}
+              activeSessionId={activeSessionId}
+              setActiveSessionId={setActiveSessionId}
+            />
+          )}
+        </div>
+      );
+    });
+  };
+
   if (isMobile) {
     return <div></div>;
   } else {
@@ -188,29 +233,7 @@ export default function CalendarContainer({
               Coming up
             </p>
             <div className="upcoming-events flex flex-col items-center">
-              {/* assumes that past sessions have been removed from array */}
-              {upcomingSessions
-                .slice(0, Math.min(upcomingSessions.length, 3))
-                .map((session, index) =>
-                  index === 0 ? (
-                    <MiniClassBlock
-                      dateCard={true}
-                      sessionId={session.id}
-                      activeSessionId={activeSessionId}
-                      setActiveSessionId={setActiveSessionId}
-                    />
-                  ) : (
-                    <div>
-                      <Divider spacing={12} />
-                      <MiniClassBlock
-                        key={session.id}
-                        sessionId={session.id}
-                        activeSessionId={activeSessionId}
-                        setActiveSessionId={setActiveSessionId}
-                      />
-                    </div>
-                  )
-                )}
+              {renderUpcomingSessions()}
             </div>
           </div>
         )}

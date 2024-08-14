@@ -69,7 +69,11 @@ export default function SessionDetailContent({
           <div className="date-title space-y-[10px]">
             <h1 className="text-typeface_primary leading-cap-height text-h1">
               {sessionId ? (
-                format(startDate, "eeee, MMMM do")
+                isMobile ? (
+                  format(startDate, "eee, MMMM do")
+                ) : (
+                  format(startDate, "eeee, MMMM do")
+                )
               ) : (
                 <Placeholder width={244} height={16} />
               )}
@@ -115,7 +119,7 @@ export default function SessionDetailContent({
             </p>
             {isMobile ? null : (
               <Button
-                className={sessionId ? "button-tertiary" : "button-disabled"}
+                className={sessionId ? "button-secondary" : "button-disabled"}
               >
                 Get directions
               </Button>
