@@ -33,7 +33,11 @@ export default function Calendar({
     );
     if (sessions.length === 0) {
       setActiveSessionId(null);
-    } else if (sessions.length > 1 && calendarElement === null) {
+    } else if (
+      sessions.length > 1 &&
+      calendarElement === null &&
+      upcoming.length !== 0
+    ) {
       setSelectedDate(date);
       setActiveSessionId(upcoming[0].id);
     } else if (sessions.length > 1) {
@@ -204,9 +208,20 @@ export default function Calendar({
                           setMultipleDates([]);
                         }}
                       >
-                        {format(session.start_time, "h:mma") +
-                          " - " +
-                          format(session.end_time, "h:mma")}
+                        <div className="-ml-[4px] flex items-center">
+                          <Dot status={getSessionStatus(session)} />
+                          <div
+                            className={
+                              getSessionStatus(session) === "Canceled"
+                                ? "text-typeface_tertiary"
+                                : ""
+                            }
+                          >
+                            {format(session.start_time, "h:mma") +
+                              " - " +
+                              format(session.end_time, "h:mma")}
+                          </div>
+                        </div>
                       </MenuItem>
                     </>
                   ))}
@@ -239,14 +254,17 @@ export default function Calendar({
                       classes.push(styles["disabled-date"]);
                     }
                     const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-                    const status = sessionMap.get(dateKey);
-                    if (
-                      !isBeforeToday(date) &&
-                      (status === "Pending" ||
-                        status === "Confirmed" ||
-                        status === "Online")
-                    ) {
-                      classes.push("calendar-day-special");
+                    const color = sessionMap.get(dateKey);
+                    if (color) {
+                      for (let i = 0; i < color.length; i++) {
+                        if (
+                          color[i] === "var(--status_fg_positive)" ||
+                          color[i] === "var(--typeface_primary)"
+                        ) {
+                          classes.push(styles["calendar-day-special"]);
+                          break;
+                        }
+                      }
                     }
                     return classes.join(" ");
                   }

@@ -54,16 +54,16 @@ export default function CalendarContainer({
       const dateKey = `${year}-${month}-${day}`;
       const status = getSessionStatus(session);
       // circle color
-      let color = [];
-      if (status === "Canceled") color.push("var(--typeface_tertiary)");
+      let color;
+      if (status === "Canceled" || status === "Attended")
+        color = "var(--typeface_tertiary)";
       else if (status === "Confirmed" || status === "Online")
-        color.push("var(--status_fg_positive)");
-      else if (status === "Pending") color.push("var(--typeface_primary)");
-
+        color = "var(--status_fg_positive)";
+      else if (status === "Pending") color = "var(--typeface_primary)";
       if (sessionMap.get(dateKey)) {
         sessionMap.get(dateKey).push(color);
       } else {
-        sessionMap.set(dateKey, color);
+        sessionMap.set(dateKey, new Array(color));
       }
     });
     return sessionMap;

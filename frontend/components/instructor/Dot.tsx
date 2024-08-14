@@ -1,4 +1,14 @@
-export default function Dot({ color }) {
+export default function Dot({ color = "", status = "" }) {
+  let fillColor = color;
+  if (status) {
+    if (status === "Confirmed" || status === "Online") {
+      fillColor = "var(--status_fg_positive)";
+    } else if (status === "Pending") {
+      fillColor = "var(--typeface_primary)";
+    } else if (status === "Canceled" || status === "Attended") {
+      fillColor = "var(--typeface_tertiary)";
+    }
+  }
   return (
     <svg
       width="16"
@@ -7,7 +17,7 @@ export default function Dot({ color }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="8" cy="8" r="2" fill={color} />
+      <circle cx="8" cy="8" r="2" fill={fillColor} />
     </svg>
   );
 }
