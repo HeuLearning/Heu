@@ -3,13 +3,14 @@ import XButton from "./XButton";
 import ShowMoreButton from "./ShowMoreButton";
 import ClassItemDetailed from "./ClassItemDetailed";
 import { useLessonPlan } from "./LessonPlanContext";
+import { useResponsive } from "./ResponsiveContext";
 
 export default function ClassSchedulePopUpContainer({
   phases,
   getModules,
   phaseTimes,
 }) {
-  // const { phases, getModules, phaseTimes } = lessonPlanData;
+  const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <div>
       <div className="flex flex-col gap-[12px]">
@@ -17,7 +18,9 @@ export default function ClassSchedulePopUpContainer({
           <ShowMoreButton
             title={phase.name}
             subtitle={phaseTimes.get(phase.id)}
-            childrenStyling="px-[8px] pt-[24px] pb-[12px] gap-[24px]"
+            childrenStyling={`px-[8px] pt-[24px] pb-[12px] ${
+              isMobile ? "gap-[32px]" : "gap-[24px]"
+            }`}
           >
             {getModules(phase.id).map((module, index) => (
               <ClassItemDetailed

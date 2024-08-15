@@ -36,7 +36,7 @@
 
 /* day of the week */
 .dayLabel {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   color: var(--typeface_primary);
   margin: 4px 0 0 0;
@@ -46,13 +46,13 @@
 
 /* day number */
 .dateLabel {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--typeface_primary);
 }
 
 .pastDateLabel {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--typeface_tertiary);
 }
 

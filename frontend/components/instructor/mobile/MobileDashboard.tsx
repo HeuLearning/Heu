@@ -17,7 +17,7 @@ export default function MobileDashboard({
   setActiveSessionId,
   accessToken,
 }) {
-  const { showPopUp, hidePopUp } = usePopUp();
+  const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { upcomingSessions } = useSessions();
@@ -37,6 +37,23 @@ export default function MobileDashboard({
     setIsPopUpVisible(false);
   };
 
+  useEffect(() => {
+    if (isPopUpVisible) {
+      updatePopUp(
+        "mobile-class-details-popup",
+        <LessonPlanProvider
+          sessionId={activeSessionId}
+          accessToken={accessToken}
+        >
+          <MobileClassDetails
+            closeClassDetails={closeClassDetails}
+            activeSessionId={activeSessionId}
+          />
+        </LessonPlanProvider>
+      );
+    }
+  }, [activeSessionId, isPopUpVisible, accessToken]);
+
   const handleMobileShowClassDetails = (sessionId) => {
     setIsPopUpVisible(true);
     showPopUp({
@@ -54,7 +71,7 @@ export default function MobileDashboard({
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.5]",
+        overlay: "overlay-high",
       },
       height: "auto",
     });
@@ -111,9 +128,6 @@ export default function MobileDashboard({
 
   // navbar = 64, containerHeight = horizontaldatepicker, border = 1
   const scrollContainerHeight = window.innerHeight - 64 - containerHeight - 1;
-
-  console.log(window.innerHeight);
-  console.log(containerHeight);
 
   return (
     <div

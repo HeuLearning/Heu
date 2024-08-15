@@ -7,6 +7,7 @@ export default function MobileDetailView({
   children,
   headerContent = null,
   headerContentOnScroll = null,
+  buttonBar = false,
 }) {
   const [stickyTopContent, setStickyTopContent] = useState(headerContent);
 
@@ -36,8 +37,12 @@ export default function MobileDetailView({
     }, []);
   }
 
+  // button bar = 65
+  const height = window.innerHeight - 65;
+
   return (
     <div
+      style={buttonBar ? { height: height } : {}}
       className={`fixed inset-0 flex flex-grow flex-col rounded-t-[20px] outline-surface_border_tertiary ${backgroundColor} ${className}`}
     >
       <div
@@ -51,7 +56,7 @@ export default function MobileDetailView({
       >
         {stickyTopContent}
       </div>
-      <div className="flex-grow overflow-y-auto" ref={scrollableRef}>
+      <div className="flex-grow overflow-y-auto pb-[32px]" ref={scrollableRef}>
         {children}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import MobileDetailView from "./MobileDetailView";
 import XButton from "../XButton";
 import SessionDetailContent from "../SessionDetailContent";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useResponsive } from "../ResponsiveContext";
 import { useSessions } from "../SessionsContext";
 import { format } from "date-fns";
@@ -9,16 +9,31 @@ import ClassSchedulePopUpContainer from "../ClassSchedulePopUpContent";
 import BackButton from "../BackButton";
 import { useLessonPlan } from "../LessonPlanContext";
 import ButtonBar from "./ButtonBar";
+import MenuItem from "../MenuItem";
+import { usePopUp } from "../PopUpContext";
+import { useRouter } from "next/router";
 
 export default function MobileClassDetails({
   activeSessionId,
   closeClassDetails,
 }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { allSessions, upcomingSessions, getSessionStatus } = useSessions();
+  const {
+    allSessions,
+    upcomingSessions,
+    confirmSession,
+    cancelSession,
+    getSessionStatus,
+  } = useSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
   const [isClassSchedShown, setIsClassSchedShown] = useState(false);
+  const [isRSVPOptionsShown, setIsRSVPOptionsShown] = useState(false);
 
+  const router = useRouter();
+
+  const { hidePopUp, showPopUp } = usePopUp();
+
+  console.log("active session id" + activeSessionId);
   let lessonPlanData = useLessonPlan();
   const session = useMemo(() => {
     return activeSessionId
@@ -33,8 +48,13 @@ export default function MobileClassDetails({
     return session ? getSessionStatus(session) : null;
   }, [session, getSessionStatus]);
 
+  console.log(session.id);
+
   useEffect(() => {
     let newState = "loading";
+    console.log("SESSION" + session.id);
+    console.log(sessionStatus);
+    console.log(lessonPlanData);
 
     if (!session) {
       newState = "loading";
@@ -64,6 +84,47 @@ export default function MobileClassDetails({
     setIsClassSchedShown(false);
   };
 
+  const handleConfirmAttendance = (sessionId) => {
+    confirmSession(sessionId);
+    window.location.reload();
+  };
+
+  const displayMobileRSVPOptions = () => {
+    setIsRSVPOptionsShown(true);
+    showPopUp({
+      id: "mobile-confirm-attendance",
+      // button bar 65 px + 8px
+      content: (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => {
+              hidePopUp("mobile-confirm-attendance");
+              setIsRSVPOptionsShown(false);
+            }}
+          />
+          <div className="fixed bottom-[73px] z-50 w-full p-[8px]">
+            <div className="flex w-full flex-col rounded-[10px] bg-surface_bg_highlight p-[4px]">
+              <MenuItem onClick={() => handleConfirmAttendance(session.id)}>
+                Confirm attendance
+              </MenuItem>
+              <MenuItem onClick={""}>I can't attend</MenuItem>
+            </div>
+          </div>
+        </>
+      ),
+      container: null, // Ensure this ID exists in your DOM
+      style: {
+        overlay: "overlay-medium",
+      },
+      height: "auto",
+    });
+  };
+
+  const handleEnterClass = () => {
+    router.push(`/instructor/${session.id}`);
+  };
+
   return isClassSchedShown ? (
     <div>
       <div className="absolute inset-0 max-h-screen overflow-y-auto">
@@ -84,14 +145,22 @@ export default function MobileClassDetails({
   ) : (
     <div className="absolute inset-0 max-h-screen overflow-y-auto">
       <MobileDetailView
+        buttonBar={
+          (session && getSessionStatus(session) === "Pending") ||
+          getSessionStatus(session) === "Online"
+            ? true
+            : false
+        }
         backgroundColor="bg-surface_bg_highlight"
         className="px-[16px] pt-[24px]"
         headerContent={
-          <div className="flex w-full justify-between">
-            <h3 className="p-[8px] text-typeface_primary text-h3">
+          <div className="relative flex w-full items-center justify-center">
+            <h3 className="p-[8px] text-typeface_primary text-body-medium-mobile">
               Class details
             </h3>
-            <XButton onClick={() => closeClassDetails()} />
+            <div className="absolute right-0">
+              <XButton onClick={() => closeClassDetails()} />
+            </div>
           </div>
         }
         headerContentOnScroll={
@@ -108,7 +177,7 @@ export default function MobileClassDetails({
           </div>
         }
       >
-        <div className="overflow-y-auto">
+        <div className="overflow-y-auto pt-[16px]">
           <SessionDetailContent
             lessonPlanData={lessonPlanData}
             isLessonPlanLoaded={isLessonPlanLoaded}
@@ -117,7 +186,26 @@ export default function MobileClassDetails({
           />
         </div>
       </MobileDetailView>
-      <ButtonBar primaryButtonText="RSVP" />
+      {session &&
+        (getSessionStatus(session) === "Pending" ||
+          getSessionStatus(session) === "Online") && (
+          <div className="relative">
+            {session && getSessionStatus(session) === "Pending" ? (
+              <ButtonBar
+                primaryButtonText="RSVP"
+                primaryButtonOnClick={displayMobileRSVPOptions}
+              />
+            ) : getSessionStatus(session) === "Online" ? (
+              <div>
+                {void console.log("blah")}
+                <ButtonBar
+                  primaryButtonText="Enter class"
+                  primaryButtonOnClick={handleEnterClass}
+                />
+              </div>
+            ) : null}
+          </div>
+        )}
     </div>
   );
 }

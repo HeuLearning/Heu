@@ -34,7 +34,7 @@ export default function AttendancePopUp({ session, action, popUpId }) {
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.5]",
+        overlay: "overlay-high",
       },
       height: "auto",
     });

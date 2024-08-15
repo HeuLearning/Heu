@@ -59,7 +59,7 @@ export default function MiniClassBlock({
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.5]",
+        overlay: "overlay-high",
       },
       height: "276px",
     });

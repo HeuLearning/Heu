@@ -8,17 +8,48 @@ import { useState } from "react";
 import MobileNavMenu from "./mobile/MobileNavMenu";
 import NavButton from "./NavButton";
 import NotificationButton from "./NotificationButton";
+import { usePopUp } from "./PopUpContext";
+import SidePopUp from "./SidePopUp";
+import XButton from "./XButton";
+import ToggleButton from "./ToggleButton";
+import Button from "./Button";
+import Divider from "./Divider";
 
 export default function Navbar() {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [selectedButton, setSelectedButton] = useState("Dashboard");
   const [isMobileNavMenuShown, setIsMobileNavMenuShown] = useState(false);
+  const [activeNotifTab, setActiveNotifTab] = useState("New");
+  const [isNotifsOpen, setIsNotifsOpen] = useState(false);
+
+  const oldNotifs = [
+    ["Request to swap not approved for June 20", "View more"],
+    ["blah blah blah", "RSVP"],
+  ];
+
+  const newNotifs = [
+    ["Last chance to confirm attendance for class on June 20, 6PM", "RSVP"],
+    ["New slots added in July", "View details"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+    ["blah blah blah", "RSVP"],
+  ];
 
   const displayMobileNavMenu = () => {
     setIsMobileNavMenuShown(true);
   };
 
-  const closeMenu = () => {
+  const closeMobileNavMenu = () => {
     setIsMobileNavMenuShown(false);
   };
 
@@ -26,12 +57,89 @@ export default function Navbar() {
     setSelectedButton(buttonText);
   };
 
+  const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
+
+  const NotifContent = ({ activeTab, onToggle, onClose }) => {
+    const notifs = activeTab === "New" ? newNotifs : oldNotifs;
+    return (
+      <SidePopUp
+        headerContent={
+          <div className="flex flex-col gap-[24px]">
+            <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
+              Activity
+              <XButton onClick={onClose} />
+            </div>
+            <div className="-mx-[8px]">
+              <ToggleButton
+                buttonOptions={["New", "Archive"]}
+                selected={activeTab}
+                onToggle={onToggle}
+              />
+            </div>
+          </div>
+        }
+        className="absolute right-0 top-0 flex flex-col"
+      >
+        <div className="flex flex-col">
+          {notifs.map((notif, index) => (
+            <div>
+              {index > 0 && <Divider spacing={8} />}
+              <div className="flex items-center justify-between gap-[48px] px-[4px] py-[7px] text-body-medium">
+                {notif[0]}
+                <Button className="button-primary whitespace-nowrap">
+                  {notif[1]}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </SidePopUp>
+    );
+  };
+
+  const onToggle = (selected) => {
+    setActiveNotifTab(selected);
+    updatePopUp(
+      "notifs-popup",
+      <NotifContent
+        activeTab={selected}
+        onToggle={onToggle}
+        onClose={handleCloseNotifs}
+      />
+    );
+  };
+
+  const displayNotifs = () => {
+    setIsNotifsOpen(true);
+    showPopUp({
+      id: "notifs-popup",
+      content: (
+        <NotifContent
+          activeTab={activeNotifTab}
+          onToggle={onToggle}
+          onClose={handleCloseNotifs}
+        />
+      ),
+      container: "#dashboard-container", // Ensure this ID exists in your DOM
+      style: {
+        overlay: "overlay-low rounded-[20px]",
+      },
+      height: "auto",
+    });
+  };
+
+  const handleCloseNotifs = () => {
+    hidePopUp("notifs-popup");
+    setActiveNotifTab("New");
+    setIsNotifsOpen(false);
+  };
+
   if (isMobile) {
     return (
       <div className="relative">
         {isMobileNavMenuShown ? (
           <div className="absolute inset-0 z-10">
-            <MobileNavMenu closeMenu={closeMenu} />
+            <MobileNavMenu closeMenu={closeMobileNavMenu} />
           </div>
         ) : (
           <div>
@@ -73,7 +181,7 @@ export default function Navbar() {
               ["Portuguese", "PT"],
             ]}
           />
-          <NotificationButton />
+          <NotificationButton onClick={displayNotifs} isOpen={isNotifsOpen} />
           <ProfilePic />
         </div>
       </div>

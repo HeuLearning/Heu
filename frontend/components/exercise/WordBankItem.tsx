@@ -4,6 +4,7 @@ import Draggable from "../instructor/Draggable";
 import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import RadioButton from "./RadioButton";
 import Checkbox from "./Checkbox";
+import IconButton from "components/instructor/IconButton";
 
 export default function WordBankItem({
   id,
@@ -71,7 +72,7 @@ export default function WordBankItem({
           </div>
         </div>
         {x ? (
-          <button onClick={handleReset}>
+          <IconButton onClick={handleReset}>
             <svg
               width="16"
               height="16"
@@ -86,7 +87,7 @@ export default function WordBankItem({
                 fill="var(--surface_bg_darkest)"
               />
             </svg>
-          </button>
+          </IconButton>
         ) : null}
       </div>
     </div>

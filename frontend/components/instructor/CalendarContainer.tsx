@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { useResponsive } from "./ResponsiveContext";
 import styles from "./MiniClassBlock.module.css";
 import { useSessions } from "./SessionsContext";
+import IconButton from "./IconButton";
 
 export default function CalendarContainer({
   activeSessionId,
@@ -176,8 +177,8 @@ export default function CalendarContainer({
           <span className="text-typeface_primary leading-tight text-h1">
             {visibleMonthName + " " + visibleYearName}
           </span>
-          <div className="flex space-x-[20px]">
-            <button
+          <div className="flex space-x-[18px]">
+            <IconButton
               className="custom-navigation-button"
               onClick={handlePrevMonth}
             >
@@ -195,8 +196,8 @@ export default function CalendarContainer({
                   stroke-linecap="round"
                 />
               </svg>
-            </button>
-            <button
+            </IconButton>
+            <IconButton
               className="custom-navigation-button"
               onClick={handleNextMonth}
             >
@@ -214,7 +215,7 @@ export default function CalendarContainer({
                   stroke-linecap="round"
                 />
               </svg>
-            </button>
+            </IconButton>
           </div>
         </div>
         <Calendar

@@ -32,6 +32,7 @@ import { useLessonPlan } from "./LessonPlanContext";
 import useStopwatch from "./hooks/useStopwatch";
 import CircledLabel from "./CircledLabel";
 import PopUp from "./PopUp";
+import ClassModePhases from "./ClassModePhases";
 
 const learners = [
   {
@@ -57,6 +58,51 @@ const learners = [
   {
     id: 5,
     name: "Desi DeVaul",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
+    status: "In class",
+  },
+  {
+    id: 1,
+    name: "Julia Ying",
     status: "In class",
   },
 ];
@@ -347,7 +393,7 @@ export default function ClassModeContainer({ sessionId }) {
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.5]",
+        overlay: "overlay-high",
       },
       height: "auto",
     });
@@ -373,11 +419,15 @@ export default function ClassModeContainer({ sessionId }) {
     showPopUp({
       id: "learners-popup",
       content: (
-        <SidePopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
-          <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-            Learners
-            <XButton onClick={() => hidePopUp("learners-popup")} />
-          </div>
+        <SidePopUp
+          headerContent={
+            <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
+              Learners
+              <XButton onClick={() => hidePopUp("learners-popup")} />
+            </div>
+          }
+          className="absolute right-0 top-0 flex flex-col"
+        >
           <div className="flex flex-col gap-[16px]">
             {learners.map((learner) => (
               <LearnerItem name={learner.name} status={learner.status} />
@@ -387,7 +437,7 @@ export default function ClassModeContainer({ sessionId }) {
       ),
       container: "#class-mode-container", // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.08] rounded-[20px]",
+        overlay: "overlay-low rounded-[20px]",
       },
       height: "auto",
     });
@@ -397,11 +447,15 @@ export default function ClassModeContainer({ sessionId }) {
     showPopUp({
       id: "phase-lineup-popup",
       content: (
-        <SidePopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
-          <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-            Modules in this phase
-            <XButton onClick={() => hidePopUp("phase-lineup-popup")} />
-          </div>
+        <SidePopUp
+          headerContent={
+            <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
+              Modules in this phase
+              <XButton onClick={() => hidePopUp("phase-lineup-popup")} />
+            </div>
+          }
+          className="absolute right-0 top-0 flex flex-col"
+        >
           <PhaseLineup
             modules={getModules(phaseId)}
             activeModuleIndex={activeModuleIndex}
@@ -410,7 +464,7 @@ export default function ClassModeContainer({ sessionId }) {
       ),
       container: "#class-mode-container", // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.08] rounded-[20px]",
+        overlay: "overlay-low rounded-[20px]",
       },
       height: "auto",
     });
@@ -677,36 +731,12 @@ export default function ClassModeContainer({ sessionId }) {
                     : "grid-cols-3 grid-rows-2 gap-[16px]"
                 }`}
               >
-                {phases.map((phase, index) => (
-                  <PhaseCard
-                    type={phase.type}
-                    title={phase.name}
-                    time={phaseTimes.get(phase.id)}
-                    percentage={
-                      activePhase === phase
-                        ? elapsedTime / phase.phase_duration_seconds
-                        : phases.indexOf(activePhase) > index
-                        ? 1
-                        : 0
-                    }
-                    status={
-                      phases.indexOf(activePhase) > index
-                        ? "done"
-                        : activePhase === phase
-                        ? "active"
-                        : ""
-                    }
-                    className={`${
-                      phases.length === 1
-                        ? "col-span-1 row-span-1 h-full w-full" // Make the single card take full height and width
-                        : phases.length === 2
-                        ? "col-span-2"
-                        : phases.length === 3
-                        ? "row-span-2"
-                        : ""
-                    }`}
-                  />
-                ))}
+                <ClassModePhases
+                  phases={phases}
+                  phaseTimes={phaseTimes}
+                  elapsedTime={elapsedTime}
+                  activePhase={activePhase}
+                />
               </div>
               <ClassDetailsContainer lessonPlan={lessonPlan} />
             </div>

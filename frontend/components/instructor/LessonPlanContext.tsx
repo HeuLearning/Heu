@@ -67,6 +67,12 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
   useEffect(() => {
     const fetchPhases = async () => {
+      if (!sessionId) {
+        setLessonPlan(null);
+        setIsLoading(false);
+        setError("No session ID provided");
+        return;
+      }
       setIsLoading(true);
       setError(null);
       try {

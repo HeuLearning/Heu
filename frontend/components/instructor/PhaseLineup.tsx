@@ -5,8 +5,8 @@ export default function PhaseLineUp({ modules, activeModuleIndex }) {
   return (
     <div className="flex justify-between gap-[24px]">
       <div
-        className={`flex flex-grow flex-col gap-[24px] px-[8px] ${
-          activeModuleIndex != 0 ? "" : "pt-[10px]"
+        className={`flex flex-grow flex-col gap-[24px] ${
+          activeModuleIndex != 0 ? "" : "mt-[18px] pb-[10px]"
         }`}
       >
         {modules.map((module, index) => (

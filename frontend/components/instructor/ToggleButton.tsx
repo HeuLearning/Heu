@@ -1,9 +1,12 @@
 import React from "react";
+import { useResponsive } from "./ResponsiveContext";
 
 export default function ToggleButton({ buttonOptions, selected, onToggle }) {
   const handleToggle = (buttonText) => {
     onToggle(buttonText);
   };
+
+  const { isMobile, isTablet, isDesktop } = useResponsive();
 
   return (
     <div className="flex w-full rounded-[10px] bg-surface_bg_secondary p-[2px]">
@@ -13,7 +16,7 @@ export default function ToggleButton({ buttonOptions, selected, onToggle }) {
           <button
             key={buttonText}
             className={`
-              flex-1 rounded-[8px] py-[11px] 
+              flex-1 rounded-[8px] ${isMobile ? "h-[40px]" : "py-[11px]"} 
               text-typeface_primary
               ${
                 isSelected
