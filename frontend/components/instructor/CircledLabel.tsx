@@ -1,14 +1,27 @@
+import { useResponsive } from "./ResponsiveContext";
+
 export default function CircledLabel({ bgColor, textColor, children }) {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const size = isMobile ? "32" : "24";
   return (
-    <div className="relative h-[24px] w-[24px]">
+    <div
+      className={`relative ${
+        isMobile ? "h-[32px] w-[32px]" : "h-[24px] w-[24px]"
+      }`}
+    >
       <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        viewBox={"0 0 " + size + " " + size}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <rect width="24" height="24" rx="12" fill={bgColor} />
+        <circle
+          cy={Number(size) / 2}
+          cx={Number(size) / 2}
+          r={Number(size) / 2}
+          fill={bgColor}
+        />
       </svg>
       <p className={`${textColor} text-body-semibold center-atop-svg`}>
         {children}

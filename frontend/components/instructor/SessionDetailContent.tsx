@@ -16,6 +16,7 @@ import { useLessonPlan } from "./LessonPlanContext";
 import { useEffect, useState } from "react";
 import RSVPSelector from "./RSVPSelector";
 import { useRouter } from "next/router";
+import IconButton from "./IconButton";
 
 export default function SessionDetailContent({
   sessionId,
@@ -39,6 +40,8 @@ export default function SessionDetailContent({
     startDate = new Date(session.start_time);
     endDate = new Date(session.end_time);
   }
+
+  console.log(lessonPlan);
 
   const differenceInDaysToStart = Math.round(
     differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000)
@@ -70,7 +73,7 @@ export default function SessionDetailContent({
             <h1 className="text-typeface_primary leading-cap-height text-h1">
               {sessionId ? (
                 isMobile ? (
-                  format(startDate, "eee, MMMM do")
+                  format(startDate, "MMM d, eeee")
                 ) : (
                   format(startDate, "eeee, MMMM do")
                 )
@@ -158,13 +161,7 @@ export default function SessionDetailContent({
           isMobile ? "gap-[24px]" : "gap-[16px]"
         } `}
       >
-        <InfoCard
-          className={`stat-info-card ${
-            isMobile
-              ? "h-[160px] border-[1px] border-surface_border_tertiary px-[16px] py-[24px]"
-              : ""
-          }`}
-        >
+        <InfoCard className={`stat-info-card`}>
           {sessionId ? (
             <ClassStats
               svgBgColor="surface_bg_secondary"
@@ -192,9 +189,25 @@ export default function SessionDetailContent({
         >
           <div className={`${isMobile ? "" : "col-span-2 h-full w-full"}`}>
             <InfoCard className="overview-card h-full min-h-[300px] flex-grow">
-              <div className="flex flex-col gap-[24px]">
-                <h1 className="text-typeface_primary text-h3">Overview</h1>
-                <p className="text-typeface_secondary text-body-regular">
+              <div
+                className={`flex flex-col ${
+                  isMobile ? "gap-[21px]" : "gap-[24px]"
+                }`}
+              >
+                <h1
+                  className={`text-typeface_primary ${
+                    isMobile ? "text-body-semibold" : "text-h3"
+                  }`}
+                >
+                  Overview
+                </h1>
+                <p
+                  className={`${
+                    isMobile
+                      ? "text-typeface_primary"
+                      : "text-typeface_secondary"
+                  } text-body-regular`}
+                >
                   {sessionId ? (
                     "Plan and deliver engaging lessons that integrate listening, speaking, reading,and writing activities, tailored to students' proficiency levels, and include clear objectives, interactive exercises, and regular assessments to monitor progress."
                   ) : (
@@ -222,31 +235,33 @@ export default function SessionDetailContent({
             >
               <div className="flex flex-col gap-[24px]">
                 <div className="flex items-center justify-between">
-                  <h1 className="text-typeface_primary text-h3">
+                  <h1
+                    className={`text-typeface_primary ${
+                      isMobile ? "text-body-semibold" : "text-h3"
+                    }`}
+                  >
                     Class Schedule
                   </h1>
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+                  <IconButton
+                    className={`${
+                      isMobile ? "h-[32px] w-[32px]" : ""
+                    } outline-surface_border_tertiary`}
                   >
-                    <rect
-                      x="0.5"
-                      y="0.5"
-                      width="23"
-                      height="23"
-                      rx="5.5"
-                      stroke="#EDEDED"
-                    />
-                    <path
-                      d="M10.5 15.25L14 11.75L10.5 8.25"
-                      stroke="#404040"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                    />
-                  </svg>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M6.5 11.25L10 7.75L6.5 4.25"
+                        stroke="var(--action_bg_primary)"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                  </IconButton>
                 </div>
                 {sessionId && isLessonPlanLoaded !== "loading" ? (
                   isLessonPlanLoaded === "not confirmed instructor" ? (

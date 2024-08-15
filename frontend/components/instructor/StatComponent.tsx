@@ -32,12 +32,10 @@ export default function StatComponent({
           />
         </svg>
       </div>
-      <div className="space-y-[3px]">
+      <div className={isMobile ? "" : "space-y-[3px]"}>
         <h2
           className={`text-typeface_primary ${
-            isMobile
-              ? "h-[22px] font-[600] tracking-[-1%] text-[16px] leading-[22px]"
-              : "text-h2"
+            isMobile ? "text-body-semibold-mobile" : "text-h2-desktop"
           }`}
         >
           {heading}
@@ -45,7 +43,7 @@ export default function StatComponent({
         <h2
           className={`text-typeface_secondary ${
             isMobile
-              ? "h-[26px] font-[400] tracking-[-1%] text-[16px] leading-[26px]"
+              ? "text-body-regular-mobile"
               : "text-body-medium-cap-height"
           }`}
         >

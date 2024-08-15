@@ -26,9 +26,9 @@ export default function RSVPSelector({ session }) {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("pointerdown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
     };
   }, []);
 
@@ -47,7 +47,7 @@ export default function RSVPSelector({ session }) {
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.5]",
+        overlay: "overlay-high",
       },
       height: "276px",
     });
@@ -66,7 +66,7 @@ export default function RSVPSelector({ session }) {
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.5]",
+        overlay: "overlay-high",
       },
       height: "276px",
     });

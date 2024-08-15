@@ -6,10 +6,10 @@
   content: "";
   position: absolute;
   top: -18px;
-  left: -12px;
-  width: calc(100% + 24px);
+  left: -12px; /* Extend to the left edge of the container */
+  width: calc(100% + 24px); /* Extend 24px on both sides */
   height: calc(100% + 32px);
   border-radius: 14px;
   border: 1px solid var(--surface_border_tertiary);
-  z-index: -1;
+  z-index: 1000;
 }

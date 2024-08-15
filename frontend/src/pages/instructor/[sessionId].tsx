@@ -17,6 +17,8 @@ import { useRouter } from "next/router";
 import { SessionsProvider } from "components/instructor/SessionsContext";
 import { DndContext } from "@dnd-kit/core";
 import { LessonPlanProvider } from "components/instructor/LessonPlanContext";
+import MobileClassMode from "components/instructor/mobile/MobileClassMode";
+import { useResponsive } from "components/instructor/ResponsiveContext";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -79,6 +81,25 @@ export default function InstructorHome({
   accessToken,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   console.log(role);
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const [mobile, setMobile] = useState(false);
+  const [tablet, setTablet] = useState(false);
+  const [desktop, setDesktop] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMobile(isMobile);
+      setTablet(isTablet);
+      setDesktop(isDesktop);
+    }, 0); // Adjust the timeout as needed
+
+    return () => clearTimeout(timer);
+  }, [isMobile, isTablet, isDesktop]);
+
+  if (!mobile && !tablet && !desktop) {
+    return <div></div>; // Loading state while calculating screen size
+  }
+
   return (
     <>
       <Head>
@@ -103,8 +124,14 @@ export default function InstructorHome({
           >
             <DndContext>
               <PopUpProvider>
-                <Navbar />
-                <ClassModeContainer sessionId={sessionId} />
+                {isMobile ? (
+                  <MobileClassMode />
+                ) : (
+                  <div>
+                    <Navbar />
+                    <ClassModeContainer sessionId={sessionId} />
+                  </div>
+                )}
                 <EnhancedPopUp />
               </PopUpProvider>
             </DndContext>

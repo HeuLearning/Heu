@@ -7,6 +7,9 @@ const plugin = require("tailwindcss/plugin");
 export default {
   content: ["./src/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
   theme: {
+    screens: {
+      lg: "1024px",
+    },
     extend: {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
@@ -114,10 +117,16 @@ export default {
       addComponents({
         ".button-primary": {
           backgroundColor: theme("colors.action_bg_primary"),
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 600,
-          letterSpacing: "-0.28px",
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 600,
+            letterSpacing: "-0.28px",
+            lineHeight: "0.8",
+          },
           color: theme("colors.typeface_highlight"),
           "&:hover": {
             backgroundColor: theme("colors.action_bg_primary_hover"),
@@ -129,10 +138,16 @@ export default {
         ".button-secondary": {
           backgroundColor: theme("colors.action_bg_secondary"),
           outline: "1px solid " + theme("colors.action_border_primary"),
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 600,
-          letterSpacing: "-0.28px", // -2% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 600,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "0.8",
+          },
           color: theme("colors.typeface_primary"),
           "&:hover": {
             backgroundColor: theme("colors.action_bg_secondary_hover"),
@@ -145,32 +160,60 @@ export default {
         },
         ".button-tertiary": {
           backgroundColor: theme("colors.surface_bg_secondary"),
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 600,
-          letterSpacing: "-0.28px", // -2% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 600,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "0.8",
+          },
           color: theme("colors.typeface_primary"),
         },
         ".navbutton-selected": {
           backgroundColor: theme("colors.action_bg_secondary"),
+          fontSize: "16px",
           fontWeight: 600,
-          fontSize: "14px",
-          letterSpacing: "-0.28px", // -2% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontWeight: 600,
+            fontSize: "14px",
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "0.8",
+          },
           color: theme("colors.typeface_primary"),
         },
         ".navbutton": {
           backgroundColor: "transparent",
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 500,
-          letterSpacing: "-0.28px", // -2% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 500,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "0.8",
+          },
           color: theme("colors.typeface_primary"),
           "&:hover": {
             backgroundColor: theme("colors.action_bg_tertiary"),
           },
           "&:disabled": {
             color: theme("colors.typeface_tertiray"),
+          },
+        },
+        ".icon-button": {
+          backgroundColor: "transparent",
+          borderRadius: "6px",
+          "&:hover": {
+            backgroundColor: theme("colors.action_bg_secondary_hover"),
+          },
+          "&:active": {
+            backgroundColor: theme("colors.action_bg_secondary_press"),
           },
         },
         ".rsvp-selector": {
@@ -188,7 +231,12 @@ export default {
           },
         },
         ".language-selector": {
+          backgroundColor: theme("colors.surface_bg_highlight"),
           "&:hover": {
+            backgroundColor: theme("colors.action_bg_tertiary"),
+            color: theme("colors.typeface_primary"),
+          },
+          "&:active": {
             backgroundColor: theme("colors.action_bg_tertiary"),
             color: theme("colors.typeface_primary"),
           },
@@ -465,8 +513,20 @@ export default {
           };
         }
       );
-
       addUtilities(outlineUtilities);
+
+      const overlayUtilities = {
+        ".overlay-high": {
+          "@apply bg-surface_bg_darkest bg-opacity-[0.5]": {},
+        },
+        ".overlay-medium": {
+          "@apply bg-surface_bg_darkest bg-opacity-[0.25]": {},
+        },
+        ".overlay-low": {
+          "@apply bg-surface_bg_darkest bg-opacity-[0.08]": {},
+        },
+      };
+      addUtilities(overlayUtilities);
     }),
   ],
 } satisfies Config;

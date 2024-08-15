@@ -58,11 +58,15 @@ export default function SessionDetailViewContainer({ activeSessionId }) {
     showPopUp({
       id: "class-schedule-popup",
       content: (
-        <SidePopUp className="absolute right-0 top-0 flex flex-col gap-[24px]">
-          <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-            Class Schedule
-            <XButton onClick={() => hidePopUp("class-schedule-popup")} />
-          </div>
+        <SidePopUp
+          headerContent={
+            <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
+              Class Schedule
+              <XButton onClick={() => hidePopUp("class-schedule-popup")} />
+            </div>
+          }
+          className="absolute right-0 top-0 flex flex-col"
+        >
           {lessonPlanData.phases && (
             <ClassSchedulePopUpContainer {...lessonPlanData} />
           )}
@@ -70,7 +74,7 @@ export default function SessionDetailViewContainer({ activeSessionId }) {
       ),
       container: "#dashboard-container", // Ensure this ID exists in your DOM
       style: {
-        overlay: "bg-surface_bg_darkest bg-opacity-[0.08] rounded-[20px]",
+        overlay: "overlay-low rounded-[20px]",
       },
       height: "auto",
     });

@@ -1,0 +1,22 @@
+.sticky_header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--surface_bg_highlight);
+  border-radius: 20px 20px 0 0;
+  margin: -24px -24px 0; /* Counteract the container's padding */
+  padding: 24px 24px 0; /* Add padding back to the header content */
+}
+
+.stickyHeaderWithBorder {
+  position: relative;
+}
+
+.stickyHeaderWithBorder::after {
+  border-bottom: 1px solid var(--surface_bg_secondary);
+  content: "";
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
