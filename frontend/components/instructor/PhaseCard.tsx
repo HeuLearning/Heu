@@ -34,7 +34,7 @@ export default function PhaseCard({
   return (
     <InfoCard
       className={`flex flex-col justify-between gap-[24px] ${
-        status === "active" ? "shadow-75" : ""
+        status === "active" ? "rounded-[10px] shadow-75" : ""
       }`}
       onClick={onClick}
     >

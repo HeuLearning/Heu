@@ -1,16 +1,13 @@
 import StatComponent from "./StatComponent";
-import { useResponsive } from "./ResponsiveContext";
 
 export default function ClassStats({
   attending,
   level,
   agenda,
   classCode = "",
-  svgBgColor,
   direction = "",
+  isMobile = false,
 }) {
-  const { isMobile, isTablet, isDesktop } = useResponsive();
-
   const ConditionalWrapper = ({ condition, children }) => {
     return condition ? (
       <div
@@ -38,7 +35,7 @@ export default function ClassStats({
         <StatComponent
           heading={attending}
           subheading="Attending"
-          bgColor={svgBgColor}
+          bgColor="surface_bg_secondary"
         >
           {isMobile ? (
             <svg
@@ -68,7 +65,11 @@ export default function ClassStats({
             </svg>
           )}
         </StatComponent>
-        <StatComponent heading={level} subheading="Level" bgColor={svgBgColor}>
+        <StatComponent
+          heading={level}
+          subheading="Level"
+          bgColor="surface_bg_secondary"
+        >
           {isMobile ? (
             <svg
               width="16"
@@ -104,7 +105,7 @@ export default function ClassStats({
         <StatComponent
           heading={agenda}
           subheading="Agenda"
-          bgColor={svgBgColor}
+          bgColor="surface_bg_secondary"
         >
           {isMobile ? (
             <svg
@@ -137,7 +138,7 @@ export default function ClassStats({
         <StatComponent
           heading={classCode}
           subheading="Class Code"
-          bgColor={svgBgColor}
+          bgColor="surface_bg_secondary"
         >
           {isMobile ? (
             <svg

@@ -2,21 +2,30 @@ import Button from "../Button";
 
 export default function ButtonBar({
   primaryButtonText,
-  secondaryButtonText = "",
+  primaryButtonClassName = "",
   primaryButtonOnClick,
+  secondaryButtonText = "",
+  secondaryButtonClassName = "",
   secondaryButtonOnClick = null,
+  secondaryContent = null,
 }) {
   return (
-    <div className="z-25 border-t-1px fixed bottom-0 flex h-[65px] w-full items-center justify-center border-surface_border_tertiary bg-white p-[8px] shadow-200">
-      <div className="flex w-full  gap-[8px]">
+    <div className="z-25 fixed bottom-0 flex h-[65px] w-full items-center justify-center border-t-[1px] border-surface_border_tertiary bg-white p-[8px] shadow-200">
+      <div className="flex w-full items-center gap-[8px]">
         {secondaryButtonText && (
-          <Button className="button-secondary w-full rounded-[10px]">
+          <Button
+            className={`button-secondary w-full rounded-[10px] ${secondaryButtonClassName}`}
+            onClick={secondaryButtonOnClick}
+          >
             {secondaryButtonText}
           </Button>
         )}
+        {secondaryContent && <div>{secondaryContent}</div>}
         <Button
           onClick={primaryButtonOnClick}
-          className="button-primary w-full rounded-[10px]"
+          className={`${
+            primaryButtonClassName ? primaryButtonClassName : "button-primary"
+          } w-full rounded-[10px]`}
         >
           {primaryButtonText}
         </Button>

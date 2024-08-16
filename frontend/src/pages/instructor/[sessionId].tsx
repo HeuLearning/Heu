@@ -19,6 +19,7 @@ import { DndContext } from "@dnd-kit/core";
 import { LessonPlanProvider } from "components/instructor/LessonPlanContext";
 import MobileClassMode from "components/instructor/mobile/MobileClassMode";
 import { useResponsive } from "components/instructor/ResponsiveContext";
+import { StopwatchProvider } from "components/instructor/StopwatchContext";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -122,19 +123,13 @@ export default function InstructorHome({
             sessionId={sessionId.toString()}
             accessToken={accessToken}
           >
-            <DndContext>
-              <PopUpProvider>
-                {isMobile ? (
-                  <MobileClassMode />
-                ) : (
-                  <div>
-                    <Navbar />
-                    <ClassModeContainer sessionId={sessionId} />
-                  </div>
-                )}
-                <EnhancedPopUp />
-              </PopUpProvider>
-            </DndContext>
+            <PopUpProvider>
+              {isDesktop && <Navbar />}
+              <StopwatchProvider>
+                <ClassModeContainer sessionId={sessionId} />
+              </StopwatchProvider>
+              <EnhancedPopUp />
+            </PopUpProvider>
           </LessonPlanProvider>
         </SessionsProvider>
       </div>

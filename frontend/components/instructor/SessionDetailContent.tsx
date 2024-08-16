@@ -164,20 +164,14 @@ export default function SessionDetailContent({
         <InfoCard className={`stat-info-card`}>
           {sessionId ? (
             <ClassStats
-              svgBgColor="surface_bg_secondary"
               attending="80/120"
               level="C1"
               agenda="Target"
               classCode="7FJR92"
+              isMobile={isMobile}
             />
           ) : (
-            <ClassStats
-              svgBgColor="surface_bg_secondary"
-              attending="-"
-              level="-"
-              agenda="-"
-              classCode="-"
-            />
+            <ClassStats attending="-" level="-" agenda="-" classCode="-" />
           )}
         </InfoCard>
         <div

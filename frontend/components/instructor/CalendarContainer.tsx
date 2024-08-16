@@ -229,8 +229,8 @@ export default function CalendarContainer({
         />
         {activeTab === "Monthly" && (
           <div>
-            <div className="mx-[-16px] border-[1px] border-surface_border_tertiary"></div>
-            <p className="px-[8px] pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold">
+            <div className="mx-[-16px] border-t-[1px] border-surface_border_tertiary"></div>
+            <p className="px-[8px] pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold-cap-height">
               Coming up
             </p>
             <div className="upcoming-events flex flex-col items-center">

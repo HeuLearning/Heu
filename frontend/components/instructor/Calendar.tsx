@@ -229,7 +229,7 @@ export default function Calendar({
               )}
             </div>
             <div
-              className={`-mt-[2px] flex flex-col items-center px-[1px] pb-[24px] ${styles["react-calendar"]}`}
+              className={`-mt-[2px] flex flex-col items-center px-[1px] pb-[22px] ${styles["react-calendar"]}`}
             >
               <ReactCalendar
                 defaultValue={new Date()}

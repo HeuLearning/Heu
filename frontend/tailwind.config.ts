@@ -480,10 +480,16 @@ export default {
         ".button-disabled": {
           cursor: "not-allowed",
           backgroundColor: theme("colors.surface_bg_secondary"),
-          fontSize: "14px",
+          fontSize: "16px",
           fontWeight: 600,
-          letterSpacing: "-0.28px", // -2% of 14px
-          lineHeight: "0.8",
+          letterSpacing: "-0.16px", // -1% of 16px
+          lineHeight: "22px",
+          "@screen lg": {
+            fontSize: "14px",
+            fontWeight: 600,
+            letterSpacing: "-0.28px", // -2% of 14px
+            lineHeight: "0.8",
+          },
           color: theme("colors.typeface_tertiary"),
         },
         ".hide-default-scrollbar": {
