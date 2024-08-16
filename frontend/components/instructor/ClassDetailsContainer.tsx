@@ -15,7 +15,6 @@ export default function ClassDetailsContainer({ lessonPlan }) {
         level="C1"
         agenda="Target"
         classCode="7FJR92"
-        svgBgColor="surface_bg_highlight"
         direction="flex-col gap-[32px]"
       />
     </SideBar>

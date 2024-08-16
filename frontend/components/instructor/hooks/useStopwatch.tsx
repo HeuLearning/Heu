@@ -12,6 +12,7 @@ interface StopwatchControls {
   resetTimer: () => void;
   lapTimer: () => void;
   setElapsedTime: (time: number) => void;
+  getTime: () => { elapsedTime: number; elapsedLapTime: number };
 }
 
 const useStopwatch = (): [StopwatchState, StopwatchControls] => {
@@ -62,9 +63,17 @@ const useStopwatch = (): [StopwatchState, StopwatchControls] => {
     }));
   }, []);
 
+  const getTime = useCallback(
+    () => ({
+      elapsedTime: state.elapsedTime,
+      elapsedLapTime: state.elapsedLapTime,
+    }),
+    [state.elapsedTime, state.elapsedLapTime]
+  );
+
   return [
     state,
-    { startTimer, stopTimer, resetTimer, lapTimer, setElapsedTime },
+    { startTimer, stopTimer, resetTimer, lapTimer, setElapsedTime, getTime },
   ];
 };
 

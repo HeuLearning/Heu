@@ -2,7 +2,7 @@ import Button from "./Button";
 import ClassDetailsContainer from "./ClassDetailsContainer";
 import ClassModeHeaderBar from "./ClassModeHeaderBar";
 import PhaseCard from "./PhaseCard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import LearnerItem from "./LearnerItem";
 import CompletionBar from "./CompletionBar";
@@ -12,27 +12,15 @@ import { usePopUp } from "./PopUpContext";
 import SidePopUp from "./SidePopUp";
 import XButton from "./XButton";
 import PhaseLineup from "./PhaseLineup";
-import WordBankItem from "components/exercise/WordBankItem";
-import AudioPlayer from "components/exercise/AudioPlayer";
-import {
-  DndContext,
-  useSensor,
-  useSensors,
-  PointerSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  DragOverlay,
-} from "@dnd-kit/core";
-import ImageCard from "components/exercise/ImageCard";
-import Textbox from "components/exercise/Textbox";
-import MinimalExample from "./MinimalExample";
-import ConversationBubble from "components/exercise/ConversationBubble";
 import { useLessonPlan } from "./LessonPlanContext";
 import useStopwatch from "./hooks/useStopwatch";
-import CircledLabel from "./CircledLabel";
 import PopUp from "./PopUp";
 import ClassModePhases from "./ClassModePhases";
+import ClassModeContent from "./ClassModeContent";
+import { StopwatchProvider, useStopwatchControls } from "./StopwatchContext";
+import ClassModeFooter from "./ClassModeFooter";
+import { useResponsive } from "./ResponsiveContext";
+import MobileClassMode from "./mobile/MobileClassMode";
 
 const learners = [
   {
@@ -108,127 +96,22 @@ const learners = [
 ];
 
 export default function ClassModeContainer({ sessionId }) {
+  // website navbar = 64, bottom margin = 16
+  const dashboardHeight = window.innerHeight - 64 - 16;
+
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+
   const { phases, getModules, lessonPlan, phaseTimes } = useLessonPlan();
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(MouseSensor),
-    useSensor(TouchSensor)
-  );
-
-  const [
-    { isRunning, elapsedTime, elapsedLapTime },
-    { startTimer, stopTimer, resetTimer, lapTimer, setElapsedTime },
-  ] = useStopwatch();
 
   const [activePhaseId, setActivePhaseId] = useState<number | null>(null);
   const [showInitialClassPage, setShowInitialClassPage] = useState(true);
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
-  const [activeItem, setActiveItem] = useState(null);
   const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
   const [classStarted, setClassStarted] = useState(false);
 
   const { upcomingSessions } = useSessions();
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [dropItems, setDropItems] = useState([
-    {
-      id: "drop1",
-      letter: "",
-      content: "",
-      droppable: true,
-      draggable: false,
-      x: false,
-    },
-    {
-      id: "drop2",
-      letter: "",
-      content: "",
-      droppable: true,
-      draggable: false,
-      x: false,
-    },
-    {
-      id: "drop3",
-      letter: "",
-      content: "",
-      droppable: true,
-      draggable: false,
-      x: false,
-    },
-    {
-      id: "drop4",
-      letter: "",
-      content: "",
-      droppable: true,
-      draggable: false,
-      x: false,
-    },
-    {
-      id: "drop5",
-      letter: "",
-      content: "",
-      droppable: true,
-      draggable: false,
-      x: false,
-    },
-  ]);
-  const [dragItems, setDragItems] = useState([
-    {
-      id: "drag1",
-      content: "It's 19 Solo Drive.",
-      letter: "A",
-      draggable: true,
-      droppable: false,
-      x: false,
-    },
-    {
-      id: "drag2",
-      content: "I'm from China.",
-      letter: "B",
-      draggable: true,
-      droppable: false,
-      x: false,
-    },
-    {
-      id: "drag3",
-      content: "I'm Han.",
-      letter: "C",
-      draggable: true,
-      droppable: false,
-      x: false,
-    },
-    {
-      id: "drag4",
-      content: "My teacher is Gracie Smith.",
-      letter: "D",
-      draggable: true,
-      droppable: false,
-      x: false,
-    },
-    {
-      id: "drag5",
-      content: "It's H-A-N.",
-      letter: "E",
-      draggable: true,
-      droppable: false,
-      x: false,
-    },
-  ]);
-
-  const [placeholders, setPlaceholders] = useState([
-    { id: "placeholder1", droppable: true, placeholder: true },
-    { id: "placeholder2", droppable: true, placeholder: true },
-    { id: "placeholder3", droppable: true, placeholder: true },
-    { id: "placeholder4", droppable: true, placeholder: true },
-    { id: "placeholder5", droppable: true, placeholder: true },
-  ]);
-
-  const [originalDragItems, setOriginalDragItems] = useState([]);
-
-  useEffect(() => {
-    setOriginalDragItems(dragItems);
-  }, []);
 
   const { hidePopUp, showPopUp } = usePopUp();
 
@@ -258,87 +141,13 @@ export default function ClassModeContainer({ sessionId }) {
     setActiveModuleIndex(0);
   }, [activePhaseId]);
 
-  const handleDragDropReset = (id) => {
-    const oldIndex = originalDragItems.findIndex((item) => item.id === id);
-    const originalDragItem = dropItems.find((item) => item.id === id);
-    const originalDropItem = dragItems[oldIndex];
-
-    setDragItems((prevItems) => {
-      const newItems = prevItems.map((item, index) => {
-        if (index === oldIndex) {
-          return { ...originalDragItem, x: false };
-        }
-        return item;
-      });
-      return newItems;
-    });
-    setDropItems((prevItems) => {
-      const newItems = prevItems.map((item, index) => {
-        if (item.id === id) {
-          return { ...originalDropItem };
-        }
-        return item;
-      });
-      return newItems;
-    });
-  };
-
-  useEffect(() => {
-    if (
-      activeModule &&
-      totalElapsedTime.length - 1 === activeModuleIndex &&
-      elapsedTime >=
-        totalElapsedTime[activeModuleIndex] +
-          activeModule.suggested_duration_seconds
-    ) {
-      stopTimer();
-    }
-  }, [elapsedTime, activeModule, activeModuleIndex]);
+  const controls = useStopwatchControls();
+  const { stopTimer, startTimer, lapTimer, resetTimer, setElapsedTime } =
+    controls;
 
   const router = useRouter();
   const handleBack = () => {
     router.push("instructor-test");
-  };
-
-  function handleDragStart(event) {
-    const newActiveItem = dragItems.find((item) => item.id === event.active.id);
-    setActiveItem(newActiveItem);
-  }
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-
-    if (over && active) {
-      const overItem = dropItems.find((item) => item.id === over.id);
-      const activeItem = dragItems.find((item) => item.id === active.id);
-
-      if (overItem && activeItem) {
-        setDropItems((prevItems) => {
-          return prevItems.map((item) => {
-            if (item.id === over.id) {
-              return { ...activeItem, x: true };
-            }
-            return item;
-          });
-        });
-        setDragItems((prevItems) => {
-          return prevItems.map((item) => {
-            if (item.id === active.id) {
-              return { ...overItem, letter: null };
-            }
-            return item;
-          });
-        });
-        setPlaceholders((prevItems) => {
-          return prevItems.map((item) => {
-            if (item.id.charAt(-1) === active.id.charAt(-1)) {
-              return { ...item, droppable: false };
-            }
-          });
-        });
-      }
-    }
-    setActiveItem(null);
   };
 
   const handleNextModule = (module, index) => {
@@ -350,9 +159,6 @@ export default function ClassModeContainer({ sessionId }) {
     lapTimer();
     setActiveModuleIndex(index + 1);
   };
-
-  console.log(activeModuleIndex);
-  console.log(totalElapsedTime);
 
   const handleNextPhase = () => {
     const currentPhaseIndex = phases.findIndex(
@@ -470,12 +276,12 @@ export default function ClassModeContainer({ sessionId }) {
     });
   };
 
-  const PhaseDetails = ({ phase, onBack }) => (
+  const PhaseDetails = ({ onBack }) => (
     <div className="flex h-full flex-col gap-[8px]">
       <ClassModeHeaderBar
         onBack={onBack}
         iconName={"practice"}
-        title={phase.name}
+        title={activePhase.name}
         rightSide={
           <div className="flex items-center gap-[12px]">
             <button onClick={handleShowLearners}>
@@ -498,7 +304,7 @@ export default function ClassModeContainer({ sessionId }) {
                 />
               </svg>
             </button>
-            <button onClick={() => displayPhaseLineup(phase.id)}>
+            <button onClick={() => displayPhaseLineup(activePhase.id)}>
               <svg
                 width="32"
                 height="32"
@@ -523,231 +329,116 @@ export default function ClassModeContainer({ sessionId }) {
           </div>
         }
       />
-      <div className="flex h-full flex-col">
-        <div className="flex h-[550px] flex-col gap-[28px] rounded-[10px] p-[18px] outline-surface_border_tertiary">
-          <div className="flex items-center gap-[12px]">
-            <CircledLabel
-              bgColor="var(--surface_bg_darkest)"
-              textColor="text-typeface_highlight"
-            >
-              {activeModuleIndex + 1}
-            </CircledLabel>
-            <div className="text-typeface_primary text-body-semibold">
-              {activeModule.name}
-            </div>
-          </div>
-          <div>
-            <div className="flex gap-[24px]">
-              <div className="w-[243px]">
-                <WordBankItem id="1" letter="1">
-                  What's your name?
-                </WordBankItem>
-                <WordBankItem id="2" letter="2">
-                  How do you spell your name?
-                </WordBankItem>
-                <WordBankItem id="3" letter="3">
-                  Where are you from?
-                </WordBankItem>
-                <WordBankItem id="4" letter="4">
-                  What's your address?
-                </WordBankItem>
-                <WordBankItem id="5" letter="5">
-                  Who's your teacher?
-                </WordBankItem>
-              </div>
-              <div>
-                {Array.from({ length: 5 }).map(() => (
-                  <div className="p-[8px]">
-                    <svg
-                      width="17"
-                      height="16"
-                      viewBox="0 0 17 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M7 11.25L10.5 7.75L7 4.25"
-                        stroke="var(--surface_bg_darkest)"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                      />
-                    </svg>
-                  </div>
-                ))}
-              </div>
-              <DndContext
-                sensors={sensors}
-                onDragEnd={handleDragEnd}
-                collisionDetection={closestCenter}
-              >
-                <div className="flex gap-4">
-                  <div className="flex w-[263px] flex-col gap-[4px] rounded-[14px] bg-surface_bg_secondary p-[4px]">
-                    {dropItems.map((item) => (
-                      <WordBankItem
-                        key={item.id}
-                        id={item.id}
-                        letter={item.letter}
-                        droppable={item.droppable}
-                        x={item.x}
-                        handleReset={() => handleDragDropReset(item.id)}
-                      >
-                        {item.content}
-                      </WordBankItem>
-                    ))}
-                  </div>
-                  <div className="relative flex w-[263px] flex-col rounded-[14px] bg-surface_bg_secondary p-[4px]">
-                    <div className="z-[2] flex w-full flex-col gap-[4px]">
-                      {dragItems.map((item) => (
-                        <WordBankItem
-                          key={item.id}
-                          id={item.id}
-                          letter={item.letter}
-                          draggable={item.draggable}
-                          x={item.x}
-                        >
-                          {item.content}
-                        </WordBankItem>
-                      ))}
-                    </div>
-                    <div className="border-1px absolute left-0 top-0 z-[0] flex w-[263px] flex-col gap-[4px] rounded-[14px] border-dashed border-surface_border_primary p-[4px]">
-                      {placeholders.map((item) => (
-                        <WordBankItem
-                          id={item.id}
-                          droppable={item.droppable}
-                          placeholder={item.placeholder}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div></div>
-                <div>{"elapsedTime:" + elapsedTime}</div>
-                <div>{"elapsed time in module: " + elapsedLapTime}</div>
-              </DndContext>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-between gap-[24px] px-[24px] py-[18px]">
-          <div className="flex flex-grow gap-[4px]">
-            {getModules(activePhase.id).map((module, index) => (
-              <CompletionBar
-                percentage={
-                  activeModuleIndex === index
-                    ? elapsedLapTime / module.suggested_duration_seconds
-                    : activeModuleIndex > index
-                    ? 1
-                    : 0
-                }
-              />
-            ))}
-          </div>
-          <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
-            {phaseTimes.get(phase.id)}
-          </p>
-          <Button
-            className={
-              Math.min(
-                elapsedLapTime,
-                activeModule.suggested_duration_seconds
-              ) /
-                activeModule.suggested_duration_seconds >
-              0.05
-                ? "button-primary"
-                : "button-disabled"
-            }
-            onClick={
-              activeModuleIndex === activePhase.modules.length - 1
-                ? phases.indexOf(activePhase) === phases.length - 1
-                  ? () => handleEndClass()
-                  : () => handleNextPhase()
-                : () => handleNextModule(activeModule, activeModuleIndex)
-            }
-          >
-            {activeModuleIndex === activePhase.modules.length - 1
-              ? phases.indexOf(activePhase) === phases.length - 1
-                ? "End class"
-                : "Next phase"
-              : "Next module"}
-          </Button>
-        </div>
+      <div className="flex h-full flex-col gap-[8px]">
+        <ClassModeContent
+          activeModule={activeModule}
+          activeModuleIndex={activeModuleIndex}
+        />
+        <ClassModeFooter
+          totalElapsedTime={totalElapsedTime}
+          activePhase={activePhase}
+          activeModule={activeModule}
+          activeModuleIndex={activeModuleIndex}
+          handleNextModule={handleNextModule}
+          handleNextPhase={handleNextPhase}
+          handleEndClass={handleEndClass}
+        />
       </div>
     </div>
   );
 
-  if (!isLoading) {
-    return (
-      <div
-        id="class-mode-container"
-        className="relative mb-4 ml-4 mr-4 flex min-h-[600px] flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
-      >
-        {showInitialClassPage ? (
-          <div>
-            <ClassModeHeaderBar
-              onBack={handleBack}
-              title={
-                session?.start_time
-                  ? format(new Date(session.start_time), "eeee, MMMM do")
-                  : "Loading..."
-              }
-              subtitle={
-                session?.start_time && session?.end_time
-                  ? format(new Date(session.start_time), "h:mma") +
-                    " - " +
-                    format(new Date(session.end_time), "h:mma")
-                  : "Loading..."
-              }
-              rightSide={
-                <div className="flex gap-[12px]">
-                  {classStarted && (
-                    <Button
-                      className="button-tertiary"
-                      onClick={handleEndClassPopUp}
-                    >
-                      End class
-                    </Button>
-                  )}
-                  <Button className="button-primary" onClick={handleStartClass}>
-                    {!classStarted ? "Start class" : "Continue class"}
-                  </Button>
-                  <Button
-                    className="button-secondary"
-                    onClick={handleResetTimer}
-                  >
-                    Reset
-                  </Button>
-                </div>
-              }
-            />
+  const sharedProps = {
+    activePhase,
+    activePhaseId,
+    setActivePhaseId,
+    activeModule,
+    activeModuleIndex,
+    setActiveModuleIndex,
+    classStarted,
+    setClassStarted,
+    handleStartClass,
+    handleEndClass,
+    handleNextModule,
+    handleNextPhase,
+    learners,
+  };
 
-            <div className="flex flex-grow justify-between gap-[24px]">
-              <div
-                className={`grid flex-grow ${
-                  phases.length === 1
-                    ? "grid-cols-1 grid-rows-1 gap-[16px]"
-                    : phases.length === 2
-                    ? "grid-cols-2 grid-rows-1 gap-[16px]"
-                    : phases.length === 3
-                    ? "grid-cols-3 grid-rows-1 gap-[16px]"
-                    : "grid-cols-3 grid-rows-2 gap-[16px]"
-                }`}
-              >
-                <ClassModePhases
-                  phases={phases}
-                  phaseTimes={phaseTimes}
-                  elapsedTime={elapsedTime}
-                  activePhase={activePhase}
-                />
+  if (!isLoading) {
+    if (isMobile) return <MobileClassMode {...sharedProps} />;
+    else
+      return (
+        <div
+          id="class-mode-container"
+          style={{ height: dashboardHeight }}
+          className="relative mb-4 ml-4 mr-4 flex flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
+        >
+          {showInitialClassPage ? (
+            <div className="flex h-full flex-col">
+              <ClassModeHeaderBar
+                onBack={handleBack}
+                title={
+                  session?.start_time
+                    ? format(new Date(session.start_time), "eeee, MMMM do")
+                    : "Loading..."
+                }
+                subtitle={
+                  session?.start_time && session?.end_time
+                    ? format(new Date(session.start_time), "h:mma") +
+                      " - " +
+                      format(new Date(session.end_time), "h:mma")
+                    : "Loading..."
+                }
+                rightSide={
+                  <div className="flex gap-[12px]">
+                    {classStarted && (
+                      <Button
+                        className="button-tertiary"
+                        onClick={handleEndClassPopUp}
+                      >
+                        End class
+                      </Button>
+                    )}
+                    <Button
+                      className="button-primary"
+                      onClick={handleStartClass}
+                    >
+                      {!classStarted ? "Start class" : "Continue class"}
+                    </Button>
+                    <Button
+                      className="button-secondary"
+                      onClick={handleResetTimer}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                }
+              />
+
+              <div className="flex flex-grow justify-between gap-[24px]">
+                <div
+                  className={`grid flex-grow ${
+                    phases.length === 1
+                      ? "grid-cols-1 grid-rows-1 gap-[16px]"
+                      : phases.length === 2
+                      ? "grid-cols-2 grid-rows-1 gap-[16px]"
+                      : phases.length === 3
+                      ? "grid-cols-3 grid-rows-1 gap-[16px]"
+                      : "grid-cols-3 grid-rows-2 gap-[16px]"
+                  }`}
+                >
+                  <ClassModePhases
+                    phases={phases}
+                    phaseTimes={phaseTimes}
+                    activePhase={activePhase}
+                  />
+                </div>
+                <ClassDetailsContainer lessonPlan={lessonPlan} />
               </div>
-              <ClassDetailsContainer lessonPlan={lessonPlan} />
             </div>
-          </div>
-        ) : (
-          <PhaseDetails
-            phase={activePhase}
-            onBack={() => setShowInitialClassPage(true)}
-          />
-        )}
-      </div>
-    );
+          ) : (
+            <PhaseDetails onBack={() => setShowInitialClassPage(true)} />
+          )}
+        </div>
+      );
   }
 }

@@ -11,8 +11,8 @@ export default function DashboardContainer({ accessToken }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [activeSessionId, setActiveSessionId] = useState(null);
 
-  // website navbar = 64, bottom margin = 15
-  const dashboardHeight = window.innerHeight - 64 - 15;
+  // website navbar = 64, bottom margin = 16
+  const dashboardHeight = window.innerHeight - 64 - 16;
 
   const renderSessionDetailViewContainer = () => (
     <div className="flex-grow">

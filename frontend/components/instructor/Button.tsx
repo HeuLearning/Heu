@@ -10,7 +10,7 @@ export default function Button({
   return (
     <button
       className={`relative inline-flex ${justifyContent} items-center rounded-[10px] px-[12px] ${className} ${
-        isMobile ? "h-[44px]" : "pb-[10.6px] pt-[11.4px]" // supposed to be 11px but cap height on button slightly off...
+        isMobile ? "h-[44px]" : "h-[32px] pt-[1.12px]" // supposed to be 11px but cap height on button slightly off...
       }`}
       onClick={onClick}
     >
