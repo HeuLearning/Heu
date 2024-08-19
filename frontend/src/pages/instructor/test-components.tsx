@@ -15,6 +15,7 @@ import ButtonBar from "components/instructor/mobile/ButtonBar";
 import MobileClassDetails from "components/instructor/mobile/MobileClassDetails";
 import MobileDetailView from "components/instructor/mobile/MobileDetailView";
 import AudioPlayer from "components/exercise/AudioPlayer";
+import AudioPlayerMobile from "components/exercise/AudioPlayerMobile";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -135,6 +136,10 @@ export default function InstructorHome({
                 audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"
                 title="Coffee Shop"
               ></AudioPlayer>
+              <AudioPlayerMobile
+                audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"
+                title="Coffee Shop"
+              ></AudioPlayerMobile>
             </MobileDetailView>
           </div>
           <EnhancedPopUp />

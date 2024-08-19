@@ -149,7 +149,7 @@ export default function AudioPlayerMobile({ audioSrc, title }) {
           }`}
           style={{ letterSpacing: "-1%" }}
         >
-          {isPlaying ? formatTime(currentTime) : formatTime(duration)}
+          {formatTime(currentTime)}
         </p>
       </div>
     </div>
