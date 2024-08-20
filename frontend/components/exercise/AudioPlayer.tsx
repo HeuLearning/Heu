@@ -9,13 +9,7 @@ export default function AudioPlayer({ audioSrc, title }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
-  const { isMobile, isTablet, isDesktop } = useResponsive();
-
-  if (isMobile) {
-    return (
-      <AudioPlayerMobile audioSrc={audioSrc} title={title}></AudioPlayerMobile>
-    );
-  }
+  const { isMobile } = useResponsive();
 
   const togglePlay = () => {
     if (isPlaying) {
@@ -50,7 +44,7 @@ export default function AudioPlayer({ audioSrc, title }) {
     };
   }, [audioSrc]);
 
-  const radius = 62;
+  const radius = isMobile ? 22 : 62;
   const dashArray = radius * Math.PI * 2;
   const lastValidDashOffset = useRef(dashArray);
   const calculatedDashOffset =
@@ -66,7 +60,10 @@ export default function AudioPlayer({ audioSrc, title }) {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  return (
+  // Single return statement with conditional rendering
+  return isMobile ? (
+    <AudioPlayerMobile audioSrc={audioSrc} title={title} />
+  ) : (
     <div className="relative h-[128px] w-[128px]">
       <div className="relative flex h-[128px] w-[128px] items-center justify-center">
         <svg
