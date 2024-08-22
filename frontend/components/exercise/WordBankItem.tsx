@@ -59,7 +59,7 @@ export default function WordBankItem({
           {checkbox ? (
             <Checkbox
               onClick={handleReset}
-              className="absolute right-[10px] top-[50%] m-0 -translate-y-1/2 transform"
+              className="absolute right-[10px] top-1/2 -translate-y-1/2 transform"
             />
           ) : null}
           {letter ? (

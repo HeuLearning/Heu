@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import React from "react";
 import { useStopwatchContext } from "./StopwatchContext";
-import FillInTheBlank from "components/exercise/FillInTheBlank";
+import FillInTheBlank from "components/exercise/FillInTheBlankExercise";
 
 function ClassModeContent({
   activeModuleIndex,
@@ -252,7 +252,7 @@ function ClassModeContent({
       <div className="flex h-full w-full items-center justify-center bg-white p-6">
         <div className="flex gap-[128px]" style={{ alignItems: "flex-start" }}>
           {/* Left Container: Questions */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
             {questions.map((question) => (
               <FillInTheBlank
                 key={question.id}
