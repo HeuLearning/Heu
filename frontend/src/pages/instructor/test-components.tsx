@@ -16,6 +16,8 @@ import MobileClassDetails from "components/instructor/mobile/MobileClassDetails"
 import MobileDetailView from "components/instructor/mobile/MobileDetailView";
 import AudioPlayer from "components/exercise/AudioPlayer";
 import AudioPlayerMobile from "components/exercise/AudioPlayerMobile";
+import ClassModeContent from "components/instructor/ClassModeContent";
+import { StopwatchProvider } from "components/instructor/StopwatchContext";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -76,20 +78,23 @@ export default function InstructorHome({
   const [mobile, setMobile] = useState(false);
   const [tablet, setTablet] = useState(false);
   const [desktop, setDesktop] = useState(false);
+  const [testFillInTheBlank, setTestFillInTheBlank] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setMobile(isMobile);
       setTablet(isTablet);
       setDesktop(isDesktop);
-    }, 0); // Adjust the timeout as needed
+    }, 0);
 
     return () => clearTimeout(timer);
   }, [isMobile, isTablet, isDesktop]);
 
   if (!mobile && !tablet && !desktop) {
-    return <div></div>; // Loading state while calculating screen size
+    return <div></div>;
   }
+
+  const activeModule = { name: "Instruction" };
 
   return (
     <>
@@ -110,37 +115,26 @@ export default function InstructorHome({
       <div>
         <PopUpProvider>
           <div className="bg-surface_bg_primary">
-            <MobileDetailView
-              backgroundColor="bg-surface_bg_highlight"
-              className="px-[16px] pt-[24px]"
-              headerContent={
-                <div className="flex items-center gap-[12px]">
-                  <h3 className="text-typeface_primary text-h3">
-                    Class Schedule
-                  </h3>
+            <StopwatchProvider>
+              <div className="px-[16px] pt-[24px]">
+                <h3 className="text-typeface_primary text-h3">
+                  Test Class Mode Content
+                </h3>
+                <button
+                  onClick={() => setTestFillInTheBlank(!testFillInTheBlank)}
+                  className="mb-4 rounded bg-blue-500 text-white hover:bg-blue-600"
+                >
+                  Toggle Fill In The Blank Test
+                </button>
+                <div className="h-[500px] bg-white">
+                  <ClassModeContent
+                    activeModuleIndex={0}
+                    activeModule={activeModule}
+                    testFillInTheBlank={testFillInTheBlank}
+                  />
                 </div>
-              }
-            >
-              <div className="pb-[81px]">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-                pellentesque auctor scelerisque. Quisque dictum nunc ut vehicula
-                vehicula. Ut at mi eu nisi tempor vehicula non at lacus. Sed
-                nunc nibh, finibus quis maximus ac, euismod a risus. Duis cursus
-                id urna at gravida.erra massa vel tempor tempus. Nunc gravida
-                cursus venenatis. Integer placerat eleifend nisi a commodo.
-                Phasellus non fermentum leo, at posuere purus. Maecenas rhoncus
-                pulvinar neque, et condimentum odio laoreet vitae. Nulla
-                molestie dui vitae faucibus dapibus.
               </div>
-              <AudioPlayer
-                audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"
-                title="Coffee Shop"
-              ></AudioPlayer>
-              <AudioPlayerMobile
-                audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"
-                title="Coffee Shop"
-              ></AudioPlayerMobile>
-            </MobileDetailView>
+            </StopwatchProvider>
           </div>
           <EnhancedPopUp />
         </PopUpProvider>

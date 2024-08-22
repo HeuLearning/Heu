@@ -56,7 +56,12 @@ export default function WordBankItem({
             </svg>
           ) : null}
           {radio ? <RadioButton /> : null}
-          {checkbox ? <Checkbox /> : null}
+          {checkbox ? (
+            <Checkbox
+              onClick={handleReset}
+              className="absolute right-[10px] top-[50%] m-0 -translate-y-1/2 transform"
+            />
+          ) : null}
           {letter ? (
             <div className="z-0">
               <CircledLabel
