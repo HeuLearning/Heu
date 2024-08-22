@@ -2,16 +2,23 @@ import React, { useState } from "react";
 import Checkbox from "./Checkbox";
 
 interface FillInTheBlankProps {
+  id: string;
+  speaker: string;
+  text: string;
   answer: string;
-  onAnswerChange: (answer: string) => void;
   correctAnswer: string;
+  onAnswerChange: (answer: string) => void;
 }
 
 const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
+  id,
+  speaker,
+  text,
   answer,
-  onAnswerChange,
   correctAnswer,
+  onAnswerChange,
 }) => {
+  const parts = text.split("[blank]");
   const [isActive, setIsActive] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,7 +32,7 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
   const containerWidth =
     Math.max(correctAnswer.length, "Type here".length) * 10 + 20;
 
-  return (
+  const inputContent = (
     <div
       className="relative inline-block flex h-[32px] items-center rounded-md border border-[#EDEDED] bg-white"
       style={{
@@ -55,6 +62,50 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
           className="absolute right-[10px] top-1/2 -translate-y-1/2 transform"
         />
       )}
+    </div>
+  );
+
+  return (
+    <div
+      className={`mb-2 flex items-center ${
+        speaker === "Jon" ? "justify-end" : "justify-start"
+      } mb-[8px] w-full max-w-[1000px]`}
+    >
+      <div
+        className={`flex items-center rounded-lg ${
+          speaker === "Paula" ? "flex-row-reverse" : ""
+        }`}
+        style={{
+          width: "fit-content",
+          maxWidth: "100%",
+          minHeight: "40px",
+          borderRadius:
+            speaker === "Paula" ? "20px 14px 14px 4px" : "14px 20px 4px 14px",
+          backgroundColor: speaker === "Paula" ? "#E1F1FF" : "#EDEDED",
+          padding: "4px 4.5px",
+        }}
+      >
+        <div className="flex min-h-[32px] min-w-0 flex-shrink flex-grow flex-wrap items-center">
+          <span className="inline-flex items-center px-[10px] py-[4px] font-semibold text-[#292929] text-sm">
+            {parts[0]}
+          </span>
+          {inputContent}
+          <span className="inline-flex items-center px-[10px] py-[4px] font-semibold text-[#292929] text-sm">
+            {parts[1]}
+          </span>
+        </div>
+        <div className="flex flex-shrink-0 items-center p-[4px]">
+          <div
+            className={`flex h-[24px] items-center rounded-full px-[8px] ${
+              speaker === "Paula" ? "bg-[#339ED3]" : "bg-[#5B5B5B]"
+            }`}
+          >
+            <span className="font-semibold tracking-tight text-white text-sm leading-[16.94px]">
+              {speaker}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
