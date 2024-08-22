@@ -3,7 +3,7 @@ import FillInTheBlankComponent from "./FillInTheBlank";
 
 interface Question {
   id: string;
-  speakerIndex: number; // Changed from 'speaker' to 'speakerIndex'
+  speakerIndex: number;
   text: string;
   answer: string;
   correctAnswer: string;
@@ -35,7 +35,6 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
   );
 
   useEffect(() => {
-    // Check if the number of words matches the number of blanks
     const blankCount = questions.reduce(
       (count, question) =>
         count + (question.text.match(/\[blank\]/g) || []).length,
@@ -77,20 +76,68 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
       <div className="flex gap-[128px]" style={{ alignItems: "flex-start" }}>
         {/* Left Container: Questions */}
         <div className="flex flex-col">
-          {questions.map((question) => (
-            <FillInTheBlankComponent
-              key={question.id}
-              id={question.id}
-              speaker={speakers[question.speakerIndex]} // Use speakerIndex to get the speaker name
-              text={question.text}
-              answer={question.answer}
-              correctAnswer={question.correctAnswer}
-              onAnswerChange={(answer) =>
-                handleAnswerChange(question.id, answer)
-              }
-              speakers={speakers}
-            />
-          ))}
+          {questions.map((question) => {
+            const parts = question.text.split("[blank]");
+            const speaker = speakers[question.speakerIndex];
+            const isFirstSpeaker = question.speakerIndex === 0;
+
+            return (
+              <div
+                key={question.id}
+                className={`mb-2 flex items-center ${
+                  !isFirstSpeaker ? "justify-end" : "justify-start"
+                } mb-[8px] w-full max-w-[1000px]`}
+              >
+                <div
+                  className={`flex items-center rounded-lg ${
+                    isFirstSpeaker ? "flex-row-reverse" : ""
+                  }`}
+                  style={{
+                    width: "fit-content",
+                    maxWidth: "100%",
+                    minHeight: "40px",
+                    borderRadius: isFirstSpeaker
+                      ? "20px 14px 14px 4px"
+                      : "14px 20px 4px 14px",
+                    backgroundColor: isFirstSpeaker ? "#E1F1FF" : "#EDEDED",
+                    padding: "4px 4.5px",
+                  }}
+                >
+                  <div className="flex min-h-[32px] min-w-0 flex-shrink flex-grow flex-wrap items-center">
+                    {parts[0] && (
+                      <span className="inline-flex items-center px-[10px] py-[4px] font-semibold text-[#292929] text-sm">
+                        {parts[0]}
+                      </span>
+                    )}
+                    <FillInTheBlankComponent
+                      id={question.id}
+                      answer={question.answer}
+                      correctAnswer={question.correctAnswer}
+                      onAnswerChange={(answer) =>
+                        handleAnswerChange(question.id, answer)
+                      }
+                    />
+                    {parts[1] && (
+                      <span className="inline-flex items-center px-[10px] py-[4px] font-semibold text-[#292929] text-sm">
+                        {parts[1]}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-shrink-0 items-center p-[4px]">
+                    <div
+                      className={`flex h-[24px] items-center rounded-full px-[8px] ${
+                        isFirstSpeaker ? "bg-[#339ED3]" : "bg-[#5B5B5B]"
+                      }`}
+                    >
+                      <span className="font-semibold tracking-tight text-white text-sm leading-[16.94px]">
+                        {speaker}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Right Container: Word Bank */}

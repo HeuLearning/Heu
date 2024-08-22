@@ -1,26 +1,18 @@
 import React, { useState } from "react";
-import Checkbox from "./Checkbox";
 
 interface FillInTheBlankProps {
   id: string;
-  speaker: string;
-  text: string;
   answer: string;
   correctAnswer: string;
   onAnswerChange: (answer: string) => void;
-  speakers: string[];
 }
 
 const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
   id,
-  speaker,
-  text,
   answer,
   correctAnswer,
   onAnswerChange,
-  speakers,
 }) => {
-  const parts = text.split("[blank]");
   const [isActive, setIsActive] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +26,7 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
   const containerWidth =
     Math.max(correctAnswer.length, "Type here".length) * 10 + 20;
 
-  const inputContent = (
+  return (
     <div
       className="relative inline-block flex h-[32px] items-center rounded-md border border-[#EDEDED] bg-white"
       style={{
@@ -59,59 +51,13 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
         }}
       />
       {answer && (
-        <Checkbox
+        <button
           onClick={handleReset}
           className="absolute right-[10px] top-1/2 -translate-y-1/2 transform"
-        />
+        >
+          &#10005; {/* X icon as a reset button */}
+        </button>
       )}
-    </div>
-  );
-
-  const speakerIndex = speakers.indexOf(speaker);
-  const isFirstSpeaker = speakerIndex === 0;
-
-  return (
-    <div
-      className={`mb-2 flex items-center ${
-        !isFirstSpeaker ? "justify-end" : "justify-start"
-      } mb-[8px] w-full max-w-[1000px]`}
-    >
-      <div
-        className={`flex items-center rounded-lg ${
-          isFirstSpeaker ? "flex-row-reverse" : ""
-        }`}
-        style={{
-          width: "fit-content",
-          maxWidth: "100%",
-          minHeight: "40px",
-          borderRadius: isFirstSpeaker
-            ? "20px 14px 14px 4px"
-            : "14px 20px 4px 14px",
-          backgroundColor: isFirstSpeaker ? "#E1F1FF" : "#EDEDED",
-          padding: "4px 4.5px",
-        }}
-      >
-        <div className="flex min-h-[32px] min-w-0 flex-shrink flex-grow flex-wrap items-center">
-          <span className="inline-flex items-center px-[10px] py-[4px] font-semibold text-[#292929] text-sm">
-            {parts[0]}
-          </span>
-          {inputContent}
-          <span className="inline-flex items-center px-[10px] py-[4px] font-semibold text-[#292929] text-sm">
-            {parts[1]}
-          </span>
-        </div>
-        <div className="flex flex-shrink-0 items-center p-[4px]">
-          <div
-            className={`flex h-[24px] items-center rounded-full px-[8px] ${
-              isFirstSpeaker ? "bg-[#339ED3]" : "bg-[#5B5B5B]"
-            }`}
-          >
-            <span className="font-semibold tracking-tight text-white text-sm leading-[16.94px]">
-              {speaker}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

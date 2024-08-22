@@ -1,12 +1,14 @@
 import React from "react";
 import MatchingExercise from "components//exercise/MatchingExercise";
 import FillInTheBlankExercise from "components/exercise/FillInTheBlankExercise";
+import QAFillInBlankExercise from "components/exercise/QAFillInTheBlankExercise";
 
 function ClassModeContent({
   activeModuleIndex,
   activeModule,
   testFillInTheBlank = false,
   testMatchingExercise = false,
+  testQAFillInTheBlank = false,
 }) {
   if (testFillInTheBlank) {
     const fillInTheBlankData = {
@@ -64,9 +66,60 @@ function ClassModeContent({
     return <MatchingExercise />;
   }
 
+  if (testQAFillInTheBlank) {
+    const qaFillInBlankData = {
+      questions: [
+        {
+          id: "q1",
+          text: "[blank] is your birthday?",
+          answer: "",
+          correctAnswer: "when",
+        },
+        {
+          id: "q2",
+          text: "What [blank] is it?",
+          answer: "",
+          correctAnswer: "day",
+        },
+        {
+          id: "q3",
+          text: "What [blank] is it?",
+          answer: "",
+          correctAnswer: "month",
+        },
+        {
+          id: "q4",
+          text: "What [blank] is English class?",
+          answer: "",
+          correctAnswer: "day",
+        },
+        {
+          id: "q5",
+          text: "What [blank] is September 9th?",
+          answer: "",
+          correctAnswer: "day",
+        },
+      ],
+      answers: [
+        "It's March 13th.",
+        "It's Tuesday.",
+        "It's June.",
+        "It's Monday.",
+        "It's Thursday.",
+      ],
+      words: [
+        { id: "word1", content: "when" },
+        { id: "word2", content: "day" },
+        { id: "word3", content: "month" },
+      ],
+    };
+
+    return <QAFillInBlankExercise {...qaFillInBlankData} />;
+  }
+
   return (
     <div className="flex h-full w-full items-center justify-center bg-white p-6">
-      No Exercise Input
+      Toggle Exercise
     </div>
   );
 }
