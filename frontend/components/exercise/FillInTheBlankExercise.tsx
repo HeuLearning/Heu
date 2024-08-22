@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import FillInTheBlankComponent from "./FillInTheBlankComponent";
+import React, { useState, useEffect } from "react";
+import FillInTheBlankComponent from "./FillInTheBlank";
 
 interface Question {
   id: string;
-  speaker: string;
+  speakerIndex: number; // Changed from 'speaker' to 'speakerIndex'
   text: string;
   answer: string;
   correctAnswer: string;
@@ -12,57 +12,44 @@ interface Question {
 interface Word {
   id: string;
   content: string;
+}
+
+interface WordWithUsedStatus extends Word {
   used: boolean;
 }
 
-const FillInTheBlankExercise: React.FC = () => {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: "q1",
-      speaker: "Paula",
-      text: "Hi, Jon! How's the [blank] today?",
-      answer: "",
-      correctAnswer: "weather",
-    },
-    {
-      id: "q2",
-      speaker: "Jon",
-      text: "It's bad. It's snowy and [blank].",
-      answer: "",
-      correctAnswer: "rainy",
-    },
-    {
-      id: "q3",
-      speaker: "Paula",
-      text: "Oh no. What's the [blank] today?",
-      answer: "",
-      correctAnswer: "temperature",
-    },
-    {
-      id: "q4",
-      speaker: "Jon",
-      text: "It's about 30 [blank]. It's cold in the winter!",
-      answer: "",
-      correctAnswer: "degrees",
-    },
-    {
-      id: "q5",
-      speaker: "Paula",
-      text: "In Haiti, it's [blank] sometimes. But it's always hot.",
-      answer: "",
-      correctAnswer: "windy",
-    },
-  ]);
+interface FillInTheBlankExerciseProps {
+  questions: Question[];
+  words: Word[];
+  speakers: string[];
+}
 
-  const [wordBank, setWordBank] = useState<Word[]>([
-    { id: "word1", content: "temperature", used: false },
-    { id: "word2", content: "weather", used: false },
-    { id: "word3", content: "degrees", used: false },
-    { id: "word4", content: "rainy", used: false },
-    { id: "word5", content: "windy", used: false },
-  ]);
+const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
+  questions: initialQuestions,
+  words: initialWords,
+  speakers,
+}) => {
+  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
+  const [words, setWords] = useState<WordWithUsedStatus[]>(
+    initialWords.map((word) => ({ ...word, used: false }))
+  );
 
-  const largestWord = wordBank.reduce(
+  useEffect(() => {
+    // Check if the number of words matches the number of blanks
+    const blankCount = questions.reduce(
+      (count, question) =>
+        count + (question.text.match(/\[blank\]/g) || []).length,
+      0
+    );
+
+    if (blankCount !== initialWords.length) {
+      console.warn(
+        `Mismatch between number of blanks (${blankCount}) and number of words (${initialWords.length})`
+      );
+    }
+  }, [questions, initialWords]);
+
+  const largestWord = words.reduce(
     (max, word) => (word.content.length > max.length ? word.content : max),
     ""
   );
@@ -74,8 +61,8 @@ const FillInTheBlankExercise: React.FC = () => {
       prevQuestions.map((q) => (q.id === id ? { ...q, answer } : q))
     );
 
-    setWordBank((prevBank) =>
-      prevBank.map((word) =>
+    setWords((prevWords) =>
+      prevWords.map((word) =>
         word.content === answer
           ? { ...word, used: true }
           : word.content === questions.find((q) => q.id === id)?.answer
@@ -92,14 +79,16 @@ const FillInTheBlankExercise: React.FC = () => {
         <div className="flex flex-col">
           {questions.map((question) => (
             <FillInTheBlankComponent
+              key={question.id}
               id={question.id}
-              speaker={question.speaker}
+              speaker={speakers[question.speakerIndex]} // Use speakerIndex to get the speaker name
               text={question.text}
               answer={question.answer}
               correctAnswer={question.correctAnswer}
               onAnswerChange={(answer) =>
                 handleAnswerChange(question.id, answer)
               }
+              speakers={speakers}
             />
           ))}
         </div>
@@ -112,7 +101,7 @@ const FillInTheBlankExercise: React.FC = () => {
           }}
         >
           <div className="flex flex-col gap-[4px]">
-            {wordBank.map((word, index) => (
+            {words.map((word, index) => (
               <div
                 key={index}
                 className={`h-[32px] ${

@@ -79,6 +79,7 @@ export default function InstructorHome({
   const [tablet, setTablet] = useState(false);
   const [desktop, setDesktop] = useState(false);
   const [testFillInTheBlank, setTestFillInTheBlank] = useState(false);
+  const [testMatching, setTestMatching] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -131,6 +132,19 @@ export default function InstructorHome({
                     activeModuleIndex={0}
                     activeModule={activeModule}
                     testFillInTheBlank={testFillInTheBlank}
+                  />
+                </div>
+                <button
+                  onClick={() => setTestMatching(!testMatching)}
+                  className="mb-4 rounded bg-blue-500 text-white hover:bg-blue-600"
+                >
+                  Toggle Matching Test
+                </button>
+                <div className="h-[500px] bg-white">
+                  <ClassModeContent
+                    activeModuleIndex={0}
+                    activeModule={activeModule}
+                    testMatchingExercise={testMatching}
                   />
                 </div>
               </div>

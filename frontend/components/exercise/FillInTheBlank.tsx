@@ -8,6 +8,7 @@ interface FillInTheBlankProps {
   answer: string;
   correctAnswer: string;
   onAnswerChange: (answer: string) => void;
+  speakers: string[];
 }
 
 const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
@@ -17,6 +18,7 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
   answer,
   correctAnswer,
   onAnswerChange,
+  speakers,
 }) => {
   const parts = text.split("[blank]");
   const [isActive, setIsActive] = useState(false);
@@ -65,23 +67,27 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
     </div>
   );
 
+  const speakerIndex = speakers.indexOf(speaker);
+  const isFirstSpeaker = speakerIndex === 0;
+
   return (
     <div
       className={`mb-2 flex items-center ${
-        speaker === "Jon" ? "justify-end" : "justify-start"
+        !isFirstSpeaker ? "justify-end" : "justify-start"
       } mb-[8px] w-full max-w-[1000px]`}
     >
       <div
         className={`flex items-center rounded-lg ${
-          speaker === "Paula" ? "flex-row-reverse" : ""
+          isFirstSpeaker ? "flex-row-reverse" : ""
         }`}
         style={{
           width: "fit-content",
           maxWidth: "100%",
           minHeight: "40px",
-          borderRadius:
-            speaker === "Paula" ? "20px 14px 14px 4px" : "14px 20px 4px 14px",
-          backgroundColor: speaker === "Paula" ? "#E1F1FF" : "#EDEDED",
+          borderRadius: isFirstSpeaker
+            ? "20px 14px 14px 4px"
+            : "14px 20px 4px 14px",
+          backgroundColor: isFirstSpeaker ? "#E1F1FF" : "#EDEDED",
           padding: "4px 4.5px",
         }}
       >
@@ -97,7 +103,7 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
         <div className="flex flex-shrink-0 items-center p-[4px]">
           <div
             className={`flex h-[24px] items-center rounded-full px-[8px] ${
-              speaker === "Paula" ? "bg-[#339ED3]" : "bg-[#5B5B5B]"
+              isFirstSpeaker ? "bg-[#339ED3]" : "bg-[#5B5B5B]"
             }`}
           >
             <span className="font-semibold tracking-tight text-white text-sm leading-[16.94px]">
