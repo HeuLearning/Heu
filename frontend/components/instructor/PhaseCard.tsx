@@ -67,8 +67,8 @@ export default function PhaseCard({
               <path
                 d="M1.5 4L4.5 7L10.5 1"
                 stroke="var(--typeface_secondary)"
-                stroke-width="2"
-                stroke-linecap="round"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
             <p className="text-typeface_secondary text-body-semibold">Done</p>

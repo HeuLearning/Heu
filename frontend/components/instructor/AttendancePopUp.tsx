@@ -80,9 +80,9 @@ export default function AttendancePopUp({ session, action, popUpId }) {
                 {format(startDate, "eeee")}
               </h1>
               <h1 className="text-typeface_secondary text-body-medium">
-                {format(startDate, "h:mma") +
+                {format(startDate, "h:mm a") +
                   " - " +
-                  format(session.end_time, "h:mma")}
+                  format(session.end_time, "h:mm a")}
               </h1>
             </div>
           </div>

@@ -38,7 +38,7 @@
 .dayLabel {
   font-size: 16px;
   font-weight: 400;
-  color: var(--typeface_primary);
+  color: var(--typeface_secondary);
   margin: 4px 0 0 0;
   text-align: center;
   padding-bottom: 12px;
@@ -63,4 +63,11 @@
   border-radius: 100%;
   background-color: var(--surface_bg_darkest);
   color: var(--typeface_highlight) !important;
+}
+
+.today {
+  border: 1px solid var(--surface_border_tertiary);
+  background-color: white;
+  color: var(--typeface_primary);
+  border-radius: 100%;
 }

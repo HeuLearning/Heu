@@ -5,11 +5,14 @@ export default function Button({
   className,
   onClick = null,
   children,
+  disabled = false,
 }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <button
-      className={`relative inline-flex ${justifyContent} items-center rounded-[10px] px-[12px] ${className} ${
+      className={`relative inline-flex ${justifyContent} items-center rounded-[10px] px-[12px] ${
+        disabled ? "button-disabled" : className
+      } ${
         isMobile ? "h-[44px]" : "h-[32px] pt-[1.12px]" // supposed to be 11px but cap height on button slightly off...
       }`}
       onClick={onClick}

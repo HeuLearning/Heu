@@ -42,8 +42,8 @@ export default function ShowMoreButton({
                 <path
                   d="M8.5 5.5L5 2L1.5 5.5"
                   stroke="var(--surface_bg_darkest)"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
               </svg>
             ) : (
@@ -57,8 +57,8 @@ export default function ShowMoreButton({
                 <path
                   d="M1.5 1.5L5 5L8.5 1.5"
                   stroke="var(--surface_bg_darkest)"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
               </svg>
             )}

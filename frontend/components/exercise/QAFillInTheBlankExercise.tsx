@@ -43,7 +43,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
             <div key={question.id} className="mb-4 flex h-8 w-fit items-center">
               <div className="flex items-center px-2.5">
                 <CircledLabel
-                  bgColor="surface_bg_secondary"
+                  bgColor="var(--surface_bg_secondary)"
                   textColor="text-typeface_primary"
                 >
                   {index + 1}

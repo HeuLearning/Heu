@@ -1,9 +1,18 @@
 import { useState } from "react";
 import MobileNavMenu from "./MobileNavMenu";
 
-export default function HamburgerIcon({ onClick }) {
+export default function HamburgerIcon({
+  onClick,
+  variation = "",
+  className = "",
+}) {
   return (
-    <button className="rounded-full shadow-25" onClick={onClick}>
+    <button
+      className={`${
+        variation ? variation : ""
+      } ${className} rounded-full shadow-25`}
+      onClick={onClick}
+    >
       <svg
         width="44"
         height="44"
