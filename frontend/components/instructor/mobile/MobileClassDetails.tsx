@@ -130,11 +130,16 @@ export default function MobileClassDetails({
       <div className="absolute inset-0 max-h-screen overflow-y-auto">
         <MobileDetailView
           backgroundColor="bg-surface_bg_highlight"
-          className="px-[16px] pt-[24px]"
+          className="px-[16px] pt-[16px]"
           headerContent={
-            <div className="flex items-center gap-[12px]">
-              <BackButton onClick={hideClassSchedule} />
-              <h3 className="text-typeface_primary text-h3">Class Schedule</h3>
+            <div className="flex h-[44px] w-full items-center justify-center">
+              <BackButton
+                onClick={hideClassSchedule}
+                className="absolute left-0"
+              />
+              <h3 className="text-typeface_primary text-body-medium">
+                Class schedule
+              </h3>
             </div>
           }
         >
@@ -152,28 +157,17 @@ export default function MobileClassDetails({
             : false
         }
         backgroundColor="bg-surface_bg_highlight"
-        className="px-[16px] pt-[24px]"
+        className="px-[16px] pt-[16px]"
         headerContent={
-          <div className="relative flex w-full items-center justify-center">
-            <h3 className="p-[8px] text-typeface_primary text-body-medium-mobile">
+          <div className="relative flex h-[44px] w-full items-center justify-center">
+            <h3 className="text-typeface_primary text-body-medium-mobile">
               Class details
             </h3>
-            <div className="absolute right-0">
-              <XButton onClick={() => closeClassDetails()} />
-            </div>
-          </div>
-        }
-        headerContentOnScroll={
-          <div className="flex w-full items-center justify-between">
-            <div className="flex gap-[16px] pl-[8px]">
-              <h3 className="text-typeface_primary text-h3">
-                {format(startDate, "MMMM do")}
-              </h3>
-              <h3 className="text-typeface_secondary text-h3">
-                {format(startDate, "h:mma") + " - " + format(endDate, "h:mma")}
-              </h3>
-            </div>
-            <XButton onClick={() => closeClassDetails()} />
+            <XButton
+              variation="button-secondary"
+              onClick={() => closeClassDetails()}
+              className="absolute right-0"
+            />
           </div>
         }
       >
@@ -186,7 +180,9 @@ export default function MobileClassDetails({
           />
         </div>
       </MobileDetailView>
-      {session &&
+      {!session ? (
+        <div>loading</div>
+      ) : (
         (getSessionStatus(session) === "Pending" ||
           getSessionStatus(session) === "Online") && (
           <div className="relative">
@@ -197,7 +193,6 @@ export default function MobileClassDetails({
               />
             ) : getSessionStatus(session) === "Online" ? (
               <div>
-                {void console.log("blah")}
                 <ButtonBar
                   primaryButtonText="Enter class"
                   primaryButtonOnClick={handleEnterClass}
@@ -205,7 +200,8 @@ export default function MobileClassDetails({
               </div>
             ) : null}
           </div>
-        )}
+        )
+      )}
     </div>
   );
 }

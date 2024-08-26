@@ -73,6 +73,17 @@ export default function CalendarContainer({
   const sessionMap = useMemo(() => createSessionMap(), [allSessions]);
 
   const renderDailySessions = () => {
+    if (
+      upcomingSessions.filter(
+        (session) =>
+          new Date(session.start_time).getMonth() === visibleMonth.getMonth()
+      ).length === 0
+    )
+      return (
+        <div className="text-typeface_primary text-body-medium">
+          No sessions booked this month.
+        </div>
+      );
     return upcomingSessions
       .filter(
         (session) =>
@@ -171,7 +182,7 @@ export default function CalendarContainer({
     return (
       <div
         id="calendar-container"
-        className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary p-[16px] outline-surface_border_tertiary"
+        className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary px-[16px] pt-[16px] outline-surface_border_tertiary"
       >
         <div className="custom-calendar-header flex justify-between px-[8px] pb-[48px] pt-[8px]">
           <span className="text-typeface_primary leading-tight text-h1">
@@ -191,9 +202,9 @@ export default function CalendarContainer({
               >
                 <path
                   d="M9.75 4.75L6.25 8.25L9.75 11.75"
-                  stroke="var(--surface_bg_darkest)"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
               </svg>
             </IconButton>
@@ -210,9 +221,9 @@ export default function CalendarContainer({
               >
                 <path
                   d="M6.25 11.25L9.75 7.75L6.25 4.25"
-                  stroke="var(--surface_bg_darkest)"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
               </svg>
             </IconButton>
@@ -233,17 +244,17 @@ export default function CalendarContainer({
             <p className="px-[8px] pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold-cap-height">
               Coming up
             </p>
-            <div className="upcoming-events flex flex-col items-center">
+            <div className="upcoming-events flex flex-col items-center pb-[16px]">
               {renderUpcomingSessions()}
             </div>
           </div>
         )}
         {activeTab === "Daily" && (
-          <div className="h-[548px] overflow-y-auto hide-default-scrollbar">
+          <div className="h-[570px] overflow-y-auto hide-default-scrollbar">
             <div className="daily-events mt-[8px] flex flex-col items-center">
               {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
             only dateCard for most upcoming session */}
-              {renderDailySessions()}
+              <div className="pb-[32px]">{renderDailySessions()}</div>
             </div>
           </div>
         )}

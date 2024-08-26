@@ -6,10 +6,9 @@ import { usePopUp } from "../PopUpContext";
 import MobileClassDetails from "./MobileClassDetails";
 import MobileDetailView from "./MobileDetailView";
 import { useSessions } from "../SessionsContext";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { LessonPlanProvider } from "../LessonPlanContext";
-
-const selectedDay = (val) => {};
+import { isSameDay } from "date-fns";
 
 // this is equivalent to the web DashboardContainer + CalendarContainer, since the dashboard is simply the calendar
 export default function MobileDashboard({
@@ -20,15 +19,13 @@ export default function MobileDashboard({
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { upcomingSessions } = useSessions();
+  const { allSessions, upcomingSessions, getSessionStatus } = useSessions();
   const horizontalDatePickerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
   let session;
   if (activeSessionId) {
-    session = upcomingSessions.find(
-      (session) => session.id === activeSessionId
-    );
+    session = allSessions.find((session) => session.id === activeSessionId);
   }
 
   const closeClassDetails = () => {
@@ -86,7 +83,13 @@ export default function MobileDashboard({
   }, []);
 
   const renderSessions = () => {
-    return upcomingSessions.map((session, index, filteredSessions) => {
+    let sessions;
+    if (selectedDate)
+      sessions = allSessions.filter((session) =>
+        isSameDay(selectedDate, new Date(session.start_time))
+      );
+    else sessions = upcomingSessions;
+    return sessions?.map((session, index, filteredSessions) => {
       const currentDate = new Date(session.start_time);
       const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
       const previousDate =
@@ -129,6 +132,36 @@ export default function MobileDashboard({
   // navbar = 64, containerHeight = horizontaldatepicker, border = 1
   const scrollContainerHeight = window.innerHeight - 64 - containerHeight - 1;
 
+  const createSessionMap = () => {
+    const sessionMap = new Map();
+    allSessions.forEach((session) => {
+      const startDate = new Date(session.start_time);
+      const year = startDate.getFullYear();
+      const month = startDate.getMonth();
+      const day = startDate.getDate();
+      // key in the map based on the session day online, not time
+      const dateKey = `${year}-${month}-${day}`;
+      const status = getSessionStatus(session);
+      // circle color
+      let color;
+      if (status === "Canceled" || status === "Attended")
+        color = "var(--typeface_tertiary)";
+      else if (status === "Confirmed" || status === "Online")
+        color = "var(--status_fg_positive)";
+      else if (status === "Pending") color = "var(--typeface_primary)";
+      if (sessionMap.get(dateKey)) {
+        sessionMap.get(dateKey).push(color);
+      } else {
+        sessionMap.set(dateKey, new Array(color));
+      }
+    });
+    return sessionMap;
+  };
+
+  const sessionMap = useMemo(() => createSessionMap(), [allSessions]);
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
   return (
     <div
       className={`${
@@ -137,8 +170,9 @@ export default function MobileDashboard({
     >
       <div ref={horizontalDatePickerRef}>
         <HorizontalDatePicker
-          getSelectedDay={selectedDay}
-          labelFormat={"MMMM"}
+          sessionMap={sessionMap}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
         />
       </div>
       <div className="bg-surface_bg_tertiary">

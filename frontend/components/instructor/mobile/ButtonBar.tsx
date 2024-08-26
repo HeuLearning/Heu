@@ -14,7 +14,7 @@ export default function ButtonBar({
       <div className="flex w-full items-center gap-[8px]">
         {secondaryButtonText && (
           <Button
-            className={`button-secondary w-full rounded-[10px] ${secondaryButtonClassName}`}
+            className={`button-secondary w-1/3 rounded-[10px] ${secondaryButtonClassName}`}
             onClick={secondaryButtonOnClick}
           >
             {secondaryButtonText}
@@ -25,7 +25,9 @@ export default function ButtonBar({
           onClick={primaryButtonOnClick}
           className={`${
             primaryButtonClassName ? primaryButtonClassName : "button-primary"
-          } w-full rounded-[10px]`}
+          } ${
+            secondaryButtonText || secondaryContent ? "w-2/3" : "w-full"
+          } rounded-[10px]`}
         >
           {primaryButtonText}
         </Button>

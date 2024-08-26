@@ -20,12 +20,13 @@ export default function MobileClassModeNotebook({
     <MobileDetailView
       backgroundColor="bg-surface_bg_highlight"
       headerContent={
-        <div className="flex w-full flex-col gap-[32px]">
-          <div className="flex items-center justify-center">
+        <div className="flex w-full flex-col gap-[16px] px-[16px]">
+          <div className="flex h-[44px] w-full items-center justify-center">
             <h1 className="text-typeface_primary text-body-medium">Notebook</h1>
-            <div className="absolute right-0">
-              <XButton onClick={() => setIsNotebookShown(false)} />
-            </div>
+            <XButton
+              onClick={() => setIsNotebookShown(false)}
+              className="absolute right-[16px]"
+            />
           </div>
           <ToggleButton
             buttonOptions={["Modules in this phase", "Learners"]}
@@ -34,12 +35,17 @@ export default function MobileClassModeNotebook({
           />
         </div>
       }
-      className="absolute inset-0 z-50 px-[16px] pt-[24px]"
+      className="z-50 pt-[16px]"
     >
       {activeTab === "Modules in this phase" ? (
-        <PhaseLineUp modules={modules} activeModuleIndex={activeModuleIndex} />
+        <div className="px-[20px] pt-[16px]">
+          <PhaseLineUp
+            modules={modules}
+            activeModuleIndex={activeModuleIndex}
+          />
+        </div>
       ) : (
-        <div className="flex flex-col gap-[16px]">
+        <div className="flex flex-col gap-[20px] px-[16px] pt-[16px]">
           {learners.map((learner) => (
             <LearnerItem name={learner.name} status={learner.status} />
           ))}

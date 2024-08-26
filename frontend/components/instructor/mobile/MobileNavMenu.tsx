@@ -26,14 +26,23 @@ export default function MobileNavMenu({ closeMenu }) {
   return (
     <MobileDetailView
       backgroundColor="bg-surface_bg_tertiary"
-      className="px-[24px] pt-[24px]"
+      className="px-[16px] pt-[16px]"
+      headerContent={
+        selectedNavButton === "Language" ? (
+          <div className="flex h-[44px] w-full items-center justify-center">
+            <h3 className="text-typeface_primary text-body-medium">Language</h3>
+            <BackButton onClick={goBack} className="absolute left-0" />
+          </div>
+        ) : (
+          <div className="flex h-[44px] w-full items-center justify-center">
+            <h3 className="text-typeface_primary text-body-medium">Menu</h3>
+            <XButton onClick={closeMenu} className="absolute right-0" />
+          </div>
+        )
+      }
     >
       {selectedNavButton === "Language" ? (
         <div className="space-y-[24px]">
-          <div className="flex items-center gap-[24px]">
-            <BackButton onClick={goBack} />
-            <h3 className="text-typeface_primary text-h3">Language</h3>
-          </div>
           <div className="flex flex-col gap-[24px]">
             {languages.map((language) => (
               <NavButton
@@ -47,10 +56,6 @@ export default function MobileNavMenu({ closeMenu }) {
         </div>
       ) : (
         <div className="space-y-[24px]">
-          <div className="flex items-center justify-between">
-            <h3 className="text-typeface_primary text-h3">Menu</h3>
-            <XButton onClick={closeMenu} />
-          </div>
           <div className="flex flex-col gap-[24px]">
             {navButtons.map((buttonText) => (
               <NavButton
