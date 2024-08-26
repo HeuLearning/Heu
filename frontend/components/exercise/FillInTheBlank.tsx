@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import IconButton from "../instructor/IconButton";
+import Checkbox from "./Checkbox";
 
 interface FillInTheBlankProps {
   id: string;
@@ -28,7 +30,7 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
 
   return (
     <div
-      className="relative inline-block flex h-[32px] items-center rounded-md border border-[#EDEDED] bg-white"
+      className="relative inline-flex h-8 items-center rounded-md border border-surface_border_tertiary bg-surface_bg_highlight"
       style={{
         width: containerWidth,
         padding: "0px 10px 0px 12px",
@@ -40,23 +42,25 @@ const FillInTheBlank: React.FC<FillInTheBlankProps> = ({
         onChange={handleInputChange}
         onFocus={() => setIsActive(true)}
         onBlur={() => setIsActive(false)}
-        className={`h-full w-full font-medium outline-none text-sm ${
+        className={`h-full w-full outline-none text-body-medium ${
           isActive
-            ? "text-[#BFBFBF] placeholder-[#BFBFBF]"
-            : "text-[#292929] placeholder-[#999999]"
+            ? "text-typeface_tertiary placeholder-typeface_tertiary"
+            : "text-typeface_primary placeholder-typeface_secondary"
         }`}
         placeholder="Type here"
         style={{
-          paddingRight: "8px",
+          paddingRight: answer ? "24px" : "8px",
         }}
       />
       {answer && (
-        <button
-          onClick={handleReset}
-          className="absolute right-[10px] top-1/2 -translate-y-1/2 transform"
-        >
-          &#10005; {/* X icon as a reset button */}
-        </button>
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 transform">
+          <IconButton
+            className="icon-button flex items-center justify-center"
+            onClick={handleReset}
+          >
+            <Checkbox />
+          </IconButton>
+        </div>
       )}
     </div>
   );

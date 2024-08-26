@@ -10,6 +10,57 @@ function ClassModeContent({
   testMatchingExercise = false,
   testQAFillInTheBlank = false,
 }) {
+  if (testQAFillInTheBlank) {
+    const qaFillInBlankData = {
+      questions: [
+        {
+          id: "q1",
+          text: "[blank] is your birthday?",
+          answer: "",
+          correctAnswer: "when",
+        },
+        {
+          id: "q2",
+          text: "What [blank] is it?",
+          answer: "",
+          correctAnswer: "day",
+        },
+        {
+          id: "q3",
+          text: "What [blank] is it?",
+          answer: "",
+          correctAnswer: "month",
+        },
+        {
+          id: "q4",
+          text: "What [blank] is English class?",
+          answer: "",
+          correctAnswer: "day",
+        },
+        {
+          id: "q5",
+          text: "What [blank] is September 9th?",
+          answer: "",
+          correctAnswer: "day",
+        },
+      ],
+      answers: [
+        "It's March 13th.",
+        "It's Tuesday.",
+        "It's June.",
+        "It's Monday.",
+        "It's Thursday.",
+      ],
+      words: [
+        { id: "word1", content: "when" },
+        { id: "word2", content: "day" },
+        { id: "word3", content: "month" },
+      ],
+    };
+
+    return <QAFillInBlankExercise {...qaFillInBlankData} />;
+  }
+
   if (testFillInTheBlank) {
     const fillInTheBlankData = {
       questions: [
@@ -64,57 +115,6 @@ function ClassModeContent({
 
   if (testMatchingExercise) {
     return <MatchingExercise />;
-  }
-
-  if (testQAFillInTheBlank) {
-    const qaFillInBlankData = {
-      questions: [
-        {
-          id: "q1",
-          text: "[blank] is your birthday?",
-          answer: "",
-          correctAnswer: "when",
-        },
-        {
-          id: "q2",
-          text: "What [blank] is it?",
-          answer: "",
-          correctAnswer: "day",
-        },
-        {
-          id: "q3",
-          text: "What [blank] is it?",
-          answer: "",
-          correctAnswer: "month",
-        },
-        {
-          id: "q4",
-          text: "What [blank] is English class?",
-          answer: "",
-          correctAnswer: "day",
-        },
-        {
-          id: "q5",
-          text: "What [blank] is September 9th?",
-          answer: "",
-          correctAnswer: "day",
-        },
-      ],
-      answers: [
-        "It's March 13th.",
-        "It's Tuesday.",
-        "It's June.",
-        "It's Monday.",
-        "It's Thursday.",
-      ],
-      words: [
-        { id: "word1", content: "when" },
-        { id: "word2", content: "day" },
-        { id: "word3", content: "month" },
-      ],
-    };
-
-    return <QAFillInBlankExercise {...qaFillInBlankData} />;
   }
 
   return (

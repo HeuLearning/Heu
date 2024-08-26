@@ -1,10 +1,13 @@
 import React from "react";
 
-export default function Checkbox({ onClick, className }) {
+interface CheckboxProps {
+  className?: string;
+}
+
+const Checkbox: React.FC<CheckboxProps> = ({ className = "" }) => {
   return (
     <div
-      className={`ml-auto flex h-[16px] w-[16px] items-center justify-center ${className}`}
-      onClick={onClick}
+      className={`flex h-[16px] w-[16px] items-center justify-center ${className}`}
     >
       <svg
         width="9"
@@ -22,4 +25,6 @@ export default function Checkbox({ onClick, className }) {
       </svg>
     </div>
   );
-}
+};
+
+export default Checkbox;

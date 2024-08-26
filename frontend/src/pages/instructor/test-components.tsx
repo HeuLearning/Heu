@@ -10,6 +10,8 @@ import EnhancedPopUp from "components/instructor/EnhancedPopUp";
 import { useResponsive } from "components/instructor/ResponsiveContext";
 import ClassModeContent from "components/instructor/ClassModeContent";
 import { StopwatchProvider } from "components/instructor/StopwatchContext";
+import AudioButton from "components/exercise/AudioButton";
+import AudioPlayer from "components/exercise/AudioPlayer";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   // ... (getServerSideProps implementation remains the same)
@@ -62,19 +64,25 @@ export default function InstructorHome({
         <StopwatchProvider>
           <div className="min-h-screen bg-white">
             <main className="container mx-auto px-4 py-8">
-              <h1 className="mb-8 bg-[#F2E5FD] font-bold text-typeface_primary text-4xl">
+              <h1 className="mb-8 rounded-[10px] font-medium tracking-[-0.02em] text-[#292929] text-[18px] leading-[22px]">
                 Test Class Mode Content
               </h1>
+              <AudioPlayer
+                title="Coffee Shop"
+                audioSrc={
+                  "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"
+                }
+              ></AudioPlayer>
 
               <section className="mb-12">
-                <h2 className="mb-4 bg-[#F2E5FD] font-semibold text-3xl">
+                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
                   Q&A Fill in the Blank Exercise
                 </h2>
                 <button
                   onClick={() => setTestQAFillInTheBlank(!testQAFillInTheBlank)}
-                  className="mb-4 rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
                 >
-                  {testQAFillInTheBlank ? "Hide" : "Show"} Fill In The Blank
+                  {testQAFillInTheBlank ? "Hide" : "Show"} Q&A Fill In The Blank
                   Test
                 </button>
                 {testQAFillInTheBlank && (
@@ -91,12 +99,12 @@ export default function InstructorHome({
               </section>
 
               <section className="mb-12">
-                <h2 className="mb-4 bg-[#F2E5FD] font-semibold text-3xl">
+                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
                   Fill in the Blank Exercise
                 </h2>
                 <button
                   onClick={() => setTestFillInTheBlank(!testFillInTheBlank)}
-                  className="mb-4 rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
                 >
                   {testFillInTheBlank ? "Hide" : "Show"} Fill In The Blank Test
                 </button>
@@ -114,12 +122,12 @@ export default function InstructorHome({
               </section>
 
               <section>
-                <h2 className="mb-4 bg-[#F2E5FD] font-semibold text-3xl">
+                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
                   Matching Exercise
                 </h2>
                 <button
                   onClick={() => setTestMatching(!testMatching)}
-                  className="mb-4 rounded bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
+                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
                 >
                   {testMatching ? "Hide" : "Show"} Matching Test
                 </button>

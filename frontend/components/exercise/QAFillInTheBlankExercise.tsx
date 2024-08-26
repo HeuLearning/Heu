@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import FillInTheBlank from "./FillInTheBlank";
-import Badge from "./Badge";
+import CircledLabel from "../instructor/CircledLabel";
 
 interface Question {
   id: string;
@@ -33,20 +33,25 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   return (
     <div className="flex h-full w-full items-center justify-center bg-white p-6">
-      <div className="flex items-start gap-[128px]">
+      <div className="flex items-start gap-32">
         {/* Questions Container */}
         <div className="flex flex-col">
-          <h2 className="mb-4 pl-[12px] font-normal tracking-[-0.02em] text-[#292929] text-[14px] leading-6">
+          <h2 className="mb-4 pl-3 text-typeface_primary text-body-regular">
             Questions:
           </h2>
           {questions.map((question, index) => (
             <div key={question.id} className="mb-4 flex h-8 w-fit items-center">
-              <div className="flex items-center px-[10px]">
-                <Badge number={index + 1} />
+              <div className="flex items-center px-2.5">
+                <CircledLabel
+                  bgColor="#EDEDED"
+                  textColor="text-typeface_primary"
+                >
+                  {index + 1}
+                </CircledLabel>
               </div>
               <div className="flex items-center">
                 {question.text.split("[blank]")[0] && (
-                  <span className="px-[10px] font-semibold text-[#292929] font-[Inter] text-[14px] leading-[16.94px]">
+                  <span className="px-2.5 text-typeface_primary text-body-semibold">
                     {question.text.split("[blank]")[0]}
                   </span>
                 )}
@@ -58,7 +63,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                     handleAnswerChange(question.id, answer)
                   }
                 />
-                <span className="px-[10px] font-semibold text-[#292929] font-[Inter] text-[14px] leading-[16.94px]">
+                <span className="px-2.5 text-typeface_primary text-body-semibold">
                   {question.text.split("[blank]")[1]}
                 </span>
               </div>
@@ -68,18 +73,13 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
         {/* Answers Container */}
         <div className="flex flex-col">
-          <h2 className="mb-[20px] pl-[10px] font-normal tracking-[-0.02em] text-[#292929] text-[14px] leading-6">
+          <h2 className="mb-5 pl-2.5 text-typeface_primary text-body-regular">
             Answers:
           </h2>
-          <div className="space-y-[24px]">
+          <div className="space-y-6">
             {answers.map((answer, index) => (
-              <div key={index} className="flex pl-[4px]">
-                <div
-                  className="flex h-[24px] w-fit items-center justify-center rounded-[12px] bg-[#E1F1FF] font-semibold text-[#339ED3] text-[14px] leading-[16.94px]"
-                  style={{
-                    padding: "7px 8px",
-                  }}
-                >
+              <div key={index} className="flex pl-1">
+                <div className="flex h-6 w-fit items-center justify-center rounded-[12px] bg-status_bg_info px-2 py-1.5 text-status_fg_info text-body-semibold">
                   {answer}
                 </div>
               </div>
@@ -88,24 +88,12 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         </div>
 
         {/* Word Bank Container */}
-        <div
-          className="flex flex-col self-center rounded-[14px] bg-[#EDEDED] p-[4px]"
-          style={{
-            display: "inline-block",
-          }}
-        >
-          <div className="flex flex-col gap-[4px]">
+        <div className="self-center rounded-[14px] bg-surface_bg_secondary p-1">
+          <div className="flex flex-col gap-1">
             {words.map((word, index) => (
               <div
                 key={index}
-                className="flex h-[32px] w-full items-center justify-center rounded-[10px] bg-white text-[#292929] shadow-[0_0_2px_#0000000D,0_1px_2px_#0000000D]"
-                style={{
-                  padding: "11px 10px",
-                  letterSpacing: "-0.02em",
-                  fontSize: "14px",
-                  lineHeight: "16.94px",
-                  fontWeight: 600,
-                }}
+                className="flex h-8 w-full items-center justify-center rounded-[10px] bg-white px-2.5 py-2.5 text-typeface_primary shadow-25 text-body-semibold"
               >
                 {word.content}
               </div>
