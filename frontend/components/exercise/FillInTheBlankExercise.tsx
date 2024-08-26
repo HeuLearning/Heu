@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import FillInTheBlankComponent from "./FillInTheBlank";
+import Textbox from "./Textbox";
 
 interface Question {
   id: string;
@@ -53,7 +53,7 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
     ""
   );
 
-  const largestWordWidth = `calc(${largestWord.length}ch + 10px)`;
+  const largestWordWidth = `calc(${largestWord.length}ch + 20px)`;
 
   const handleAnswerChange = (id: string, answer: string) => {
     setQuestions((prevQuestions) =>
@@ -91,15 +91,17 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
                 <div
                   className={`flex items-center rounded-lg ${
                     isFirstSpeaker ? "flex-row-reverse" : ""
-                  } ${
-                    isFirstSpeaker
-                      ? "rounded-[20px_14px_14px_4px] bg-status_bg_info"
-                      : "rounded-[14px_20px_4px_14px] bg-surface_bg_secondary"
                   } p-1`}
                   style={{
                     width: "fit-content",
                     maxWidth: "100%",
                     minHeight: "40px",
+                    borderRadius: isFirstSpeaker
+                      ? "20px 14px 14px 4px"
+                      : "14px 20px 4px 14px",
+                    backgroundColor: isFirstSpeaker
+                      ? "var(--status_bg_info)"
+                      : "var(--surface_bg_secondary)",
                   }}
                 >
                   <div className="flex min-h-8 min-w-0 flex-shrink flex-grow flex-wrap items-center">
@@ -108,12 +110,13 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
                         {parts[0]}
                       </span>
                     )}
-                    <FillInTheBlankComponent
-                      id={question.id}
-                      answer={question.answer}
-                      correctAnswer={question.correctAnswer}
-                      onAnswerChange={(answer) =>
-                        handleAnswerChange(question.id, answer)
+                    <Textbox
+                      size="small"
+                      placeholder="Type here"
+                      width={largestWordWidth}
+                      value={question.answer}
+                      onChange={(value) =>
+                        handleAnswerChange(question.id, value)
                       }
                     />
                     {parts[1] && (
