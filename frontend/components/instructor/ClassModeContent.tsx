@@ -2,6 +2,7 @@ import React from "react";
 import MatchingExercise from "components//exercise/MatchingExercise";
 import FillInTheBlankExercise from "components/exercise/FillInTheBlankExercise";
 import QAFillInBlankExercise from "components/exercise/QAFillInTheBlankExercise";
+import AudioSelectionExercise from "components/exercise/AudioSelectionExercise";
 
 function ClassModeContent({
   activeModuleIndex,
@@ -9,6 +10,7 @@ function ClassModeContent({
   testFillInTheBlank = false,
   testMatchingExercise = false,
   testQAFillInTheBlank = false,
+  testAudioSelection = false,
 }) {
   if (testQAFillInTheBlank) {
     const qaFillInBlankData = {
@@ -115,6 +117,27 @@ function ClassModeContent({
 
   if (testMatchingExercise) {
     return <MatchingExercise />;
+  }
+
+  if (testAudioSelection) {
+    const audioSelectionData = {
+      audioTitle: "Coffee Shop",
+      audioSrc:
+        "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
+      options: [
+        "Hey",
+        "Nice to meet you",
+        "Last name",
+        "Teacher",
+        "Goodbye",
+        "Last name",
+        "Teacher",
+        "Goodbye",
+      ],
+      correctAnswers: ["Hey", "Nice to meet you"],
+    };
+
+    return <AudioSelectionExercise {...audioSelectionData} />;
   }
 
   return (

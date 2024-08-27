@@ -89,7 +89,7 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
                 } mb-2 w-full max-w-[1000px]`}
               >
                 <div
-                  className={`flex items-center rounded-lg ${
+                  className={`flex items-center ${
                     isFirstSpeaker ? "flex-row-reverse" : ""
                   } p-1`}
                   style={{
