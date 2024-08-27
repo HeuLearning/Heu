@@ -184,7 +184,6 @@ export default function CalendarContainer({
       <div
         id="calendar-container"
         className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary pt-[16px] outline-surface_border_tertiary"
-        className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary px-[16px] pt-[16px] outline-surface_border_tertiary"
       >
         <div className="custom-calendar-header flex justify-between px-[24px] pb-[48px] pt-[8px]">
           <span className="text-typeface_primary leading-tight text-h1">
@@ -260,16 +259,11 @@ export default function CalendarContainer({
             >
               <div className="daily-events mt-[8px] flex flex-col items-center px-[16px]">
                 {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
-          <div className="h-[570px] overflow-y-auto hide-default-scrollbar">
-            <div className="daily-events mt-[8px] flex flex-col items-center">
-              {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
             only dateCard for most upcoming session */}
 
                 <div className="pb-[32px]">{renderDailySessions()}</div>
               </div>
             </Scrollbar>
-              <div className="pb-[32px]">{renderDailySessions()}</div>
-            </div>
           </div>
         )}
       </div>
