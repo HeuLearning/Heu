@@ -61,6 +61,12 @@ export default function Navbar() {
 
   const NotifContent = ({ activeTab, onToggle, onClose }) => {
     const notifs = activeTab === "New" ? newNotifs : oldNotifs;
+    // Get the container element
+    const dashboardContainer = document.getElementById("dashboard-container");
+
+    // Calculate the height
+    const containerHeight = dashboardContainer.offsetHeight;
+
     return (
       <SidePopUp
         headerContent={
@@ -78,6 +84,7 @@ export default function Navbar() {
             </div>
           </div>
         }
+        height={containerHeight}
         className="absolute right-0 top-0 flex flex-col"
       >
         <div className="flex flex-col">

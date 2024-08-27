@@ -55,6 +55,12 @@ export default function SessionDetailViewContainer({ activeSessionId }) {
   const { showPopUp, hidePopUp } = usePopUp();
 
   const handleShowClassSchedule = () => {
+    // Get the container element
+    const dashboardContainer = document.getElementById("dashboard-container");
+
+    // Calculate the height
+    const containerHeight = dashboardContainer.offsetHeight;
+
     showPopUp({
       id: "class-schedule-popup",
       content: (
@@ -66,6 +72,7 @@ export default function SessionDetailViewContainer({ activeSessionId }) {
             </div>
           }
           className="absolute right-0 top-0 flex flex-col"
+          height={containerHeight}
         >
           {lessonPlanData.phases && (
             <ClassSchedulePopUpContainer {...lessonPlanData} />

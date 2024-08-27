@@ -37,7 +37,11 @@ export default function MobileClassMode(props) {
 
   const router = useRouter();
   const handleExitClassroom = () => {
-    router.push("/instructor/instructor-test");
+    if (classStarted && !showPhases) {
+      setShowPhases(true);
+    } else {
+      router.push("/instructor/instructor-test");
+    }
   };
 
   const state = useStopwatchState();
@@ -70,6 +74,7 @@ export default function MobileClassMode(props) {
                 Classroom
               </h3>
               <BackButton
+                variation="button-secondary"
                 onClick={handleExitClassroom}
                 className="absolute left-0"
               />

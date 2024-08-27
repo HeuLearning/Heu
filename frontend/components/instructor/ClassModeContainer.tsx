@@ -21,6 +21,7 @@ import { StopwatchProvider, useStopwatchControls } from "./StopwatchContext";
 import ClassModeFooter from "./ClassModeFooter";
 import { useResponsive } from "./ResponsiveContext";
 import MobileClassMode from "./mobile/MobileClassMode";
+import CircledLabel from "./CircledLabel";
 
 const learners = [
   {
@@ -176,7 +177,6 @@ export default function ClassModeContainer({ sessionId }) {
   };
 
   const handleEndClass = () => {
-    alert("Class finished");
     router.push("instructor-test");
   };
 
@@ -222,6 +222,12 @@ export default function ClassModeContainer({ sessionId }) {
   };
 
   const handleShowLearners = () => {
+    // Get the container element
+    const dashboardContainer = document.getElementById("class-mode-container");
+
+    // Calculate the height
+    const containerHeight = dashboardContainer.offsetHeight;
+
     showPopUp({
       id: "learners-popup",
       content: (
@@ -233,6 +239,7 @@ export default function ClassModeContainer({ sessionId }) {
             </div>
           }
           className="absolute right-0 top-0 flex flex-col"
+          height={containerHeight}
         >
           <div className="flex flex-col gap-[16px]">
             {learners.map((learner) => (
@@ -250,6 +257,12 @@ export default function ClassModeContainer({ sessionId }) {
   };
 
   const displayPhaseLineup = (phaseId) => {
+    // Get the container element
+    const dashboardContainer = document.getElementById("class-mode-container");
+
+    // Calculate the height
+    const containerHeight = dashboardContainer.offsetHeight;
+
     showPopUp({
       id: "phase-lineup-popup",
       content: (
@@ -261,6 +274,7 @@ export default function ClassModeContainer({ sessionId }) {
             </div>
           }
           className="absolute right-0 top-0 flex flex-col"
+          height={containerHeight}
         >
           <PhaseLineup
             modules={getModules(phaseId)}
@@ -330,21 +344,32 @@ export default function ClassModeContainer({ sessionId }) {
           </div>
         }
       />
-      <div className="flex h-full flex-col gap-[8px]">
+      <div className="flex h-full flex-col gap-[8px] rounded-[10px] outline-surface_border_tertiary">
+        <div className="flex items-center gap-[12px] p-[18px]">
+          <CircledLabel
+            bgColor="var(--surface_bg_darkest)"
+            textColor="text-typeface_highlight"
+          >
+            {activeModuleIndex + 1}
+          </CircledLabel>
+          <p className="text-typeface_primary text-body-semibold">
+            {activeModule.name}
+          </p>
+        </div>
         <ClassModeContent
           activeModule={activeModule}
           activeModuleIndex={activeModuleIndex}
         />
-        <ClassModeFooter
-          totalElapsedTime={totalElapsedTime}
-          activePhase={activePhase}
-          activeModule={activeModule}
-          activeModuleIndex={activeModuleIndex}
-          handleNextModule={handleNextModule}
-          handleNextPhase={handleNextPhase}
-          handleEndClass={handleEndClass}
-        />
       </div>
+      <ClassModeFooter
+        totalElapsedTime={totalElapsedTime}
+        activePhase={activePhase}
+        activeModule={activeModule}
+        activeModuleIndex={activeModuleIndex}
+        handleNextModule={handleNextModule}
+        handleNextPhase={handleNextPhase}
+        handleEndClass={handleEndClass}
+      />
     </div>
   );
 

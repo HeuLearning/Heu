@@ -254,7 +254,7 @@ export default {
             color: theme("colors.typeface_tertiary"),
           },
         },
-        ".language-selector": {
+        ".selector": {
           backgroundColor: theme("colors.surface_bg_highlight"),
           "&:hover": {
             backgroundColor: theme("colors.action_bg_tertiary"),

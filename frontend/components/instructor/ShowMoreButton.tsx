@@ -15,7 +15,7 @@ export default function ShowMoreButton({
         className={`w-full ${
           isOpen
             ? "bg-action_bg_tertiary"
-            : "bg-white outline-surface_border_tertiary"
+            : "selector outline-surface_border_tertiary"
         }`}
         onClick={() => setIsOpen(!isOpen)}
       >

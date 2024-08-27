@@ -2,6 +2,7 @@ import React from "react";
 import MatchingExercise from "components//exercise/MatchingExercise";
 import FillInTheBlankExercise from "components/exercise/FillInTheBlankExercise";
 import QAFillInBlankExercise from "components/exercise/QAFillInTheBlankExercise";
+import { useStopwatchState } from "./StopwatchContext";
 
 function ClassModeContent({
   activeModuleIndex,
@@ -10,6 +11,9 @@ function ClassModeContent({
   testMatchingExercise = false,
   testQAFillInTheBlank = false,
 }) {
+  const state = useStopwatchState();
+  const { elapsedTime, elapsedLapTime } = state;
+
   if (testQAFillInTheBlank) {
     const qaFillInBlankData = {
       questions: [
@@ -119,7 +123,8 @@ function ClassModeContent({
 
   return (
     <div className="flex h-full w-full items-center justify-center bg-white p-6">
-      Toggle Exercise
+      <p>elapsed time: {elapsedTime}</p>
+      <p>elapsed module time: {elapsedLapTime}</p>
     </div>
   );
 }

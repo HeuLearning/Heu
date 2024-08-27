@@ -2,8 +2,14 @@ export default function NotificationButton({ onClick, isOpen }) {
   return (
     <button
       onClick={onClick}
-      style={isOpen ? { backgroundColor: "var(--surface_bg_tertiary)" } : {}}
-      className="language-selector relative h-[32px] w-[32px] rounded-full shadow-25"
+      style={
+        isOpen
+          ? { backgroundColor: "var(--action_bg_tertiary)" }
+          : { backgroundColor: "var(--action_bg_secondary)" }
+      }
+      className={`selector relative h-[32px] w-[32px] rounded-full ${
+        isOpen ? "" : "shadow-25"
+      }`}
     >
       <svg
         width="32"
