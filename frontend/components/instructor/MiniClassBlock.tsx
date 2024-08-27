@@ -21,8 +21,9 @@ export default function MiniClassBlock({
   isDaily = false,
   arrow = false,
 }) {
-  const { getSessionStatus, upcomingSessions, confirmSession } = useSessions();
-  const session = upcomingSessions.find((session) => session.id === sessionId);
+  const { getSessionStatus, upcomingSessions, allSessions, confirmSession } =
+    useSessions();
+  const session = allSessions.find((session) => session.id === sessionId);
   const startDate = new Date(session.start_time);
   const router = useRouter();
 
@@ -100,14 +101,33 @@ export default function MiniClassBlock({
                 : "text-typeface_secondary text-body-medium"
             }
           >
-            {format(startDate, "h:mma")}
+            {format(startDate, "h:mm a")}
           </h2>
         </div>
       ) : (
         <Placeholder width={104} height={10} />
       )}
       <div className="flex items-center">
-        <Dot color={sessionId ? fillColor : "var(--surface_bg_secondary)"} />
+        {getSessionStatus(session) === "Attended" ? (
+          <div className="pr-[4px]">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3.5 8L6.5 11L12.5 5"
+                stroke="var(--typeface_primary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        ) : (
+          <Dot color={sessionId ? fillColor : "var(--surface_bg_secondary)"} />
+        )}
         {sessionId ? (
           <h2 className={`text-body-semibold ${color}`}>{status}</h2>
         ) : (
@@ -189,8 +209,8 @@ export default function MiniClassBlock({
               <path
                 d="M43 28L47.6096 31.6877C47.8097 31.8478 47.8097 32.1522 47.6096 32.3123L43 36"
                 stroke="var(--surface_bg_darker)"
-                stroke-width="2"
-                stroke-linecap="round"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
             <div className={`flex items-center justify-between pl-[12px]`}>
@@ -213,8 +233,8 @@ export default function MiniClassBlock({
               <path
                 d="M39 24L43.6096 27.6877C43.8097 27.8478 43.8097 28.1522 43.6096 28.3123L39 32"
                 stroke="var(--surface_bg_darker)"
-                stroke-width="2"
-                stroke-linecap="round"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
             <div className={`flex items-center justify-between pl-[8px]`}>

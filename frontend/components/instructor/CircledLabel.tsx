@@ -23,7 +23,9 @@ export default function CircledLabel({ bgColor, textColor, children }) {
           fill={bgColor}
         />
       </svg>
-      <p className={`${textColor} text-body-semibold center-atop-svg`}>
+      <p
+        className={`${textColor} text-body-semibold-cap-height center-atop-svg`}
+      >
         {children}
       </p>
     </div>

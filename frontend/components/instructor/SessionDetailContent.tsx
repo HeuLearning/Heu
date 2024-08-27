@@ -83,7 +83,7 @@ export default function SessionDetailContent({
             </h1>
             <h1 className="text-typeface_secondary leading-tight text-h1">
               {sessionId ? (
-                format(startDate, "h:mma") + " - " + format(endDate, "h:mma")
+                format(startDate, "h:mm a") + " - " + format(endDate, "h:mm a")
               ) : (
                 <Placeholder width={208} height={16} />
               )}
@@ -150,7 +150,8 @@ export default function SessionDetailContent({
               <Button className="button-primary" onClick={handleEnter}>
                 Enter class
               </Button>
-            ) : new Date(session.end_time) < new Date() ? null : (
+            ) : new Date(session.end_time) < new Date() &&
+              getSessionStatus(session) === "Pending" ? null : (
               <RSVPSelector session={session} />
             )
           ) : null}
@@ -250,9 +251,9 @@ export default function SessionDetailContent({
                     >
                       <path
                         d="M6.5 11.25L10 7.75L6.5 4.25"
-                        stroke="var(--action_bg_primary)"
-                        stroke-width="2"
-                        stroke-linecap="round"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
                       />
                     </svg>
                   </IconButton>
