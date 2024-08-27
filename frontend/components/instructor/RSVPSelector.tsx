@@ -72,7 +72,9 @@ export default function RSVPSelector({ session }) {
     });
   };
 
-  if (status === "Confirmed" || status === "Canceled")
+  console.log("status" + status);
+
+  if (status === "Confirmed" || status === "Canceled") {
     return (
       <div className="flex items-center rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height">
         <Dot
@@ -85,7 +87,27 @@ export default function RSVPSelector({ session }) {
         {status}
       </div>
     );
-  else if (status === "Pending")
+  } else if (status === "Attended") {
+    return (
+      <div className="flex items-center gap-[4px] rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3.5 8L6.5 11L12.5 5"
+            stroke="var(--typeface_primary)"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+        </svg>
+        {status}
+      </div>
+    );
+  } else if (status === "Pending")
     return (
       <div className="relative flex flex-col" ref={dropdownRef}>
         <div className={`shown-button`} ref={shownButtonRef}>
@@ -110,8 +132,8 @@ export default function RSVPSelector({ session }) {
                   <path
                     d="M8.5 5.5L5 2L1.5 5.5"
                     stroke="var(--surface_bg_darkest)"
-                    stroke-width="2"
-                    stroke-linecap="round"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                   />
                 </svg>
               ) : (
@@ -126,8 +148,8 @@ export default function RSVPSelector({ session }) {
                   <path
                     d="M1.5 1.5L5 5L8.5 1.5"
                     stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                   />
                 </svg>
               )}

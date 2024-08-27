@@ -12,37 +12,22 @@ import {
   lastDayOfMonth,
   startOfMonth,
 } from "date-fns";
+import { useSessions } from "../SessionsContext";
+import Dot from "../Dot";
 
 export default function HorizontalDatePicker({
   endDate = null,
-  selectDate = null,
-  getSelectedDay,
-  labelFormat = "",
+  sessionMap,
+  selectedDate,
+  setSelectedDate,
 }) {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
-  const [isScrolling, setIsScrolling] = useState(false);
-
-  const scrollContainerRef = useRef(null);
-
   const today = new Date();
   const startDate = subDays(today, 120);
   const lastDate = addDays(today, endDate || 120);
-  const selectedStyle = {
-    fontWeight: "semibold",
-    width: "44px",
-    height: "44px",
-    borderRadius: "100%",
-    backgroundColor: "var(--surface_bg_darkest)",
-    color: "var(--typeface_highlight) !important",
-  };
 
-  const getStyles = (day) => {
-    if (isSameDay(day, selectedDate)) {
-      return selectedStyle;
-    }
-    return null;
-  };
+  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollContainerRef = useRef(null);
 
   const getId = (day) => {
     if (isSameDay(day, selectedDate)) {
@@ -150,6 +135,7 @@ export default function HorizontalDatePicker({
           : Number(format(lastDayOfMonth(month), "d"));
       for (let j = start; j < end; j++) {
         const day = addDays(month, j);
+        const dateKey = `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
         days.push(
           <div className="ml-[8px]" key={format(day, "yyyy-MM-dd")}>
             <div className={styles.dayLabel}>
@@ -157,8 +143,12 @@ export default function HorizontalDatePicker({
             </div>
             <div
               id={`${getId(day)}`}
-              className={`${styles.dateDayItem} ${
+              className={`relative ${styles.dateDayItem} ${
                 isSameDay(day, selectedDate) ? styles.selectedDate : ""
+              } ${
+                !isSameDay(today, selectedDate) && isSameDay(day, today)
+                  ? styles.today
+                  : ""
               } ${
                 isBeforeToday(day) ? styles.pastDateLabel : styles.dateLabel
               }`}
@@ -166,6 +156,23 @@ export default function HorizontalDatePicker({
               data-date={day.toISOString()}
             >
               {format(day, dateFormat)}
+              {sessionMap.get(dateKey) && (
+                <div className="z-5 absolute bottom-[6px] flex items-center gap-[2px]">
+                  {Array.isArray(sessionMap.get(dateKey)) &&
+                    sessionMap.get(dateKey).map((dotColor, index) => (
+                      <svg
+                        key={index}
+                        width="4"
+                        height="4"
+                        viewBox="0 0 4 4"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle cx="2" cy="2" r="2" fill={dotColor} />
+                      </svg>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -184,39 +191,12 @@ export default function HorizontalDatePicker({
   }
 
   const onDateClick = (day) => {
-    setSelectedDate(day);
-    if (getSelectedDay) {
-      getSelectedDay(day);
+    if (isSameDay(day, selectedDate)) {
+      setSelectedDate(null);
+    } else {
+      setSelectedDate(day);
     }
   };
-
-  useEffect(() => {
-    if (getSelectedDay) {
-      if (selectDate) {
-        getSelectedDay(selectDate);
-      } else {
-        getSelectedDay(startDate);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectDate) {
-      if (!isSameDay(selectedDate, selectDate)) {
-        setSelectedDate(selectDate);
-        setTimeout(() => {
-          let view = document.getElementById("selected");
-          if (view) {
-            view.scrollIntoView({
-              behavior: "smooth",
-              inline: "center",
-              block: "nearest",
-            });
-          }
-        }, 20);
-      }
-    }
-  }, [selectDate]);
 
   const nextMonth = () => {
     const nextMonth = addMonths(currentMonth, 1);
@@ -264,33 +244,33 @@ export default function HorizontalDatePicker({
       <div className="custom-calendar-header sticky flex items-center justify-between px-[16px] pb-[24px] pt-[16px]">
         <button className="custom-navigation-button" onClick={prevMonth}>
           <svg
-            width="40"
-            height="40"
-            viewBox="0 0 40 40"
+            width="44"
+            height="44"
+            viewBox="0 0 44 44"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
             <rect
               x="0.5"
               y="0.5"
-              width="39"
-              height="39"
-              rx="19.5"
+              width="43"
+              height="43"
+              rx="21.5"
               fill="white"
             />
             <rect
               x="0.5"
               y="0.5"
-              width="39"
-              height="39"
-              rx="19.5"
+              width="43"
+              height="43"
+              rx="21.5"
               stroke="var(--action_border_secondary)"
             />
             <path
-              d="M21.5 16.25L18 19.75L21.5 23.25"
+              d="M23.5 18.25L20 21.75L23.5 25.25"
               stroke="var(--action_bg_primary)"
-              stroke-width="2"
-              stroke-linecap="round"
+              strokeWidth="2"
+              strokeLinecap="round"
             />
           </svg>
         </button>
@@ -300,33 +280,33 @@ export default function HorizontalDatePicker({
         <div className="flex space-x-[12px]">
           <button className="custom-navigation-button" onClick={nextMonth}>
             <svg
-              width="40"
-              height="40"
-              viewBox="0 0 40 40"
+              width="44"
+              height="44"
+              viewBox="0 0 44 44"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               <rect
                 x="0.5"
                 y="0.5"
-                width="39"
-                height="39"
-                rx="19.5"
+                width="43"
+                height="43"
+                rx="21.5"
                 fill="white"
               />
               <rect
                 x="0.5"
                 y="0.5"
-                width="39"
-                height="39"
-                rx="19.5"
+                width="43"
+                height="43"
+                rx="21.5"
                 stroke="var(--action_border_secondary)"
               />
               <path
-                d="M18.5 23.25L22 19.75L18.5 16.25"
+                d="M20.5 25.25L24 21.75L20.5 18.25"
                 stroke="var(--action_bg_primary)"
-                stroke-width="2"
-                stroke-linecap="round"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
           </button>

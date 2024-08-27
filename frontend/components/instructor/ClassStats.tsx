@@ -12,7 +12,7 @@ export default function ClassStats({
     return condition ? (
       <div
         className={`${
-          isMobile
+          isMobile && direction === ""
             ? "grid grid-cols-2 gap-x-[24px] gap-y-[16px]"
             : "flex justify-between"
         }`}
@@ -31,7 +31,7 @@ export default function ClassStats({
         isMobile ? "flex-col" : ""
       } stat-components z-[25] flex justify-between ${direction}`}
     >
-      <ConditionalWrapper condition={isMobile}>
+      <ConditionalWrapper condition={isMobile && direction === ""}>
         <StatComponent
           heading={attending}
           subheading="Attending"
@@ -99,9 +99,9 @@ export default function ClassStats({
           )}
         </StatComponent>
       </ConditionalWrapper>
-      {isMobile && <div className="mt-[16px]"></div>}{" "}
+      {isMobile && direction === "" && <div className="mt-[16px]"></div>}
       {/* Spacer only for mobile */}
-      <ConditionalWrapper condition={isMobile}>
+      <ConditionalWrapper condition={isMobile && direction === ""}>
         <StatComponent
           heading={agenda}
           subheading="Agenda"

@@ -37,11 +37,7 @@ export default function MobileClassMode(props) {
 
   const router = useRouter();
   const handleExitClassroom = () => {
-    if (classStarted) {
-      setShowPhases(true);
-    } else {
-      router.push("/instructor/instructor-test");
-    }
+    router.push("/instructor/instructor-test");
   };
 
   const state = useStopwatchState();
@@ -69,17 +65,20 @@ export default function MobileClassMode(props) {
         buttonBar={true}
         headerContent={
           <div className="relative flex w-full flex-col gap-[16px]">
-            <div className="flex items-center justify-center">
+            <div className="flex h-[44px] w-full items-center justify-center">
               <h3 className="text-typeface_primary text-body-medium">
                 Classroom
               </h3>
-              <div className="absolute left-0">
-                <BackButton onClick={handleExitClassroom} />
-              </div>
+              <BackButton
+                onClick={handleExitClassroom}
+                className="absolute left-0"
+              />
               {classStarted && (
-                <div className="absolute right-0">
-                  <HamburgerIcon onClick={displayNotebook} />
-                </div>
+                <HamburgerIcon
+                  onClick={displayNotebook}
+                  variation="button-secondary"
+                  className="absolute right-0"
+                />
               )}
             </div>
             {!classStarted && (
@@ -92,7 +91,7 @@ export default function MobileClassMode(props) {
           </div>
         }
         backgroundColor="bg-surface_bg_highlight"
-        className="px-[16px] pt-[24px]"
+        className="px-[16px] pt-[16px]"
       >
         {classStarted && activeModule && !showPhases ? (
           <ClassModeContent
@@ -120,7 +119,8 @@ export default function MobileClassMode(props) {
                     level="C1"
                     agenda="Target"
                     classCode="7FJR92"
-                    direction="flex-col gap-[32px]"
+                    direction="flex-col gap-[16px]"
+                    isMobile={true}
                   />
                 </InfoCard>
               </div>

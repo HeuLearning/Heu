@@ -32,7 +32,7 @@ export default function ClassModeFooter({
 
   return (
     <div className="flex items-center justify-between gap-[24px] px-[24px] pb-[10px] pt-[12px]">
-      <div className="flex flex-grow gap-[4px]">
+      <div className="flex flex-grow gap-[8px]">
         {getModules(activePhase.id).map((module, index) => (
           <CompletionBar
             key={index}

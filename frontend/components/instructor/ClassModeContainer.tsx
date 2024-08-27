@@ -284,7 +284,10 @@ export default function ClassModeContainer({ sessionId }) {
         title={activePhase.name}
         rightSide={
           <div className="flex items-center gap-[12px]">
-            <button onClick={handleShowLearners}>
+            <button
+              onClick={handleShowLearners}
+              className="button-primary rounded-full"
+            >
               <svg
                 width="32"
                 height="32"
@@ -292,19 +295,17 @@ export default function ClassModeContainer({ sessionId }) {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <rect
-                  width="32"
-                  height="32"
-                  rx="16"
-                  fill="var(--action_bg_primary)"
-                />
+                <circle cx="16" cy="16" rx="16" fill="currentBackgroundColor" />
                 <path
                   d="M12.4282 20.4775C12.1274 20.4775 11.8911 20.4095 11.7192 20.2734C11.5474 20.1374 11.4614 19.9512 11.4614 19.7148C11.4614 19.3675 11.5653 19.0041 11.7729 18.6245C11.9842 18.245 12.2868 17.8887 12.6807 17.5557C13.0781 17.2227 13.5562 16.9523 14.1147 16.7446C14.6733 16.5369 15.3 16.4331 15.9946 16.4331C16.6929 16.4331 17.3213 16.5369 17.8799 16.7446C18.4385 16.9523 18.9147 17.2227 19.3086 17.5557C19.7061 17.8887 20.0104 18.245 20.2217 18.6245C20.4329 19.0041 20.5386 19.3675 20.5386 19.7148C20.5386 19.9512 20.4526 20.1374 20.2808 20.2734C20.1089 20.4095 19.8726 20.4775 19.5718 20.4775H12.4282ZM16 15.4771C15.6097 15.4771 15.2498 15.3714 14.9204 15.1602C14.5946 14.9489 14.3314 14.6642 14.1309 14.3062C13.9339 13.9481 13.8354 13.547 13.8354 13.103C13.8354 12.6662 13.9339 12.2723 14.1309 11.9214C14.3314 11.5669 14.5964 11.2858 14.9258 11.0781C15.2552 10.8704 15.6133 10.7666 16 10.7666C16.3903 10.7666 16.7502 10.8687 17.0796 11.0728C17.409 11.2769 17.6722 11.5562 17.8691 11.9106C18.0697 12.2616 18.1699 12.6554 18.1699 13.0923C18.1699 13.5399 18.0697 13.9445 17.8691 14.3062C17.6722 14.6642 17.409 14.9489 17.0796 15.1602C16.7502 15.3714 16.3903 15.4771 16 15.4771Z"
-                  fill="var(--surface_bg_highlight)"
+                  fill="currentColor"
                 />
               </svg>
             </button>
-            <button onClick={() => displayPhaseLineup(activePhase.id)}>
+            <button
+              onClick={() => displayPhaseLineup(activePhase.id)}
+              className="button-primary rounded-full"
+            >
               <svg
                 width="32"
                 height="32"
@@ -316,13 +317,13 @@ export default function ClassModeContainer({ sessionId }) {
                   width="32"
                   height="32"
                   rx="16"
-                  fill="var(--action_bg_primary)"
+                  fill="currentBackgroundColor"
                 />
                 <path
                   fill-rule="evenodd"
                   clip-rule="evenodd"
                   d="M20 11C20.5523 11 21 11.4477 21 12C21 12.5523 20.5523 13 20 13L12 13C11.4477 13 11 12.5523 11 12C11 11.4477 11.4477 11 12 11H20ZM20 15C20.5523 15 21 15.4477 21 16C21 16.5523 20.5523 17 20 17H12C11.4477 17 11 16.5523 11 16C11 15.4477 11.4477 15 12 15L20 15ZM21 20C21 19.4477 20.5523 19 20 19L12 19C11.4477 19 11 19.4477 11 20C11 20.5523 11.4477 21 12 21H20C20.5523 21 21 20.5523 21 20Z"
-                  fill="var(--surface_bg_highlight)"
+                  fill="currentColor"
                 />
               </svg>
             </button>
@@ -383,9 +384,9 @@ export default function ClassModeContainer({ sessionId }) {
                 }
                 subtitle={
                   session?.start_time && session?.end_time
-                    ? format(new Date(session.start_time), "h:mma") +
+                    ? format(new Date(session.start_time), "h:mm a") +
                       " - " +
-                      format(new Date(session.end_time), "h:mma")
+                      format(new Date(session.end_time), "h:mm a")
                     : "Loading..."
                 }
                 rightSide={
@@ -401,6 +402,7 @@ export default function ClassModeContainer({ sessionId }) {
                     <Button
                       className="button-primary"
                       onClick={handleStartClass}
+                      disabled={!session?.start_time}
                     >
                       {!classStarted ? "Start class" : "Continue class"}
                     </Button>

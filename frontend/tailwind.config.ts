@@ -26,6 +26,8 @@ export default {
         action_bg_secondary_hover: "#F5F5F5",
         action_bg_secondary_press: "#EDEDED",
         action_bg_tertiary: "#EDEDED",
+        action_bg_tertiary_hover: "#F5F5F5",
+        action_bg_tertiary_press: "#D9D9D9",
         action_border_primary: "#D9D9D9",
         action_border_secondary: "#EDEDED",
         surface_bg_primary: "#999999",
@@ -90,6 +92,12 @@ export default {
             "colors.action_bg_secondary_press"
           ),
           "--action_bg_tertiary": theme("colors.action_bg_tertiary"),
+          "--action_bg_tertiary_hover": theme(
+            "colors.action_bg_tertiary_hover"
+          ),
+          "--action_bg_tertiary_press": theme(
+            "colors.action_bg_tertiary_press"
+          ),
           "--action_border_primary": theme("colors.action_border_primary"),
           "--action_border_secondary": theme("colors.action_border_secondary"),
           "--surface_bg_primary": theme("colors.surface_bg_primary"),
@@ -128,10 +136,10 @@ export default {
             lineHeight: "0.8",
           },
           color: theme("colors.typeface_highlight"),
-          "&:hover": {
+          "&:hover:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_primary_hover"),
           },
-          "&:active": {
+          "&:active:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_primary_press"),
           },
         },
@@ -149,17 +157,17 @@ export default {
             lineHeight: "0.8",
           },
           color: theme("colors.typeface_primary"),
-          "&:hover": {
+          "&:hover:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_secondary_hover"),
             outline: "1px solid " + theme("colors.surface_border_tertiary"),
           },
-          "&:active": {
+          "&:active:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_secondary_press"),
             outline: "1px solid " + theme("colors.surface_border_tertiary"),
           },
         },
         ".button-tertiary": {
-          backgroundColor: theme("colors.surface_bg_secondary"),
+          backgroundColor: theme("colors.action_bg_tertiary"),
           fontSize: "16px",
           fontWeight: 600,
           letterSpacing: "-0.16px", // -1% of 16px
@@ -171,6 +179,12 @@ export default {
             lineHeight: "0.8",
           },
           color: theme("colors.typeface_primary"),
+          "&:hover:not(:disabled)": {
+            backgroundColor: theme("colors.action_bg_tertiary_hover"),
+          },
+          "&:active:not(:disabled)": {
+            backgroundColor: theme("colors.action_bg_tertiary_press"),
+          },
         },
         ".navbutton-selected": {
           backgroundColor: theme("colors.action_bg_secondary"),
@@ -199,21 +213,27 @@ export default {
             lineHeight: "0.8",
           },
           color: theme("colors.typeface_primary"),
-          "&:hover": {
+          "&:hover:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_tertiary"),
           },
           "&:disabled": {
-            color: theme("colors.typeface_tertiray"),
+            cursor: "not-allowed",
+            color: theme("colors.typeface_tertiary"),
           },
         },
         ".icon-button": {
+          color: theme("colors.action_bg_primary"),
           backgroundColor: "transparent",
           borderRadius: "6px",
-          "&:hover": {
+          "&:hover:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_secondary_hover"),
           },
-          "&:active": {
+          "&:active:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_secondary_press"),
+          },
+          "&:disabled": {
+            cursor: "not-allowed",
+            color: theme("colors.surface_border_secondary"),
           },
         },
         ".rsvp-selector": {
@@ -223,11 +243,15 @@ export default {
           letterSpacing: "-0.28px",
           lineHeight: "0.8",
           color: theme("colors.typeface_highlight"),
-          "&:hover": {
+          "&:hover:not(:disabled)": {
             backgroundColor: theme("colors.action_bg_secondary"),
             outline: "1px solid " + theme("colors.surface_border_tertiary"),
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.07)",
             color: theme("colors.typeface_primary"),
+          },
+          "&:disabled": {
+            backgroundColor: theme("colors.action_bg_tertiary"),
+            color: theme("colors.typeface_tertiary"),
           },
         },
         ".language-selector": {
@@ -252,37 +276,6 @@ export default {
             backgroundColor: theme("colors.surface_bg_secondary"),
             fontWeight: 600,
             letterSpacing: "-0.28px", // -2% of 14px
-          },
-        },
-        ".x-button-primary": {
-          backgroundColor: theme("colors.action_bg_primary"),
-          color: theme("colors.typeface_highlight"),
-          borderRadius: "100%",
-          "&:hover": {
-            backgroundColor: theme("colors.action_bg_primary_hover"),
-          },
-          "&:active": {
-            backgroundColor: theme("colors.action_bg_primary_press"),
-          },
-          "&:disabled": {
-            backgroundColor: theme("colors.action_bg_tertiary"),
-            color: theme("colors.surface_border_primary"),
-          },
-        },
-        ".x-button-secondary": {
-          borderRadius: "100%",
-          backgroundColor: theme("colors.action_bg_secondary"),
-          color: theme("colors.action_bg_primary"),
-          "&:hover": {
-            backgroundColor: theme("colors.action_bg_secondary_hover"),
-            outline: "1px solid " + theme("colors.action_border_secondary"),
-          },
-          "&:active": {
-            backgroundColor: theme("colors.action_bg_secondary_press"),
-          },
-          "&:disabled": {
-            backgroundColor: theme("colors.action_bg_tertiary"),
-            color: theme("colors.surface_border_primary"),
           },
         },
       });

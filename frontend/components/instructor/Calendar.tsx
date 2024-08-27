@@ -217,9 +217,9 @@ export default function Calendar({
                                 : ""
                             }
                           >
-                            {format(session.start_time, "h:mma") +
+                            {format(session.start_time, "h:mm a") +
                               " - " +
-                              format(session.end_time, "h:mma")}
+                              format(session.end_time, "h:mm a")}
                           </div>
                         </div>
                       </MenuItem>

@@ -2,6 +2,7 @@ import InfoCard from "./InfoCard";
 import Button from "./Button";
 import styles from "./ModuleDetail.module.css";
 import CircledLabel from "./CircledLabel";
+import { useResponsive } from "./ResponsiveContext";
 
 export default function ModuleDetail({
   active,
@@ -10,9 +11,12 @@ export default function ModuleDetail({
   description,
   done,
 }) {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
   return active ? (
     <div
-      className={`${styles.module_detail} mb-[4px] flex flex-col gap-[8px] rounded-[10px] bg-white`}
+      className={`${
+        isMobile ? styles.module_detail_mobile : styles.module_detail_desktop
+      } mb-[4px] flex flex-col gap-[8px] rounded-[10px] bg-white`}
     >
       <div className="flex items-center gap-[12px]">
         <CircledLabel
@@ -61,8 +65,8 @@ export default function ModuleDetail({
               <path
                 d="M1.5 4L4.5 7L10.5 1"
                 stroke="var(--typeface_secondary)"
-                stroke-width="2"
-                stroke-linecap="round"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
             <p className="text-typeface_secondary text-body-semibold">Done</p>
