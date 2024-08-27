@@ -8,6 +8,7 @@ import { useResponsive } from "./ResponsiveContext";
 import styles from "./MiniClassBlock.module.css";
 import { useSessions } from "./SessionsContext";
 import IconButton from "./IconButton";
+import Scrollbar from "./Scrollbar";
 
 export default function CalendarContainer({
   activeSessionId,
@@ -182,9 +183,9 @@ export default function CalendarContainer({
     return (
       <div
         id="calendar-container"
-        className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary px-[16px] pt-[16px] outline-surface_border_tertiary"
+        className="relative flex h-full w-[330px] flex-col rounded-[10px] bg-surface_bg_tertiary pt-[16px] outline-surface_border_tertiary"
       >
-        <div className="custom-calendar-header flex justify-between px-[8px] pb-[48px] pt-[8px]">
+        <div className="custom-calendar-header flex justify-between px-[24px] pb-[48px] pt-[8px]">
           <span className="text-typeface_primary leading-tight text-h1">
             {visibleMonthName + " " + visibleYearName}
           </span>
@@ -239,7 +240,7 @@ export default function CalendarContainer({
           sessionMap={sessionMap}
         />
         {activeTab === "Monthly" && (
-          <div>
+          <div className="px-[16px]">
             <div className="mx-[-16px] border-t-[1px] border-surface_border_tertiary"></div>
             <p className="px-[8px] pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold-cap-height">
               Coming up
@@ -250,12 +251,19 @@ export default function CalendarContainer({
           </div>
         )}
         {activeTab === "Daily" && (
-          <div className="h-[570px] overflow-y-auto hide-default-scrollbar">
-            <div className="daily-events mt-[8px] flex flex-col items-center">
-              {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
+          <div className="h-[570px] overflow-y-auto">
+            {/* scrollbar halfway into padding, 8px */}
+            <Scrollbar
+              className="absolute right-[8px] z-50"
+              scrollbarHeight={554}
+            >
+              <div className="daily-events mt-[8px] flex flex-col items-center px-[16px]">
+                {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
             only dateCard for most upcoming session */}
-              <div className="pb-[32px]">{renderDailySessions()}</div>
-            </div>
+
+                <div className="pb-[32px]">{renderDailySessions()}</div>
+              </div>
+            </Scrollbar>
           </div>
         )}
       </div>

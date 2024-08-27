@@ -163,17 +163,19 @@ export default function SessionDetailContent({
         } `}
       >
         <InfoCard className={`stat-info-card`}>
-          {sessionId ? (
-            <ClassStats
-              attending="80/120"
-              level="C1"
-              agenda="Target"
-              classCode="7FJR92"
-              isMobile={isMobile}
-            />
-          ) : (
-            <ClassStats attending="-" level="-" agenda="-" classCode="-" />
-          )}
+          <div className="p-[4px]">
+            {sessionId ? (
+              <ClassStats
+                attending="80/120"
+                level="C1"
+                agenda="Target"
+                classCode="7FJR92"
+                isMobile={isMobile}
+              />
+            ) : (
+              <ClassStats attending="-" level="-" agenda="-" classCode="-" />
+            )}
+          </div>
         </InfoCard>
         <div
           className={`${

@@ -172,7 +172,7 @@ export default function Calendar({
     <>
       <div className="flex flex-col items-center">
         <div
-          className={`w-full ${
+          className={`w-full px-[16px] ${
             activeTab === "Monthly" ? "pb-[22px]" : "pb-[20px]"
           }`}
         >
@@ -229,7 +229,7 @@ export default function Calendar({
               )}
             </div>
             <div
-              className={`-mt-[2px] flex flex-col items-center px-[1px] pb-[22px] ${styles["react-calendar"]}`}
+              className={`-mt-[2px] flex flex-col items-center px-[17px] pb-[22px] ${styles["react-calendar"]}`}
             >
               <ReactCalendar
                 defaultValue={new Date()}

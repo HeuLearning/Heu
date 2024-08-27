@@ -24,6 +24,7 @@ export default function MobileClassModeNotebook({
           <div className="flex h-[44px] w-full items-center justify-center">
             <h1 className="text-typeface_primary text-body-medium">Notebook</h1>
             <XButton
+              variation="button-secondary"
               onClick={() => setIsNotebookShown(false)}
               className="absolute right-[16px]"
             />
