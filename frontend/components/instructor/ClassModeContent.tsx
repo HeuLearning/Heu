@@ -3,6 +3,7 @@ import MatchingExercise from "components//exercise/MatchingExercise";
 import FillInTheBlankExercise from "components/exercise/FillInTheBlankExercise";
 import QAFillInBlankExercise from "components/exercise/QAFillInTheBlankExercise";
 import AudioSelectionExercise from "components/exercise/AudioSelectionExercise";
+import AudioWritingExercise from "components/exercise/AudioWriting";
 
 function ClassModeContent({
   activeModuleIndex,
@@ -11,6 +12,7 @@ function ClassModeContent({
   testMatchingExercise = false,
   testQAFillInTheBlank = false,
   testAudioSelection = false,
+  testAudioWriting = false,
 }) {
   if (testQAFillInTheBlank) {
     const qaFillInBlankData = {
@@ -124,20 +126,64 @@ function ClassModeContent({
       audioTitle: "Coffee Shop",
       audioSrc:
         "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
-      options: [
-        "Hey",
-        "Nice to meet you",
-        "Last name",
-        "Teacher",
-        "Goodbye",
-        "Last name",
-        "Teacher",
-        "Goodbye",
-      ],
+      options: ["Hey", "Nice to meet you", "Last name", "Teacher", "Goodbye"],
       correctAnswers: ["Hey", "Nice to meet you"],
     };
 
     return <AudioSelectionExercise {...audioSelectionData} />;
+  }
+
+  if (testAudioWriting) {
+    const audioWritingData = {
+      audioSrc:
+        "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
+      questions: [
+        {
+          id: "1",
+          text: "What does Jorge do?",
+          answer: "",
+          highlightedWord: "Driver",
+          correctAnswer: "He drives a car.",
+        },
+        {
+          id: "2",
+          text: "Where does he work?",
+          answer: "",
+          highlightedWord: "Truckers Plus",
+          correctAnswer: "He works at Truckers Plus.",
+        },
+        {
+          id: "3",
+          text: "Does he like it?",
+          answer: "",
+          highlightedWord: "No",
+          correctAnswer: "No, he doesn't like it.",
+        },
+        {
+          id: "4",
+          text: "What does Miyen do?",
+          answer: "",
+          highlightedWord: "Housekeeper",
+          correctAnswer: "She is a housekeeper.",
+        },
+        {
+          id: "5",
+          text: "Where does she work?",
+          answer: "",
+          highlightedWord: "a hotel",
+          correctAnswer: "She works at a hotel.",
+        },
+        {
+          id: "6",
+          text: "Does she like it?",
+          answer: "",
+          highlightedWord: "okay",
+          correctAnswer: "She thinks it's okay.",
+        },
+      ],
+    };
+
+    return <AudioWritingExercise {...audioWritingData} />;
   }
 
   return (

@@ -34,7 +34,7 @@ const AudioSelectionExercise: React.FC<AudioSelectionExerciseProps> = ({
         </div>
 
         {/* Right Container: Word Choices */}
-        <div className="sm:max-w-[300px] md:max-w-[375px] inline-flex max-w-[450px] flex-col lg:max-w-[450px]">
+        <div className="max-w-[550px] flex-col">
           {/*  Button wrapping: */}
           <div className="flex flex-wrap items-start justify-start gap-[4px]">
             {options.map((option, index) => (

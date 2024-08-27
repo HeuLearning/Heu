@@ -89,12 +89,12 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
         {/* Answers Container */}
         <div className="flex flex-col">
-          <h2 className="mb-5 pl-2.5 text-typeface_primary text-body-regular">
+          <h2 className="mb-4 pl-2.5 text-typeface_primary text-body-regular">
             Answers:
           </h2>
-          <div className="space-y-6">
+          <div className="flex flex-col">
             {answers.map((answer, index) => (
-              <div key={index} className="flex pl-1">
+              <div key={index} className="mb-4 flex h-8 items-center pl-1">
                 <InfoPill text={answer} />
               </div>
             ))}
