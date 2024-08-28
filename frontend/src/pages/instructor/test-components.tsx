@@ -27,6 +27,8 @@ export default function InstructorHome({
   const [testQAFillInTheBlank, setTestQAFillInTheBlank] = useState(false);
   const [testFillInTheBlank, setTestFillInTheBlank] = useState(false);
   const [testMatching, setTestMatching] = useState(false);
+  const [testAudioSelection, setAudioSelection] = useState(false);
+  const [testAudioWriting, setAudioWriting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -43,6 +45,10 @@ export default function InstructorHome({
   }
 
   const activeModule = { name: "Instruction" };
+
+  const ExerciseWrapper = ({ children }) => (
+    <div className="mx-auto w-[1100px] overflow-x-auto">{children}</div>
+  );
 
   return (
     <>
@@ -67,13 +73,8 @@ export default function InstructorHome({
               <h1 className="mb-8 rounded-[10px] font-medium tracking-[-0.02em] text-[#292929] text-[18px] leading-[22px]">
                 Test Class Mode Content
               </h1>
-              <AudioPlayer
-                title="Coffee Shop"
-                audioSrc={
-                  "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"
-                }
-              ></AudioPlayer>
 
+              {/* Q&A Fill in the Blank Exercise */}
               <section className="mb-12">
                 <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
                   Q&A Fill in the Blank Exercise
@@ -86,18 +87,21 @@ export default function InstructorHome({
                   Test
                 </button>
                 {testQAFillInTheBlank && (
-                  <div className="rounded border p-4 shadow-md">
-                    <div className="h-[500px] overflow-auto bg-white">
-                      <ClassModeContent
-                        activeModuleIndex={0}
-                        activeModule={activeModule}
-                        testQAFillInTheBlank={true}
-                      />
+                  <ExerciseWrapper>
+                    <div className="rounded border p-4 shadow-md">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testQAFillInTheBlank={true}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </ExerciseWrapper>
                 )}
               </section>
 
+              {/* Fill in the Blank Exercise */}
               <section className="mb-12">
                 <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
                   Fill in the Blank Exercise
@@ -109,19 +113,22 @@ export default function InstructorHome({
                   {testFillInTheBlank ? "Hide" : "Show"} Fill In The Blank Test
                 </button>
                 {testFillInTheBlank && (
-                  <div className="rounded border p-4 shadow-md">
-                    <div className="h-[500px] overflow-auto bg-white">
-                      <ClassModeContent
-                        activeModuleIndex={0}
-                        activeModule={activeModule}
-                        testFillInTheBlank={true}
-                      />
+                  <ExerciseWrapper>
+                    <div className="rounded border p-4 shadow-md">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testFillInTheBlank={true}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </ExerciseWrapper>
                 )}
               </section>
 
-              <section>
+              {/* Matching Exercise */}
+              <section className="mb-12">
                 <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
                   Matching Exercise
                 </h2>
@@ -132,15 +139,69 @@ export default function InstructorHome({
                   {testMatching ? "Hide" : "Show"} Matching Test
                 </button>
                 {testMatching && (
-                  <div className="rounded border p-4 shadow-md">
-                    <div className="h-[500px] overflow-auto bg-white">
-                      <ClassModeContent
-                        activeModuleIndex={0}
-                        activeModule={activeModule}
-                        testMatchingExercise={true}
-                      />
+                  <ExerciseWrapper>
+                    <div className="rounded border p-4 shadow-md">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testMatchingExercise={true}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </ExerciseWrapper>
+                )}
+              </section>
+
+              {/* Multiple Selection Exercise */}
+              <section className="mb-12">
+                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+                  Multiple Selection Exercise
+                </h2>
+                <button
+                  onClick={() => setAudioSelection(!testAudioSelection)}
+                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                >
+                  {testAudioSelection ? "Hide" : "Show"} Multiple Selection Test
+                </button>
+                {testAudioSelection && (
+                  <ExerciseWrapper>
+                    <div className="rounded border p-4 shadow-md">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testAudioSelection={true}
+                        />
+                      </div>
+                    </div>
+                  </ExerciseWrapper>
+                )}
+              </section>
+
+              {/* Audio Writing Exercise */}
+              <section className="mb-12">
+                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+                  Audio Writing Exercise
+                </h2>
+                <button
+                  onClick={() => setAudioWriting(!testAudioWriting)}
+                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                >
+                  {testAudioWriting ? "Hide" : "Show"} Audio Writing Test
+                </button>
+                {testAudioWriting && (
+                  <ExerciseWrapper>
+                    <div className="rounded border p-4 shadow-md">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testAudioWriting={true}
+                        />
+                      </div>
+                    </div>
+                  </ExerciseWrapper>
                 )}
               </section>
             </main>
