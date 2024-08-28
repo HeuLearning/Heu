@@ -2,31 +2,22 @@
 
 import Head from "next/head";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useEffect, useState, useRef } from "react";
-// import { useRouter } from 'next/router';
+import { useEffect, useState } from "react";
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
-import { getAccessToken } from "@auth0/nextjs-auth0";
-import { redirect } from "next/navigation";
 import Navbar from "components/all/Navbar";
 import DashboardContainer from "components/all/DashboardContainer";
 import { PopUpProvider } from "components/all/popups/PopUpContext";
 import EnhancedPopUp from "components/all/popups/EnhancedPopUp";
-import ClassModeContainer from "components/all/class-mode/ClassModeContainer";
 import { useRouter } from "next/router";
-import { SessionsProvider } from "components/all/data-retrieval/SessionsContext";
-import { DndContext } from "@dnd-kit/core";
-import { LessonPlanProvider } from "components/all/data-retrieval/LessonPlanContext";
-import MobileClassMode from "components/all/mobile/MobileClassMode";
 import { useResponsive } from "components/all/ResponsiveContext";
-import { StopwatchProvider } from "components/all/class-mode/StopwatchContext";
+import { SessionsProvider } from "components/all/data-retrieval/SessionsContext";
+import dynamic from "next/dynamic";
 
-export const getServerSideProps = withPageAuthRequired({
+export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
-    const { req, res, query } = ctx;
-    const { sessionId } = query;
+    const { req, res } = ctx;
     const session = await getSession(req, res);
-
     if (!session) {
       return {
         redirect: {
@@ -40,7 +31,7 @@ export const getServerSideProps = withPageAuthRequired({
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${session.accessToken}`, // Include the access token
+        Authorization: `Bearer ${session.accessToken}`,
       },
     };
 
@@ -50,6 +41,7 @@ export const getServerSideProps = withPageAuthRequired({
     );
     const roleType = await response.json();
     const role = roleType.role;
+
     if (role === "ad") {
       return {
         redirect: {
@@ -57,10 +49,10 @@ export const getServerSideProps = withPageAuthRequired({
           permanent: false,
         },
       };
-    } else if (role === "st") {
+    } else if (role === "in") {
       return {
         redirect: {
-          destination: "/student",
+          destination: "/instructor",
           permanent: false,
         },
       };
@@ -68,8 +60,7 @@ export const getServerSideProps = withPageAuthRequired({
 
     return {
       props: {
-        role: role || "unknown",
-        sessionId: sessionId || null,
+        role: roleType || null,
         accessToken: session.accessToken || null,
       },
     };
@@ -78,10 +69,8 @@ export const getServerSideProps = withPageAuthRequired({
 
 export default function InstructorHome({
   role,
-  sessionId,
   accessToken,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  console.log(role);
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const [mobile, setMobile] = useState(false);
   const [tablet, setTablet] = useState(false);
@@ -119,18 +108,11 @@ export default function InstructorHome({
 
       <div>
         <SessionsProvider accessToken={accessToken}>
-          <LessonPlanProvider
-            sessionId={sessionId.toString()}
-            accessToken={accessToken}
-          >
-            <PopUpProvider>
-              {isDesktop && <Navbar activeTab={null} />}
-              <StopwatchProvider>
-                <ClassModeContainer sessionId={sessionId} />
-              </StopwatchProvider>
-              <EnhancedPopUp />
-            </PopUpProvider>
-          </LessonPlanProvider>
+          <PopUpProvider>
+            <Navbar activeTab="Dashboard" />
+            <DashboardContainer accessToken={accessToken} />
+            <EnhancedPopUp />
+          </PopUpProvider>
         </SessionsProvider>
       </div>
     </>

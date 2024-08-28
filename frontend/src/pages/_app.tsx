@@ -2,7 +2,7 @@ import { type AppType } from "next/dist/shared/lib/utils";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import "~/styles/globals.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { ResponsiveProvider } from "components/instructor/ResponsiveContext";
+import { ResponsiveProvider } from "components/all/ResponsiveContext";
 import Head from "next/head";
 
 const theme = createTheme({

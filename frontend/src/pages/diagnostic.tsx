@@ -1,11 +1,10 @@
 import Head from "next/head";
-import Header from "../../components/landing_page/header";
 import { withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { useStartAssessment } from "./api/services/use-start-assessment";
 import { useAssessmentQuestion } from "./api/services/use-assessment-question";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { NavBar } from "components/navigation/nav-bar";
+// import { useSession } from "next-auth/react";
+// import { NavBar } from "components/navigation/nav-bar";
 import Link from "next/link";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect } from "react";
@@ -32,6 +31,7 @@ import Item from "@mui/material/Grid";
 import styles from "./assessment.module.css";
 
 import "@fontsource/inter";
+import { useRouter } from "next/router";
 // as opposed to the Assessment, this just automatically starts someone on the
 // exam
 export default function Diagnostic() {
@@ -48,6 +48,8 @@ export default function Diagnostic() {
   const [answer, setAnswer] = useState<string>("");
   const isFirstRender = useRef<boolean>(true); // Ref to keep track of the first render
   const [selectedButton, setSelectedButton] = useState<string>(null);
+
+  const router = useRouter();
 
   const fisherYatesShuffle = (arr: Array<string>) => {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -190,7 +192,13 @@ export default function Diagnostic() {
           <meta name="viewport" content="width=device-width, initial-scale=1" />
         </Head>
         <main>
-          <NavBar />
+          <Button
+            onClick={() => {
+              router.push("/api/auth/logout");
+            }}
+          >
+            Log out
+          </Button>
           <ThemeProvider theme={theme}>
             <Card sx={{ justifyContent: "center", p: 2 }}>
               <CardContent>
@@ -231,7 +239,13 @@ export default function Diagnostic() {
     const afterBlank: string = textParts.slice(blank_id + 1).join(" ");
     return (
       <>
-        <NavBar />
+        <Button
+          onClick={() => {
+            router.push("/api/auth/logout");
+          }}
+        >
+          Log out
+        </Button>
         <ThemeProvider theme={theme}>
           <Card sx={{ justifyContent: "center", p: 2 }}>
             <CardContent>
@@ -303,7 +317,13 @@ export default function Diagnostic() {
       </Head>
       <main>
         <div>
-          <NavBar />
+          <Button
+            onClick={() => {
+              router.push("/api/auth/logout");
+            }}
+          >
+            Log out
+          </Button>
           <ThemeProvider theme={theme}>
             <Card sx={{ justifyContent: "center", p: 2 }}>
               <CardContent>

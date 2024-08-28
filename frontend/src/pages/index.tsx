@@ -1,14 +1,18 @@
 // index.tsx
 
 import Head from "next/head";
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect } from "react";
 // import { useRouter } from 'next/router';
-import type { InferGetServerSidePropsType, GetServerSideProps, GetServerSidePropsContext } from 'next'
-import { withPageAuthRequired, getSession } from '@auth0/nextjs-auth0';
-import { getAccessToken } from '@auth0/nextjs-auth0';
-import { redirect } from 'next/navigation'
-import { useRouter } from 'next/navigation'
+import type {
+  InferGetServerSidePropsType,
+  GetServerSideProps,
+  GetServerSidePropsContext,
+} from "next";
+import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
+import { getAccessToken } from "@auth0/nextjs-auth0";
+import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface AuthProps {
   role?: string;
@@ -105,7 +109,7 @@ interface AuthProps {
 //     }
 
 //     console.log(session.accessToken);
-    
+
 //     const options = {
 //       method: 'GET',
 //       // credentials: 'include',
@@ -177,85 +181,93 @@ interface AuthProps {
   error?: string;
 }
 
-export const getServerSideProps: GetServerSideProps<AuthProps> = withPageAuthRequired({
-  async getServerSideProps(ctx) {
-    const { req, res } = ctx;
-    const session = await getSession(req, res);
-    
-    if (!session) {
-      return {
-        redirect: {
-          destination: '/about',
-          permanent: false,
-        },
-      };
-    }
+export const getServerSideProps: GetServerSideProps<AuthProps> =
+  withPageAuthRequired({
+    async getServerSideProps(ctx) {
+      const { req, res } = ctx;
+      const session = await getSession(req, res);
 
-    try {
-      const response = await fetch('http://localhost:8000/api/get-user-role', {
-        method: 'GET',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const roleType = await response.json();
-      const role = roleType.role;
-
-      if (role === "no type") {
+      if (!session) {
         return {
           redirect: {
-            destination: '/diagnostic',
+            destination: "/about",
             permanent: false,
           },
         };
       }
 
-      const roleRedirects: { [key: string]: string } = {
-        "ad": '/admin',
-        "in": '/instructor',
-        "st": '/learner',
-      };
+      try {
+        const response = await fetch(
+          "http://localhost:8000/api/get-user-role",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.accessToken}`,
+            },
+          }
+        );
 
-      if (role in roleRedirects) {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const roleType = await response.json();
+        const role = roleType.role;
+
+        if (role === "no type") {
+          return {
+            redirect: {
+              destination: "/diagnostic",
+              permanent: false,
+            },
+          };
+        }
+
+        const roleRedirects: { [key: string]: string } = {
+          ad: "/admin",
+          in: "/instructor",
+          st: "/learner",
+        };
+
+        if (role in roleRedirects) {
+          return {
+            redirect: {
+              destination: roleRedirects[role],
+              permanent: false,
+            },
+          };
+        }
+
         return {
-          redirect: {
-            destination: roleRedirects[role],
-            permanent: false,
+          props: {
+            role: role || "unknown",
+            accessToken: session.accessToken,
+          },
+        };
+      } catch (error) {
+        console.error("Error in getServerSideProps:", error);
+        return {
+          props: {
+            error: "An error occurred during authentication",
           },
         };
       }
+    },
+  });
 
-      return {
-        props: {
-          role: role || 'unknown',
-          accessToken: session.accessToken,
-        },
-      };
-    } catch (error) {
-      console.error('Error in getServerSideProps:', error);
-      return {
-        props: {
-          error: 'An error occurred during authentication',
-        },
-      };
-    }
-  }
-});
-
-export default function Home({ role, accessToken, error }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter(); 
+export default function Home({
+  role,
+  accessToken,
+  error,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const router = useRouter();
   const updateUser = async (newRole: string): Promise<void> => {
     const options = {
-      method: 'POST',
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${accessToken}`, // Include the access token
+        Authorization: `Bearer ${accessToken}`, // Include the access token
       },
       body: JSON.stringify({
         purpose: "change role",
@@ -263,8 +275,8 @@ export default function Home({ role, accessToken, error }: InferGetServerSidePro
       }),
     };
     // console.log("here1")
-    await fetch('http://localhost:8000/api/user', options);
-    switch(newRole) {
+    await fetch("http://localhost:8000/api/user", options);
+    switch (newRole) {
       case "ad":
         router.push("/admin");
         break;
@@ -275,26 +287,40 @@ export default function Home({ role, accessToken, error }: InferGetServerSidePro
         router.push("/learner");
         break;
       default:
-        break
+        break;
     }
-  }
+  };
 
- 
   return (
     <>
-        <Head>
-          <title>Heu Learning</title>
-          <meta name="description" content="Teach more English better" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <link rel="icon" href="/icon.ico" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
-        </Head>
-        
+      <Head>
+        <title>Heu Learning</title>
+        <meta name="description" content="Teach more English better" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/icon.ico" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
+
+      <div>
         <div>
-          <div><button onClick={() => updateUser("st")}>Register as a Learner</button></div>
-          <div><button onClick={() => updateUser("in")}>Register as an Instructor</button></div>
-          <div><button onClick={() => updateUser("ad")}>Request to be a Learning Center Administrator</button></div>
+          <button onClick={() => updateUser("st")}>
+            Register as a Learner
+          </button>
         </div>
+        <div>
+          <button onClick={() => updateUser("in")}>
+            Register as an Instructor
+          </button>
+        </div>
+        <div>
+          <button onClick={() => updateUser("ad")}>
+            Request to be a Learning Center Administrator
+          </button>
+        </div>
+      </div>
     </>
   );
 }
