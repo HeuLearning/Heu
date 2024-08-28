@@ -5,13 +5,13 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useEffect, useState } from "react";
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
-import { PopUpProvider } from "components/instructor/PopUpContext";
-import EnhancedPopUp from "components/instructor/EnhancedPopUp";
-import { useResponsive } from "components/instructor/ResponsiveContext";
-import ClassModeContent from "components/instructor/ClassModeContent";
-import { StopwatchProvider } from "components/instructor/StopwatchContext";
-import AudioButton from "components/exercise/AudioButton";
-import AudioPlayer from "components/exercise/AudioPlayer";
+import { PopUpProvider } from "components/all/popups/PopUpContext";
+import EnhancedPopUp from "components/all/EnhancedPopUp";
+import { useResponsive } from "components/all/ResponsiveContext";
+import ClassModeContent from "components/all/class-mode/ClassModeContent";
+import { StopwatchProvider } from "components/all/class-mode/StopwatchContext";
+import AudioButton from "components/exercises/AudioButton";
+import AudioPlayer from "components/exercises/AudioPlayer";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   // ... (getServerSideProps implementation remains the same)
