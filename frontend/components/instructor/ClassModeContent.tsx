@@ -4,6 +4,7 @@ import FillInTheBlankExercise from "components/exercise/FillInTheBlankExercise";
 import QAFillInBlankExercise from "components/exercise/QAFillInTheBlankExercise";
 import AudioSelectionExercise from "components/exercise/AudioSelectionExercise";
 import AudioWritingExercise from "components/exercise/AudioWriting";
+import { useStopwatchState } from "./StopwatchContext";
 
 function ClassModeContent({
   activeModuleIndex,
@@ -14,6 +15,9 @@ function ClassModeContent({
   testAudioSelection = false,
   testAudioWriting = false,
 }) {
+  const state = useStopwatchState();
+  const { elapsedTime, elapsedLapTime } = state;
+
   if (testQAFillInTheBlank) {
     const qaFillInBlankData = {
       questions: [
@@ -188,7 +192,10 @@ function ClassModeContent({
 
   return (
     <div className="flex h-full w-full items-center justify-center bg-white p-6">
-      Toggle Exercise
+      <div className="flex flex-col">
+        <p>elapsed time: {elapsedTime}</p>
+        <p>elapsed time in module: {elapsedLapTime}</p>
+      </div>
     </div>
   );
 }

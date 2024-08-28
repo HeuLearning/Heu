@@ -14,6 +14,7 @@ import {
 } from "date-fns";
 import { useSessions } from "../SessionsContext";
 import Dot from "../Dot";
+import BackButton from "../BackButton";
 
 export default function HorizontalDatePicker({
   endDate = null,
@@ -242,75 +243,20 @@ export default function HorizontalDatePicker({
   return (
     <div className="flex w-full flex-col">
       <div className="custom-calendar-header sticky flex items-center justify-between px-[16px] pb-[24px] pt-[16px]">
-        <button className="custom-navigation-button" onClick={prevMonth}>
-          <svg
-            width="44"
-            height="44"
-            viewBox="0 0 44 44"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect
-              x="0.5"
-              y="0.5"
-              width="43"
-              height="43"
-              rx="21.5"
-              fill="white"
-            />
-            <rect
-              x="0.5"
-              y="0.5"
-              width="43"
-              height="43"
-              rx="21.5"
-              stroke="var(--action_border_secondary)"
-            />
-            <path
-              d="M23.5 18.25L20 21.75L23.5 25.25"
-              stroke="var(--action_bg_primary)"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        <BackButton
+          variation="button-secondary"
+          className="custom-navigation-button button-secondary"
+          onClick={prevMonth}
+        />
         <span className="text-typeface_primary leading-tight text-h3">
           {format(currentMonth, "MMMM yyyy")}
         </span>
-        <div className="flex space-x-[12px]">
-          <button className="custom-navigation-button" onClick={nextMonth}>
-            <svg
-              width="44"
-              height="44"
-              viewBox="0 0 44 44"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                x="0.5"
-                y="0.5"
-                width="43"
-                height="43"
-                rx="21.5"
-                fill="white"
-              />
-              <rect
-                x="0.5"
-                y="0.5"
-                width="43"
-                height="43"
-                rx="21.5"
-                stroke="var(--action_border_secondary)"
-              />
-              <path
-                d="M20.5 25.25L24 21.75L20.5 18.25"
-                stroke="var(--action_bg_primary)"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
+        <BackButton
+          variation="button-secondary"
+          direction="forward"
+          className="custom-navigation-button"
+          onClick={nextMonth}
+        />
       </div>
       <div
         id={"container"}
