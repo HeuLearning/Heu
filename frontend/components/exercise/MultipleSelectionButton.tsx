@@ -1,10 +1,10 @@
-interface ButtonTextProps {
+interface MultipleSelectionButtonProps {
   text: string;
   isSelected: boolean;
   onClick: () => void;
 }
 
-const ButtonText: React.FC<ButtonTextProps> = ({
+const MultipleSelectionButton: React.FC<MultipleSelectionButtonProps> = ({
   text,
   isSelected,
   onClick,
@@ -13,9 +13,9 @@ const ButtonText: React.FC<ButtonTextProps> = ({
     <button
       onClick={onClick}
       className={`
-        box-border flex h-8 min-w-[80px] items-center justify-center
-        overflow-hidden text-ellipsis whitespace-nowrap rounded-[10px] border px-3 py-0 font-semibold tracking-[-0.02em] transition-colors
-        font-sans text-sm leading-[16.94px]
+        box-border flex h-[32px] min-w-[80px] items-center justify-center
+        overflow-hidden text-ellipsis whitespace-nowrap rounded-[10px] border px-[12px] py-0 
+        transition-colors text-body-semibold-cap-height
         ${
           isSelected
             ? "border-transparent bg-action_bg_primary_press text-typeface_highlight"
@@ -28,4 +28,4 @@ const ButtonText: React.FC<ButtonTextProps> = ({
   );
 };
 
-export default ButtonText;
+export default MultipleSelectionButton;

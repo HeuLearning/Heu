@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AudioPlayer from "./AudioPlayer";
-import ButtonText from "./ButtonText";
+import ButtonText from "./MultipleSelectionButton";
 
 interface AudioSelectionExerciseProps {
   audioTitle: string;
@@ -26,7 +26,7 @@ const AudioSelectionExercise: React.FC<AudioSelectionExerciseProps> = ({
   };
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-white p-6">
+    <div className="flex h-full w-full items-center justify-center bg-white p-[24px]">
       <div className="flex items-center gap-[128px]">
         {/* Left Container: Audio Player */}
         <div className="flex-shrink-0">
