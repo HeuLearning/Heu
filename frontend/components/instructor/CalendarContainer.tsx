@@ -3,12 +3,12 @@ import DateCard from "./DateCard";
 import MiniClassBlock from "./MiniClassBlock";
 import Divider from "./Divider";
 import Calendar from "./Calendar";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useResponsive } from "./ResponsiveContext";
-import styles from "./MiniClassBlock.module.css";
 import { useSessions } from "./SessionsContext";
 import IconButton from "./IconButton";
 import Scrollbar from "./Scrollbar";
+import styles from "./SidePopUp.module.css";
 
 export default function CalendarContainer({
   activeSessionId,
@@ -18,6 +18,10 @@ export default function CalendarContainer({
   const [visibleMonth, setVisibleMonth] = useState(new Date());
   const [activeTab, setActiveTab] = useState("Monthly");
   const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const scrollableRef = useRef(null);
 
   const handleToggle = (selectedOption) => {
     setActiveTab(selectedOption);
@@ -79,103 +83,148 @@ export default function CalendarContainer({
         (session) =>
           new Date(session.start_time).getMonth() === visibleMonth.getMonth()
       ).length === 0
-    )
+    ) {
       return (
         <div className="text-typeface_primary text-body-medium">
           No sessions booked this month.
         </div>
       );
-    return upcomingSessions
-      .filter(
+    } else {
+      let firstActiveSession = upcomingSessions.find(
         (session) =>
-          new Date(session.start_time).getMonth() === visibleMonth.getMonth()
-      )
-      .map((session, index, filteredSessions) => {
+          getSessionStatus(session) === "Online" ||
+          getSessionStatus(session) === "Confirmed"
+      );
+      return upcomingSessions
+        .filter(
+          (session) =>
+            new Date(session.start_time).getMonth() === visibleMonth.getMonth()
+        )
+        .map((session, index, filteredSessions) => {
+          const currentDate = new Date(session.start_time);
+          const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
+          const previousDate =
+            index > 0 ? new Date(filteredSessions[index - 1].start_time) : null;
+          const previousDateKey = previousDate
+            ? `${previousDate.getFullYear()}-${previousDate.getMonth()}-${previousDate.getDate()}`
+            : null;
+          return (
+            <div key={session.id}>
+              {index > 0 && index < filteredSessions.length && (
+                <Divider spacing={12} />
+              )}
+              {currentDateKey === previousDateKey ? (
+                <MiniClassBlock
+                  dateCard={
+                    session === firstActiveSession &&
+                    filteredSessions[0].id === upcomingSessions[0].id
+                  }
+                  sessionId={session.id}
+                  activeSessionId={activeSessionId}
+                  setActiveSessionId={setActiveSessionId}
+                  isDaily={true}
+                  arrow={true}
+                />
+              ) : (
+                <MiniClassBlock
+                  dateCard={
+                    session === firstActiveSession &&
+                    filteredSessions[0].id === upcomingSessions[0].id
+                  }
+                  sessionId={session.id}
+                  activeSessionId={activeSessionId}
+                  setActiveSessionId={setActiveSessionId}
+                  isDaily={true}
+                />
+              )}
+            </div>
+          );
+        });
+    }
+  };
+
+  const renderUpcomingSessions = () => {
+    /* assumes that past sessions have been removed from array */
+    if (upcomingSessions.length === 0) {
+      return (
+        <div className="text-typeface_secondary text-body-medium">
+          No upcoming sessions.
+        </div>
+      );
+    } else {
+      let firstActiveSession = upcomingSessions.find(
+        (session) =>
+          getSessionStatus(session) === "Online" ||
+          getSessionStatus(session) === "Confirmed"
+      );
+      const next3Sessions = upcomingSessions.slice(
+        0,
+        Math.min(upcomingSessions.length, 3)
+      );
+      return next3Sessions.map((session, index) => {
         const currentDate = new Date(session.start_time);
         const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
         const previousDate =
-          index > 0 ? new Date(filteredSessions[index - 1].start_time) : null;
+          index > 0 ? new Date(next3Sessions[index - 1].start_time) : null;
         const previousDateKey = previousDate
           ? `${previousDate.getFullYear()}-${previousDate.getMonth()}-${previousDate.getDate()}`
           : null;
-        return (
-          <div key={session.id}>
-            {index > 0 && index < filteredSessions.length && (
-              <Divider spacing={12} />
-            )}
+        return index === 0 ? (
+          <MiniClassBlock
+            dateCard={firstActiveSession === session}
+            sessionId={session.id}
+            activeSessionId={activeSessionId}
+            setActiveSessionId={setActiveSessionId}
+          />
+        ) : (
+          <div>
+            <Divider spacing={12} />
             {currentDateKey === previousDateKey ? (
               <MiniClassBlock
-                dateCard={
-                  index === 0 &&
-                  filteredSessions[0].id === upcomingSessions[0].id
-                }
+                dateCard={firstActiveSession === session}
+                key={session.id}
                 sessionId={session.id}
                 activeSessionId={activeSessionId}
                 setActiveSessionId={setActiveSessionId}
-                isDaily={true}
                 arrow={true}
               />
             ) : (
               <MiniClassBlock
-                dateCard={
-                  index === 0 &&
-                  filteredSessions[0].id === upcomingSessions[0].id
-                }
+                dateCard={firstActiveSession === session}
+                key={session.id}
                 sessionId={session.id}
                 activeSessionId={activeSessionId}
                 setActiveSessionId={setActiveSessionId}
-                isDaily={true}
               />
             )}
           </div>
         );
       });
+    }
   };
 
-  const renderUpcomingSessions = () => {
-    /* assumes that past sessions have been removed from array */
-    const next3Sessions = upcomingSessions.slice(
-      0,
-      Math.min(upcomingSessions.length, 3)
-    );
-    return next3Sessions.map((session, index) => {
-      const currentDate = new Date(session.start_time);
-      const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
-      const previousDate =
-        index > 0 ? new Date(next3Sessions[index - 1].start_time) : null;
-      const previousDateKey = previousDate
-        ? `${previousDate.getFullYear()}-${previousDate.getMonth()}-${previousDate.getDate()}`
-        : null;
-      return index === 0 ? (
-        <MiniClassBlock
-          dateCard={true}
-          sessionId={session.id}
-          activeSessionId={activeSessionId}
-          setActiveSessionId={setActiveSessionId}
-        />
-      ) : (
-        <div>
-          <Divider spacing={12} />
-          {currentDateKey === previousDateKey ? (
-            <MiniClassBlock
-              key={session.id}
-              sessionId={session.id}
-              activeSessionId={activeSessionId}
-              setActiveSessionId={setActiveSessionId}
-              arrow={true}
-            />
-          ) : (
-            <MiniClassBlock
-              key={session.id}
-              sessionId={session.id}
-              activeSessionId={activeSessionId}
-              setActiveSessionId={setActiveSessionId}
-            />
-          )}
-        </div>
-      );
-    });
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollableRef.current) {
+        const scrollY = scrollableRef.current.scrollTop; // Use scrollTop for the scrollable container
+        if (scrollY > 25) {
+          setIsScrolled(true);
+        } else {
+          setIsScrolled(false);
+        }
+      }
+    };
+
+    handleScroll(); // Initial check
+    if (scrollableRef.current) {
+      const currentScrollable = scrollableRef.current;
+      currentScrollable.addEventListener("scroll", handleScroll);
+      // Clean up the event listener on component unmount
+      return () => {
+        currentScrollable.removeEventListener("scroll", handleScroll);
+      };
+    }
+  }, []);
 
   if (isMobile) {
     return <div></div>;
@@ -251,19 +300,27 @@ export default function CalendarContainer({
           </div>
         )}
         {activeTab === "Daily" && (
-          <div className="h-[570px] overflow-y-auto">
-            {/* scrollbar halfway into padding, 8px */}
-            <Scrollbar
-              className="absolute right-[8px] z-50"
-              scrollbarHeight={554}
-            >
-              <div className="daily-events mt-[8px] flex flex-col items-center px-[16px]">
-                {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
+          <div>
+            <div
+              className={`${isScrolled ? styles.stickyHeaderWithBorder : ""}`}
+            ></div>
+            <div className={`h-[570px] overflow-y-auto`}>
+              {/* scrollbar halfway into padding, 8px */}
+              <Scrollbar
+                className="absolute right-[8px] z-50"
+                scrollbarHeight={554}
+                contentRef={scrollableRef}
+              >
+                <div
+                  className={`daily-events mt-[8px] flex flex-col items-center px-[16px]`}
+                >
+                  {/* assumes that past sessions have been removed from array such that the first session is the most upcoming one.
             only dateCard for most upcoming session */}
 
-                <div className="pb-[32px]">{renderDailySessions()}</div>
-              </div>
-            </Scrollbar>
+                  <div className="pb-[32px]">{renderDailySessions()}</div>
+                </div>
+              </Scrollbar>
+            </div>
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ import XButton from "./XButton";
 import ToggleButton from "./ToggleButton";
 import Button from "./Button";
 import Divider from "./Divider";
+import { useRouter } from "next/router";
 
 export default function Navbar() {
   const { isMobile, isTablet, isDesktop } = useResponsive();
@@ -21,6 +22,8 @@ export default function Navbar() {
   const [isMobileNavMenuShown, setIsMobileNavMenuShown] = useState(false);
   const [activeNotifTab, setActiveNotifTab] = useState("New");
   const [isNotifsOpen, setIsNotifsOpen] = useState(false);
+
+  const router = useRouter();
 
   const oldNotifs = [
     ["Request to swap not approved for June 20", "View more"],
@@ -62,7 +65,11 @@ export default function Navbar() {
   const NotifContent = ({ activeTab, onToggle, onClose }) => {
     const notifs = activeTab === "New" ? newNotifs : oldNotifs;
     // Get the container element
-    const dashboardContainer = document.getElementById("dashboard-container");
+    let dashboardContainer;
+    // assumes that only two URLs are going to be the instructor dashboard and the class mode
+    if (router.pathname === "/instructor/instructor-test")
+      dashboardContainer = document.getElementById("dashboard-container");
+    else dashboardContainer = document.getElementById("class-mode-container");
 
     // Calculate the height
     const containerHeight = dashboardContainer.offsetHeight;
@@ -88,17 +95,27 @@ export default function Navbar() {
         className="absolute right-0 top-0 flex flex-col"
       >
         <div className="flex flex-col">
-          {notifs.map((notif, index) => (
-            <div>
-              {index > 0 && <Divider spacing={8} />}
-              <div className="flex items-center justify-between gap-[48px] px-[4px] py-[7px] text-body-medium">
-                {notif[0]}
-                <Button className="button-primary whitespace-nowrap">
-                  {notif[1]}
-                </Button>
+          {notifs.length > 0 ? (
+            notifs.map((notif, index) => (
+              <div>
+                {index > 0 && (
+                  <div className="px-[4px]">
+                    <Divider spacing={8} />
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-[48px] px-[4px] py-[7px] text-typeface_primary text-body-medium">
+                  {notif[0]}
+                  <Button className="button-primary whitespace-nowrap">
+                    {notif[1]}
+                  </Button>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="text-typeface_secondary text-body-medium">
+              No activity to show here, yet.
             </div>
-          ))}
+          )}
         </div>
       </SidePopUp>
     );
@@ -116,23 +133,29 @@ export default function Navbar() {
     );
   };
 
-  const displayNotifs = () => {
-    setIsNotifsOpen(true);
-    showPopUp({
-      id: "notifs-popup",
-      content: (
-        <NotifContent
-          activeTab={activeNotifTab}
-          onToggle={onToggle}
-          onClose={handleCloseNotifs}
-        />
-      ),
-      container: "#dashboard-container", // Ensure this ID exists in your DOM
-      style: {
-        overlay: "overlay-low rounded-[20px]",
-      },
-      height: "auto",
-    });
+  const toggleNotifs = (isNotifsOpen) => {
+    setIsNotifsOpen(!isNotifsOpen);
+    if (isNotifsOpen) handleCloseNotifs();
+    else {
+      showPopUp({
+        id: "notifs-popup",
+        content: (
+          <NotifContent
+            activeTab={activeNotifTab}
+            onToggle={onToggle}
+            onClose={handleCloseNotifs}
+          />
+        ),
+        container:
+          router.pathname === "/instructor/instructor-test"
+            ? "#dashboard-container"
+            : "#class-mode-container", // Ensure this ID exists in your DOM
+        style: {
+          overlay: "overlay-low rounded-[20px]",
+        },
+        height: "auto",
+      });
+    }
   };
 
   const handleCloseNotifs = () => {
@@ -188,7 +211,10 @@ export default function Navbar() {
               ["Portuguese", "PT"],
             ]}
           />
-          <NotificationButton onClick={displayNotifs} isOpen={isNotifsOpen} />
+          <NotificationButton
+            onClick={() => toggleNotifs(isNotifsOpen)}
+            isOpen={isNotifsOpen}
+          />
           <ProfilePic />
         </div>
       </div>

@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import RSVPSelector from "./RSVPSelector";
 import { useRouter } from "next/router";
 import IconButton from "./IconButton";
+import { getSession } from "@auth0/nextjs-auth0";
 
 export default function SessionDetailContent({
   sessionId,
@@ -131,21 +132,28 @@ export default function SessionDetailContent({
         </div>
         <div className="session-buttons flex items-center gap-[16px] pr-[14px]">
           {sessionId &&
-          getSessionStatus(session) !== "Online" &&
-          getSessionStatus(session) !== "Canceled" &&
-          isUpcoming ? (
-            <InfoPill
-              icon={true}
-              text={
-                differenceInDaysToStart === 0
-                  ? "Starts today"
-                  : `Starts in ${differenceInDaysToStart} day${
-                      differenceInDaysToStart > 1 ? "s" : ""
-                    }`
-              }
-            />
-          ) : null}
-          {isMobile ? null : session ? (
+            (getSessionStatus(session) === "Online" ? (
+              <InfoPill icon={true} text="Your class has started" />
+            ) : getSessionStatus(session) !== "Canceled" && isUpcoming ? (
+              <InfoPill
+                icon={true}
+                text={
+                  differenceInDaysToStart === 0
+                    ? "Starts today"
+                    : `Starts in ${differenceInDaysToStart} day${
+                        differenceInDaysToStart > 1 ? "s" : ""
+                      }`
+                }
+              />
+            ) : null)}
+          {isMobile ? (
+            session &&
+            (getSessionStatus(session) === "Canceled" ||
+              getSessionStatus(session) === "Confirmed" ||
+              getSessionStatus(session) === "Attended") ? (
+              <RSVPSelector session={session} />
+            ) : null
+          ) : session ? (
             getSessionStatus(session) === "Online" ? (
               <Button className="button-primary" onClick={handleEnter}>
                 Enter class
@@ -206,7 +214,7 @@ export default function SessionDetailContent({
                   } text-body-regular`}
                 >
                   {sessionId ? (
-                    "Plan and deliver engaging lessons that integrate listening, speaking, reading,and writing activities, tailored to students' proficiency levels, and include clear objectives, interactive exercises, and regular assessments to monitor progress."
+                    "Plan and deliver engaging lessons that integrate listening, speaking, reading, and writing activities, tailored to students' proficiency levels, and include clear objectives, interactive exercises, and regular assessments to monitor progress."
                   ) : (
                     <div className="flex flex-col gap-[14px]">
                       <Placeholder width={252} height={10} />
@@ -227,8 +235,26 @@ export default function SessionDetailContent({
             }`}
           >
             <InfoCard
-              className="class-lineup-card h-full min-h-[300px] flex-grow cursor-pointer"
-              onClick={handleShowClassSchedule}
+              className={`class-lineup-card h-full min-h-[300px] flex-grow ${
+                !sessionId ||
+                (sessionId &&
+                  (isLessonPlanLoaded === "loading" ||
+                    isLessonPlanLoaded === "not confirmed instructor" ||
+                    isLessonPlanLoaded === "canceled session" ||
+                    isLessonPlanLoaded === "no lesson plan"))
+                  ? ""
+                  : "cursor-pointer"
+              }`}
+              onClick={
+                !sessionId ||
+                (sessionId &&
+                  (isLessonPlanLoaded === "loading" ||
+                    isLessonPlanLoaded === "not confirmed instructor" ||
+                    isLessonPlanLoaded === "canceled session" ||
+                    isLessonPlanLoaded === "no lesson plan"))
+                  ? undefined
+                  : handleShowClassSchedule
+              }
             >
               <div className="flex flex-col gap-[24px]">
                 <div className="flex items-center justify-between">
@@ -243,6 +269,14 @@ export default function SessionDetailContent({
                     className={`${
                       isMobile ? "h-[32px] w-[32px]" : ""
                     } outline-surface_border_tertiary`}
+                    disabled={
+                      !sessionId ||
+                      (sessionId &&
+                        (isLessonPlanLoaded === "loading" ||
+                          isLessonPlanLoaded === "not confirmed instructor" ||
+                          isLessonPlanLoaded === "canceled session" ||
+                          isLessonPlanLoaded === "no lesson plan"))
+                    }
                   >
                     <svg
                       width="16"
@@ -262,14 +296,18 @@ export default function SessionDetailContent({
                 </div>
                 {sessionId && isLessonPlanLoaded !== "loading" ? (
                   isLessonPlanLoaded === "not confirmed instructor" ? (
-                    <div>
+                    <div className="text-typeface_primary text-body-medium">
                       You cannot see the lesson plan until you've confirmed the
                       session.
                     </div>
                   ) : isLessonPlanLoaded === "canceled session" ? (
-                    <div>This session was canceled.</div>
+                    <div className="text-typeface_primary text-body-medium">
+                      This session was canceled.
+                    </div>
                   ) : isLessonPlanLoaded === "no lesson plan" ? (
-                    <div>No lesson plan yet</div>
+                    <div className="text-typeface_primary text-body-medium">
+                      No lesson plan yet
+                    </div>
                   ) : (
                     <div className="flex flex-col gap-[19px]">
                       {phases.map((phase) => (

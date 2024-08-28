@@ -97,8 +97,8 @@ export default function MiniClassBlock({
           <h2
             className={
               status === "Canceled"
-                ? "text-typeface_tertiary text-body-medium"
-                : "text-typeface_secondary text-body-medium"
+                ? "whitespace-nowrap text-typeface_tertiary text-body-medium"
+                : "whitespace-nowrap text-typeface_secondary text-body-medium"
             }
           >
             {format(startDate, "h:mm a")}
@@ -154,7 +154,7 @@ export default function MiniClassBlock({
       return (
         <div className="rounded-[10px] shadow-25">
           <Button
-            className="bg-white text-typeface_primary text-body-semibold-cap-height"
+            className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
             onClick={handleEnter}
           >
             Enter class

@@ -1,17 +1,25 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import styles from "./Scrollbar.module.css";
 
 interface ScrollbarProps extends React.ComponentPropsWithoutRef<"div"> {
   scrollbarHeight: number;
+  contentRef: React.RefObject<HTMLDivElement>;
 }
 
 const Scrollbar = ({
   children,
   className,
   scrollbarHeight,
+  contentRef,
   ...props
 }: ScrollbarProps) => {
-  const contentRef = useRef<HTMLDivElement>(null);
+  //   const contentRef = useRef<HTMLDivElement>(null);
   const scrollTrackRef = useRef<HTMLDivElement>(null);
   const scrollThumbRef = useRef<HTMLDivElement>(null);
   const observer = useRef<ResizeObserver | null>(null);
@@ -25,49 +33,68 @@ const Scrollbar = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isScrollable, setIsScrollable] = useState(false);
 
-  const [contentHeight, setContentHeight] = useState(0);
-
-  function handleResize(contentRef: HTMLDivElement) {
-    const { clientHeight, scrollHeight } = contentRef;
-    console.log("--------------------");
-    console.log("client height " + clientHeight);
-    console.log("scroll height " + scrollHeight);
-    const trackSize = scrollbarHeight;
-    const newThumbHeight = Math.max(
-      (clientHeight / scrollHeight) * trackSize,
-      20
-    );
-    console.log("track size " + trackSize);
-    console.log("thumb height " + newThumbHeight);
-    setThumbHeight(newThumbHeight);
-    console.log("new thumb height " + newThumbHeight);
-    setContentHeight(scrollHeight);
-    console.log(contentHeight);
-  }
+  const handleResize = useCallback(
+    (contentRef: HTMLDivElement) => {
+      const { clientHeight, scrollHeight } = contentRef;
+      console.log("--------------------");
+      console.log("client height " + clientHeight);
+      console.log("scroll height " + scrollHeight);
+      const newThumbHeight = Math.max(
+        (clientHeight / scrollHeight) * scrollbarHeight,
+        20
+      );
+      console.log("track size " + scrollbarHeight);
+      console.log("thumb height " + newThumbHeight);
+      setThumbHeight(newThumbHeight);
+      console.log("new thumb height " + newThumbHeight);
+    },
+    [scrollbarHeight]
+  );
 
   // If the content and the scrollbar track exist, use a ResizeObserver to adjust height of thumb and listen for scroll event to move the thumb
-  useEffect(() => {
-    if (contentRef.current && scrollTrackRef.current) {
-      const ref = contentRef.current;
-      const checkScrollable = () => {
-        setIsScrollable(ref.scrollHeight > ref.clientHeight);
-      };
-
-      observer.current = new ResizeObserver(() => {
-        console.log("Blah");
-        checkScrollable();
+  useLayoutEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      if (contentRef.current) {
         handleResize(contentRef.current);
-      });
-      observer.current.observe(ref);
-      ref.addEventListener("scroll", handleThumbPosition);
-      checkScrollable();
+        setIsScrollable(
+          contentRef.current.scrollHeight > contentRef.current.clientHeight
+        );
+      }
+    });
 
+    const mutationObserver = new MutationObserver(() => {
+      if (contentRef.current) {
+        handleResize(contentRef.current);
+        setIsScrollable(
+          contentRef.current.scrollHeight > contentRef.current.clientHeight
+        );
+      }
+    });
+
+    if (contentRef.current) {
+      resizeObserver.observe(contentRef.current);
+      mutationObserver.observe(contentRef.current, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+      });
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [scrollbarHeight]);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.addEventListener("scroll", handleThumbPosition);
       return () => {
-        observer.current?.unobserve(ref);
-        ref.removeEventListener("scroll", handleThumbPosition);
+        contentRef.current?.removeEventListener("scroll", handleThumbPosition);
       };
     }
-  }, [children, contentHeight]);
+  }, []);
 
   const handleTrackClick = useCallback(
     (e) => {

@@ -134,11 +134,12 @@ export default function MobileClassDetails({
           headerContent={
             <div className="flex h-[44px] w-full items-center justify-center">
               <BackButton
+                variation="button-secondary"
                 onClick={hideClassSchedule}
                 className="absolute left-0"
               />
               <h3 className="text-typeface_primary text-body-medium">
-                Class schedule
+                Class Schedule
               </h3>
             </div>
           }

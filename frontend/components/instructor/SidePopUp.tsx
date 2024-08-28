@@ -57,11 +57,12 @@ export default function SidePopUp({
             <div className="pb-[24px]">{headerContent}</div>
           </div>
         </div>
-        <div className="overflow-y-auto" ref={scrollableRef}>
+        <div className="overflow-y-auto">
           {/* 24 = the bottom padding */}
           <Scrollbar
             className="z-100 absolute right-[12px]"
             scrollbarHeight={height - 24 - headerHeight}
+            contentRef={scrollableRef}
           >
             <div className="px-[24px] pb-[32px]">{children}</div>
           </Scrollbar>

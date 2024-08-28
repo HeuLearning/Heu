@@ -1,9 +1,19 @@
+import { useResponsive } from "./ResponsiveContext";
+
 export default function InfoPill({ icon = false, text }) {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+
   return (
     <div className="inline-block rounded-full bg-status_bg_info text-status_fg_info text-body-semibold-cap-height">
       <div
         className={`flex items-center gap-[4px] ${
-          icon ? "pl-[4px] pr-[8px]" : "px-[8px] pb-[6.5px] pt-[7px]"
+          isMobile
+            ? icon
+              ? "h-[32px] pl-[7px] pr-[10px]"
+              : "h-[32px] px-[10px]"
+            : icon
+            ? "h-[24px] pl-[4px] pr-[8px]"
+            : "h-[24px] px-[8px]"
         }`}
       >
         {icon ? (
@@ -25,8 +35,8 @@ export default function InfoPill({ icon = false, text }) {
           </div>
         ) : null}
 
-        <div className={icon ? "pb-[6px] pt-[7px]" : ""}>{text}</div>
-        {/* y in days hangs down so less bottom padding */}
+        <div>{text}</div>
+        {/* y in days hangs down  less bottom padding */}
       </div>
     </div>
   );

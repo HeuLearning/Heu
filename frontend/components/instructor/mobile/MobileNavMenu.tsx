@@ -31,12 +31,20 @@ export default function MobileNavMenu({ closeMenu }) {
         selectedNavButton === "Language" ? (
           <div className="flex h-[44px] w-full items-center justify-center">
             <h3 className="text-typeface_primary text-body-medium">Language</h3>
-            <BackButton onClick={goBack} className="absolute left-0" />
+            <BackButton
+              variation="button-secondary"
+              onClick={goBack}
+              className="absolute left-0"
+            />
           </div>
         ) : (
           <div className="flex h-[44px] w-full items-center justify-center">
             <h3 className="text-typeface_primary text-body-medium">Menu</h3>
-            <XButton onClick={closeMenu} className="absolute right-0" />
+            <XButton
+              variation="button-secondary"
+              onClick={closeMenu}
+              className="absolute right-0"
+            />
           </div>
         )
       }
