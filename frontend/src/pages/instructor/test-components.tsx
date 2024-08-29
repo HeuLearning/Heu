@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
 import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { PopUpProvider } from "components/all/popups/PopUpContext";
-import EnhancedPopUp from "components/all/EnhancedPopUp";
+import EnhancedPopUp from "components/all/popups/EnhancedPopUp";
 import { useResponsive } from "components/all/ResponsiveContext";
 import ClassModeContent from "components/all/class-mode/ClassModeContent";
 import { StopwatchProvider } from "components/all/class-mode/StopwatchContext";

@@ -28,8 +28,8 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
   };
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-white p-6">
-      <div className="flex items-center gap-32">
+    <div className="flex h-full w-full items-center justify-center bg-white p-[24px]">
+      <div className="flex items-center gap-[128px]">
         {/* Audio Player */}
         <div className="flex-shrink-0">
           <AudioPlayer audioSrc={audioSrc} title="Listen to the audio" />
@@ -42,7 +42,7 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
             {questions.map((question, index) => (
               <div
                 key={question.id}
-                className="flex h-8 items-center gap-[8px] py-1"
+                className="flex h-[32px] items-center gap-[8px] py-[4px]"
               >
                 <Badge
                   bgColor="var(--surface_bg_secondary)"
@@ -50,7 +50,7 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
                 >
                   {index + 1}
                 </Badge>
-                <div className="text-typeface_primary text-body-semibold">
+                <div className="text-typeface_primary text-body-semibold-cap-height">
                   {question.text}
                 </div>
               </div>
@@ -60,7 +60,7 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
           {/* Answers (InfoPills) Container */}
           <div className="flex flex-col gap-[12px]">
             {questions.map((question) => (
-              <div key={question.id} className="flex h-8 items-center">
+              <div key={question.id} className="flex h-[32px] items-center">
                 <InfoPill text={question.highlightedWord} />
               </div>
             ))}
@@ -69,7 +69,7 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
           {/* Textboxes Container */}
           <div className="flex flex-col gap-[12px]">
             {questions.map((question) => (
-              <div key={question.id} className="flex h-8 items-center">
+              <div key={question.id} className="flex h-[32px] items-center">
                 <Textbox
                   size="small"
                   placeholder="Answer here"
