@@ -29,6 +29,8 @@ export default function InstructorHome({
   const [testMatching, setTestMatching] = useState(false);
   const [testAudioSelection, setAudioSelection] = useState(false);
   const [testAudioWriting, setAudioWriting] = useState(false);
+  const [testAudioTyping, setAudioTyping] = useState(false);
+  const [testAudioMarkup, setAudioMarkup] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -198,6 +200,58 @@ export default function InstructorHome({
                           activeModuleIndex={0}
                           activeModule={activeModule}
                           testAudioWriting={true}
+                        />
+                      </div>
+                    </div>
+                  </ExerciseWrapper>
+                )}
+              </section>
+
+              {/* Audio Typing Exercise */}
+              <section className="mb-12">
+                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+                  Audio Typing Exercise
+                </h2>
+                <button
+                  onClick={() => setAudioTyping(!testAudioTyping)}
+                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                >
+                  {testAudioTyping ? "Hide" : "Show"} Audio Typing Test
+                </button>
+                {testAudioTyping && (
+                  <ExerciseWrapper>
+                    <div className="rounded border p-4 shadow-md">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testAudioTyping={true}
+                        />
+                      </div>
+                    </div>
+                  </ExerciseWrapper>
+                )}
+              </section>
+
+              {/* Audio Markup Exercise */}
+              <section className="mb-12">
+                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+                  Audio Markup Exercise
+                </h2>
+                <button
+                  onClick={() => setAudioMarkup(!testAudioMarkup)}
+                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                >
+                  {testAudioMarkup ? "Hide" : "Show"} Audio Markup Test
+                </button>
+                {testAudioMarkup && (
+                  <ExerciseWrapper>
+                    <div className="rounded border p-4 shadow-md">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testAudioMarkup={true}
                         />
                       </div>
                     </div>

@@ -74,6 +74,7 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
                   size="small"
                   placeholder="Answer here"
                   width="320px"
+                  height=""
                   value={question.answer}
                   onChange={(value) => handleAnswerChange(question.id, value)}
                 />

@@ -73,6 +73,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                     size="small"
                     placeholder="Type here"
                     width={largestWordWidth}
+                    height=""
                     value={question.answer}
                     onChange={(value) => handleAnswerChange(question.id, value)}
                   />

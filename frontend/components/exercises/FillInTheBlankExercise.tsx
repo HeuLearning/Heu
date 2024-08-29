@@ -114,6 +114,7 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
                       size="small"
                       placeholder="Type here"
                       width={largestWordWidth}
+                      height=""
                       value={question.answer}
                       onChange={(value) =>
                         handleAnswerChange(question.id, value)

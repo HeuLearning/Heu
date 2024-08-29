@@ -3,7 +3,9 @@ import MatchingExercise from "components/exercises/MatchingExercise";
 import FillInTheBlankExercise from "components/exercises/FillInTheBlankExercise";
 import QAFillInBlankExercise from "components/exercises/QAFillInTheBlankExercise";
 import AudioSelectionExercise from "components/exercises/AudioSelectionExercise";
-import AudioWritingExercise from "components/exercises/AudioWriting";
+import AudioWritingExercise from "components/exercises/AudioWritingExercise";
+import AudioTypingExercise from "components/exercises/AudioTypingExercise";
+import AudioMarkupExercise from "components/exercises/AudioMarkupExercise";
 import { useStopwatchState } from "./StopwatchContext";
 
 function ClassModeContent({
@@ -14,6 +16,8 @@ function ClassModeContent({
   testQAFillInTheBlank = false,
   testAudioSelection = false,
   testAudioWriting = false,
+  testAudioTyping = false,
+  testAudioMarkup = false,
 }) {
   const state = useStopwatchState();
   const { elapsedTime, elapsedLapTime } = state;
@@ -188,6 +192,18 @@ function ClassModeContent({
     };
 
     return <AudioWritingExercise {...audioWritingData} />;
+  }
+
+  if (testAudioTyping) {
+    return (
+      <AudioTypingExercise audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg" />
+    );
+  }
+
+  if (testAudioMarkup) {
+    return (
+      <AudioMarkupExercise audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg" />
+    );
   }
 
   return (
