@@ -41,7 +41,11 @@ export default function Calendar({
       upcoming.length !== 0
     ) {
       setSelectedDate(date);
-      setActiveSessionId(upcoming[0].id);
+      setActiveSessionId(
+        sessions.filter(
+          (session) => getSessionStatus(session) !== "Canceled"
+        )[0].id
+      );
     } else if (sessions.length > 1) {
       showMultipleSessionPopUp(sessions, date, calendarElement);
       setSelectedDate(date);
