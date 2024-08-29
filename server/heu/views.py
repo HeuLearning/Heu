@@ -621,7 +621,7 @@ class UserSessionsView(APIView):
             ).annotate(
                 max_capacity=Sum('learning_organization_location__learning_organization__room__max_capacity'),
             )
-
+            
             return_ls = []
             for session in sessions:
                 enrolled = session.enrolled_students or []

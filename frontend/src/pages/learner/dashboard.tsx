@@ -67,7 +67,7 @@ export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   },
 });
 
-export default function InstructorHome({
+export default function LearnerHome({
   role,
   accessToken,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
@@ -107,7 +107,7 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <SessionsProvider accessToken={accessToken}>
+        <SessionsProvider accessToken={accessToken} userRole="st">
           <PopUpProvider>
             <Navbar activeTab="Dashboard" />
             <DashboardContainer accessToken={accessToken} />

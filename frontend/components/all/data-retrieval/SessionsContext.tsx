@@ -8,6 +8,10 @@ import React, {
 import { isWithinInterval } from "date-fns";
 import { useRouter } from "next/router";
 
+interface UserProps {
+  userRole: "ad" | "in" | "st";
+}
+
 interface Session {
   id: number;
   start_time: string;
@@ -23,13 +27,30 @@ interface Session {
 }
 
 // context type
-interface SessionContextType {
+interface InstructorSessionContextType {
+  type: "instructor";
   getSessionStatus: (session) => any;
   allSessions: Session[];
   upcomingSessions: Session[];
-  confirmSession: (sessionId) => void;
   cancelSession: (sessionId) => void;
+  confirmSession: (sessionId) => void;
 }
+
+interface LearnerSessionContextType {
+  type: "learner";
+  getSessionStatus: (session) => any;
+  allSessions: Session[];
+  upcomingSessions: Session[];
+  enrollSession: (sessionId) => void;
+  waitlistSession: (sessionId) => void;
+  unenrollSession: (sessionId) => void;
+  unwaitlistSession: (sessionId) => void;
+  confirmSession: (sessionId) => void;
+}
+
+type SessionContextType =
+  | InstructorSessionContextType
+  | LearnerSessionContextType;
 
 // create context with initial undefined value
 const SessionsContext = createContext<SessionContextType | undefined>(
@@ -40,11 +61,13 @@ const SessionsContext = createContext<SessionContextType | undefined>(
 interface SessionsProviderProps {
   children: ReactNode;
   accessToken;
+  userRole: string;
 }
 
 export const SessionsProvider: React.FC<SessionsProviderProps> = ({
   children,
   accessToken,
+  userRole,
 }) => {
   // State to hold the sessions
   const [allSessions, setAllSessions] = useState<Session[]>([]);
@@ -56,9 +79,38 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   // Example effect to fetch sessions (replace with your actual data fetching logic)
   useEffect(() => {
-    const fetchSessions = async () => {
+    const fetchLearnerSessions = async () => {
       // Fetch or initialize your sessions here
-      // if the user is verified then get the instructor's sessions
+      // if the user is verified then get the user's sessions
+      const sessionOptions = {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // Include the access token
+        },
+      };
+
+      let sessionResponse = await fetch(
+        `http://localhost:8000/api/user-sessions`,
+        sessionOptions
+      );
+      const sessionsData = await sessionResponse.json();
+      console.log(sessionsData);
+      let allSessions = [];
+      if (sessionsData) {
+        allSessions = sessionsData.sort((a, b) => {
+          return (
+            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+          );
+        });
+      }
+      console.log(allSessions);
+      setAllSessions(allSessions);
+    };
+
+    const fetchInstructorSessions = async () => {
+      // Fetch or initialize your sessions here
+      // if the user is verified then get the user's sessions
       const sessionOptions = {
         method: "GET",
         headers: {
@@ -73,48 +125,62 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       );
       const sessionData = await sessionResponse.json();
       const sessionsData = sessionData.sessions;
-      const allSessions = sessionsData.sort((a, b) => {
-        return (
-          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-        );
-      });
+      let allSessions = [];
+      if (sessionsData) {
+        allSessions = sessionsData.sort((a, b) => {
+          return (
+            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+          );
+        });
+      }
+      console.log("instructor " + allSessions);
       setAllSessions(allSessions);
     };
 
-    fetchSessions();
+    if (userRole === "in") fetchInstructorSessions();
+    else if (userRole === "st") fetchLearnerSessions();
   }, [accessToken]);
 
   // Calculate upcoming sessions based on current time
   // upcomingSessions includes currently online sessions. checks by end time, not start time
-  const upcomingSessions = allSessions.filter((session) => {
-    const endTime = new Date(session.end_time);
-    return endTime > new Date();
-  });
+  const upcomingSessions = allSessions
+    ? allSessions.filter((session) => {
+        const endTime = new Date(session.end_time);
+        return endTime > new Date();
+      })
+    : [];
 
   console.log({ ...allSessions });
 
   const getSessionStatus = (session) => {
-    const startDateWithBuffer = new Date(
-      new Date(session.start_time).getTime() - 5 * 60000
-    );
-    const endDate = new Date(session.end_time);
-    let status =
-      session.instructor_status.charAt(0).toUpperCase() +
-      session.instructor_status.slice(1);
-    if (endDate < new Date() && status === "Confirmed") {
-      status = "Attended";
-    } else if (
-      status === "Confirmed" &&
-      isWithinInterval(new Date(), { start: startDateWithBuffer, end: endDate })
-    ) {
-      status = "Online";
+    if (userRole === "in") {
+      const startDateWithBuffer = new Date(
+        new Date(session.start_time).getTime() - 5 * 60000
+      );
+      const endDate = new Date(session.end_time);
+      let status =
+        session.instructor_status.charAt(0).toUpperCase() +
+        session.instructor_status.slice(1);
+      if (endDate < new Date() && status === "Confirmed") {
+        status = "Attended";
+      } else if (
+        status === "Confirmed" &&
+        isWithinInterval(new Date(), {
+          start: startDateWithBuffer,
+          end: endDate,
+        })
+      ) {
+        status = "Online";
+      }
+      return status;
+    } else if (userRole === "st") {
+      return "Pending";
     }
-    return status;
   };
 
   async function confirmSession(sessionId) {
     const res = await fetch(
-      `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`,
+      `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`, // update to learner
       {
         method: "POST",
         headers: {
@@ -144,25 +210,92 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     );
   }
 
-  return (
-    <SessionsContext.Provider
-      value={{
+  async function handleChange(taskString, sessionId) {
+    const res = await fetch(
+      `http://localhost:8000/api/user-session-detail/${sessionId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`, // Include the access token
+        },
+        body: JSON.stringify({ task: `${taskString}` }),
+      }
+    );
+  }
+
+  async function enrollSession(sessionId) {
+    await handleChange("enroll", sessionId);
+  }
+
+  async function waitlistSession(sessionId) {
+    await handleChange("waitlist", sessionId);
+  }
+
+  async function unenrollSession(sessionId) {
+    await handleChange("unenroll", sessionId);
+  }
+
+  async function unwaitlistSession(sessionId) {
+    await handleChange("drop_waitlist", sessionId);
+  }
+
+  const getContextValue = (): SessionContextType => {
+    if (userRole === "in") {
+      return {
+        type: "instructor",
         getSessionStatus,
         allSessions,
         upcomingSessions,
-        confirmSession,
         cancelSession,
-      }}
-    >
+        confirmSession,
+      };
+    } else {
+      return {
+        type: "learner",
+        allSessions,
+        upcomingSessions,
+        getSessionStatus,
+        enrollSession,
+        waitlistSession,
+        unenrollSession,
+        unwaitlistSession,
+        confirmSession,
+      };
+    }
+  };
+
+  return (
+    <SessionsContext.Provider value={getContextValue()}>
       {children}
     </SessionsContext.Provider>
   );
 };
 
-export const useSessions = (): SessionContextType => {
+export const useSessions = ():
+  | InstructorSessionContextType
+  | LearnerSessionContextType => {
   const context = useContext(SessionsContext);
   if (context === undefined) {
     throw new Error("useSessions must be used within a SessionsProvider");
+  }
+  return context;
+};
+
+export const useInstructorSessions = (): InstructorSessionContextType => {
+  const context = useSessions();
+  if (context.type !== "instructor") {
+    throw new Error(
+      "useInstructorSessions must be used with an instructor role"
+    );
+  }
+  return context;
+};
+
+export const useLearnerSessions = (): LearnerSessionContextType => {
+  const context = useSessions();
+  if (context.type !== "learner") {
+    throw new Error("useLearnerSessions must be used with a learner role");
   }
   return context;
 };
