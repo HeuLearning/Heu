@@ -62,24 +62,28 @@ export default function SessionDetailContent({
       >
         <div className="session-title space-y-[16px]">
           <div className="date-title space-y-[10px]">
-            <h1 className="text-typeface_primary leading-cap-height text-h1">
-              {sessionId ? (
-                isMobile ? (
-                  format(startDate, "MMM d, eeee")
-                ) : (
-                  format(startDate, "eeee, MMMM do")
-                )
+            {sessionId ? (
+              isMobile ? (
+                <h1 className="text-typeface_primary leading-cap-height text-h1">
+                  {format(startDate, "MMM d, eeee")}
+                </h1>
               ) : (
-                <Placeholder width={244} height={16} />
-              )}
-            </h1>
-            <h1 className="text-typeface_secondary leading-tight text-h1">
-              {sessionId ? (
-                format(startDate, "h:mm a") + " - " + format(endDate, "h:mm a")
-              ) : (
-                <Placeholder width={208} height={16} />
-              )}
-            </h1>
+                <h1 className="text-typeface_primary leading-cap-height text-h1">
+                  {format(startDate, "eeee, MMMM do")}
+                </h1>
+              )
+            ) : (
+              <Placeholder width={244} height={16} />
+            )}
+            {sessionId ? (
+              <h1 className="text-typeface_secondary leading-tight text-h1">
+                {format(startDate, "h:mm a") +
+                  " - " +
+                  format(endDate, "h:mm a")}
+              </h1>
+            ) : (
+              <Placeholder width={208} height={16} />
+            )}
           </div>
           <div className="flex items-center gap-[12px]">
             <div className="flex items-center">

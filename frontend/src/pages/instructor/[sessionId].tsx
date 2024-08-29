@@ -118,7 +118,7 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <SessionsProvider accessToken={accessToken}>
+        <SessionsProvider accessToken={accessToken} userRole="in">
           <LessonPlanProvider
             sessionId={sessionId.toString()}
             accessToken={accessToken}

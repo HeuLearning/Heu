@@ -2,13 +2,13 @@ import { format } from "date-fns";
 import DateCard from "../DateCard";
 import PopUp from "./PopUpContainer";
 import { usePopUp } from "./PopUpContext";
-import { useSessions } from "../data-retrieval/SessionsContext";
+import { useInstructorSessions } from "../data-retrieval/SessionsContext";
 import styles from "../MiniClassBlock.module.css";
 
 export default function AttendancePopUp({ session, action, popUpId }) {
   const startDate = new Date(session.start_time);
   const { showPopUp, hidePopUp } = usePopUp();
-  const { confirmSession, cancelSession } = useSessions();
+  const { confirmSession, cancelSession } = useInstructorSessions();
 
   const handleConfirmSession = (sessionId) => {
     confirmSession(sessionId);

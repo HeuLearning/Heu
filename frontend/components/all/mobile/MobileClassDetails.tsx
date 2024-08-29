@@ -3,7 +3,7 @@ import XButton from "../buttons/XButton";
 import SessionDetailContent from "../SessionDetailContent";
 import { useState, useEffect, useMemo } from "react";
 import { useResponsive } from "../ResponsiveContext";
-import { useSessions } from "../data-retrieval/SessionsContext";
+import { useInstructorSessions } from "../data-retrieval/SessionsContext";
 import ClassSchedulePopUpContainer from "../popups/ClassSchedulePopUpContent";
 import BackButton from "../buttons/BackButton";
 import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
@@ -23,7 +23,7 @@ export default function MobileClassDetails({
     confirmSession,
     cancelSession,
     getSessionStatus,
-  } = useSessions();
+  } = useInstructorSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
   const [isClassSchedShown, setIsClassSchedShown] = useState(false);
 
