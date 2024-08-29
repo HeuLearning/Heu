@@ -626,7 +626,7 @@ class UserSessionsView(APIView):
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
-                instructor_ids = session.instructors or []
+                instructor_ids = session.confirmed_instructors or []
                 instructors = CustomUser.objects.filter(user_id__in=instructor_ids).values('first_name', 'last_name')
                 return_ls.append({
                     "start_time": session.start_time,
