@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Textbox from "./Textbox";
+import Textbox from "./Input";
 
 interface Question {
   id: string;
@@ -114,6 +114,7 @@ const FillInTheBlankExercise: React.FC<FillInTheBlankExerciseProps> = ({
                       size="small"
                       placeholder="Type here"
                       width={largestWordWidth}
+                      height=""
                       value={question.answer}
                       onChange={(value) =>
                         handleAnswerChange(question.id, value)

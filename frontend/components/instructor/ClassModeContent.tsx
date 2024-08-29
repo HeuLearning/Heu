@@ -3,7 +3,8 @@ import MatchingExercise from "components//exercise/MatchingExercise";
 import FillInTheBlankExercise from "components/exercise/FillInTheBlankExercise";
 import QAFillInBlankExercise from "components/exercise/QAFillInTheBlankExercise";
 import AudioSelectionExercise from "components/exercise/AudioSelectionExercise";
-import AudioWritingExercise from "components/exercise/AudioWriting";
+import AudioWritingExercise from "components/exercise/AudioWritingExercise";
+import AudioTypingExercise from "components/exercise/AudioTypingExercise";
 
 function ClassModeContent({
   activeModuleIndex,
@@ -13,6 +14,7 @@ function ClassModeContent({
   testQAFillInTheBlank = false,
   testAudioSelection = false,
   testAudioWriting = false,
+  testAudioTyping = false,
 }) {
   if (testQAFillInTheBlank) {
     const qaFillInBlankData = {
@@ -184,6 +186,12 @@ function ClassModeContent({
     };
 
     return <AudioWritingExercise {...audioWritingData} />;
+  }
+
+  if (testAudioTyping) {
+    return (
+      <AudioTypingExercise audioSrc="https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg" />
+    );
   }
 
   return (

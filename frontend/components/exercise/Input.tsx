@@ -7,6 +7,7 @@ interface TextboxProps {
   size: "small" | "big";
   placeholder: string;
   width: string;
+  height: string;
   value: string;
   onChange: (value: string) => void;
 }
@@ -15,6 +16,7 @@ export default function Textbox({
   size,
   placeholder,
   width,
+  height,
   value,
   onChange,
 }: TextboxProps) {

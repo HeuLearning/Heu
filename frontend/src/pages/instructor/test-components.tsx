@@ -29,6 +29,7 @@ export default function InstructorHome({
   const [testMatching, setTestMatching] = useState(false);
   const [testAudioSelection, setAudioSelection] = useState(false);
   const [testAudioWriting, setAudioWriting] = useState(false);
+  const [testAudioTyping, setAudioTyping] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -69,26 +70,26 @@ export default function InstructorHome({
       <PopUpProvider>
         <StopwatchProvider>
           <div className="min-h-screen bg-white">
-            <main className="container mx-auto px-4 py-8">
-              <h1 className="mb-8 rounded-[10px] font-medium tracking-[-0.02em] text-[#292929] text-[18px] leading-[22px]">
+            <main className="container mx-auto px-[16px] py-[32px]">
+              <h1 className="mb-[32px] rounded-[10px] text-typeface_primary text-h3-desktop">
                 Test Class Mode Content
               </h1>
 
               {/* Q&A Fill in the Blank Exercise */}
-              <section className="mb-12">
-                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+              <section className="mb-[48px]">
+                <h2 className="mb-[16px] rounded-[10px] text-typeface_primary text-body-semibold-cap-height">
                   Q&A Fill in the Blank Exercise
                 </h2>
                 <button
                   onClick={() => setTestQAFillInTheBlank(!testQAFillInTheBlank)}
-                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                  className="mb-[16px] h-[32px] rounded-[10px] bg-action_bg_primary px-[16px] py-[8px] text-typeface_highlight transition-colors text-body-semibold-cap-height hover:bg-action_bg_primary_hover"
                 >
                   {testQAFillInTheBlank ? "Hide" : "Show"} Q&A Fill In The Blank
                   Test
                 </button>
                 {testQAFillInTheBlank && (
                   <ExerciseWrapper>
-                    <div className="rounded border p-4 shadow-md">
+                    <div className="rounded border p-[16px] shadow-[0_2px_4px_rgba(0,0,0,0.07)]">
                       <div className="h-[500px] overflow-auto bg-white">
                         <ClassModeContent
                           activeModuleIndex={0}
@@ -102,19 +103,19 @@ export default function InstructorHome({
               </section>
 
               {/* Fill in the Blank Exercise */}
-              <section className="mb-12">
-                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+              <section className="mb-[48px]">
+                <h2 className="mb-[16px] rounded-[10px] text-typeface_primary text-body-semibold-cap-height">
                   Fill in the Blank Exercise
                 </h2>
                 <button
                   onClick={() => setTestFillInTheBlank(!testFillInTheBlank)}
-                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                  className="mb-[16px] h-[32px] rounded-[10px] bg-action_bg_primary px-[16px] py-[8px] text-typeface_highlight transition-colors text-body-semibold-cap-height hover:bg-action_bg_primary_hover"
                 >
                   {testFillInTheBlank ? "Hide" : "Show"} Fill In The Blank Test
                 </button>
                 {testFillInTheBlank && (
                   <ExerciseWrapper>
-                    <div className="rounded border p-4 shadow-md">
+                    <div className="rounded border p-[16px] shadow-[0_2px_4px_rgba(0,0,0,0.07)]">
                       <div className="h-[500px] overflow-auto bg-white">
                         <ClassModeContent
                           activeModuleIndex={0}
@@ -128,19 +129,19 @@ export default function InstructorHome({
               </section>
 
               {/* Matching Exercise */}
-              <section className="mb-12">
-                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+              <section className="mb-[48px]">
+                <h2 className="mb-[16px] rounded-[10px] text-typeface_primary text-body-semibold-cap-height">
                   Matching Exercise
                 </h2>
                 <button
                   onClick={() => setTestMatching(!testMatching)}
-                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                  className="mb-[16px] h-[32px] rounded-[10px] bg-action_bg_primary px-[16px] py-[8px] text-typeface_highlight transition-colors text-body-semibold-cap-height hover:bg-action_bg_primary_hover"
                 >
                   {testMatching ? "Hide" : "Show"} Matching Test
                 </button>
                 {testMatching && (
                   <ExerciseWrapper>
-                    <div className="rounded border p-4 shadow-md">
+                    <div className="rounded border p-[16px] shadow-[0_2px_4px_rgba(0,0,0,0.07)]">
                       <div className="h-[500px] overflow-auto bg-white">
                         <ClassModeContent
                           activeModuleIndex={0}
@@ -154,19 +155,19 @@ export default function InstructorHome({
               </section>
 
               {/* Multiple Selection Exercise */}
-              <section className="mb-12">
-                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+              <section className="mb-[48px]">
+                <h2 className="mb-[16px] rounded-[10px] text-typeface_primary text-body-semibold-cap-height">
                   Multiple Selection Exercise
                 </h2>
                 <button
                   onClick={() => setAudioSelection(!testAudioSelection)}
-                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                  className="mb-[16px] h-[32px] rounded-[10px] bg-action_bg_primary px-[16px] py-[8px] text-typeface_highlight transition-colors text-body-semibold-cap-height hover:bg-action_bg_primary_hover"
                 >
                   {testAudioSelection ? "Hide" : "Show"} Multiple Selection Test
                 </button>
                 {testAudioSelection && (
                   <ExerciseWrapper>
-                    <div className="rounded border p-4 shadow-md">
+                    <div className="rounded border p-[16px] shadow-[0_2px_4px_rgba(0,0,0,0.07)]">
                       <div className="h-[500px] overflow-auto bg-white">
                         <ClassModeContent
                           activeModuleIndex={0}
@@ -180,24 +181,50 @@ export default function InstructorHome({
               </section>
 
               {/* Audio Writing Exercise */}
-              <section className="mb-12">
-                <h2 className="mb-4 rounded-[10px] font-semibold tracking-[-0.02em] text-[#292929] text-[14px] leading-[16.94px]">
+              <section className="mb-[48px]">
+                <h2 className="mb-[16px] rounded-[10px] text-typeface_primary text-body-semibold-cap-height">
                   Audio Writing Exercise
                 </h2>
                 <button
                   onClick={() => setAudioWriting(!testAudioWriting)}
-                  className="mb-4 h-[32px] rounded-[10px] bg-[#292929] px-4 py-2 tracking-[-0.02em] text-[#FFFFFF] transition-colors text-[14px] leading-[16.94px] hover:bg-blue-600"
+                  className="mb-[16px] h-[32px] rounded-[10px] bg-action_bg_primary px-[16px] py-[8px] text-typeface_highlight transition-colors text-body-semibold-cap-height hover:bg-action_bg_primary_hover"
                 >
                   {testAudioWriting ? "Hide" : "Show"} Audio Writing Test
                 </button>
                 {testAudioWriting && (
                   <ExerciseWrapper>
-                    <div className="rounded border p-4 shadow-md">
+                    <div className="rounded border p-[16px] shadow-[0_2px_4px_rgba(0,0,0,0.07)]">
                       <div className="h-[500px] overflow-auto bg-white">
                         <ClassModeContent
                           activeModuleIndex={0}
                           activeModule={activeModule}
                           testAudioWriting={true}
+                        />
+                      </div>
+                    </div>
+                  </ExerciseWrapper>
+                )}
+              </section>
+
+              {/* Audio Typing Exercise */}
+              <section className="mb-[48px]">
+                <h2 className="mb-[16px] rounded-[10px] text-typeface_primary text-body-semibold-cap-height">
+                  Audio Typing Exercise
+                </h2>
+                <button
+                  onClick={() => setAudioTyping(!testAudioTyping)}
+                  className="mb-[16px] h-[32px] rounded-[10px] bg-action_bg_primary px-[16px] py-[8px] text-typeface_highlight transition-colors text-body-semibold-cap-height hover:bg-action_bg_primary_hover"
+                >
+                  {testAudioTyping ? "Hide" : "Show"} Audio Typing Test
+                </button>
+                {testAudioTyping && (
+                  <ExerciseWrapper>
+                    <div className="rounded border p-[16px] shadow-[0_2px_4px_rgba(0,0,0,0.07)]">
+                      <div className="h-[500px] overflow-auto bg-white">
+                        <ClassModeContent
+                          activeModuleIndex={0}
+                          activeModule={activeModule}
+                          testAudioTyping={true}
                         />
                       </div>
                     </div>

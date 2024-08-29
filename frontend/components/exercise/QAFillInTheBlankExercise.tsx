@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import Textbox from "./Textbox";
+import Textbox from "./Input";
 import CircledLabel from "../instructor/CircledLabel";
 import InfoPill from "../instructor/InfoPill";
 
@@ -73,6 +73,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                     size="small"
                     placeholder="Type here"
                     width={largestWordWidth}
+                    height=""
                     value={question.answer}
                     onChange={(value) => handleAnswerChange(question.id, value)}
                   />

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AudioPlayer from "./AudioPlayer";
-import Textbox from "./Textbox";
+import Textbox from "./Input";
 import CircledLabel from "../instructor/CircledLabel";
 import InfoPill from "../instructor/InfoPill";
 
@@ -74,6 +74,7 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
                   size="small"
                   placeholder="Answer here"
                   width="320px"
+                  height=""
                   value={question.answer}
                   onChange={(value) => handleAnswerChange(question.id, value)}
                 />
