@@ -6,12 +6,12 @@
   color: var(--typeface_primary);
 }
 
-.react-calendar .disabled-date {
+.react-calendar--past-date {
   color: var(--typeface_tertiary);
 }
 
-.disabled-date:active {
-  color: white !important;
+.react-calendar .available-date {
+  color: var(--typeface_primary);
 }
 
 .react-calendar--doubleView {
@@ -66,17 +66,6 @@
   background-color: #e6e6e6;
 }
 
-.dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 100%;
-  overflow: visible;
-}
-
-.calendar-tile:active .dot {
-  background-color: white !important;
-}
-
 .react-calendar__month-view__weekdays {
   text-align: center;
   text-transform: uppercase;
@@ -91,12 +80,8 @@
 }
 
 /* confirmed and pending and online events have weight 600 */
-.calendar-day-special abbr {
+.day-with-event abbr {
   font-weight: 600 !important;
-}
-
-.pressed-date .dot circle {
-  fill: white !important;
 }
 
 .react-calendar__month-view__weekdays__weekday {
@@ -120,7 +105,6 @@
 }
 
 .react-calendar__month-view__days__day--weekend {
-  color: var(--typeface_primary);
 }
 
 .react-calendar__month-view__days__day--neighboringMonth,
@@ -192,11 +176,11 @@
 .react-calendar__tile--active {
   background: var(--surface_bg_darkest);
   border-radius: 100px;
-  color: white;
+  color: white !important;
   font-weight: 600;
 }
 
-.react-calendar__tile:active,
+.react-calendar__tile:not(:disabled):active,
 .react-calendar__tile--active:active {
   background: var(--surface_bg_primary) !important;
   color: white !important;

@@ -14,7 +14,7 @@ export const getServerSideProps = withPageAuthRequired({
     const session = await getSession(req, res);
 
     if (!session) {
-      console.log("what")
+      console.log("what");
       return {
         redirect: {
           destination: "/api/auth/login",
@@ -53,16 +53,15 @@ export const getServerSideProps = withPageAuthRequired({
           },
         };
       }
-    
 
-    // if the user is verified then get the related sessions
-    const sessionOptions = {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.accessToken}`, // Include the access token
-      },
-    };
+      // if the user is verified then get the related sessions
+      const sessionOptions = {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.accessToken}`, // Include the access token
+        },
+      };
 
       let sessionResponse = await fetch(
         "http://localhost:8000/api/user-sessions",

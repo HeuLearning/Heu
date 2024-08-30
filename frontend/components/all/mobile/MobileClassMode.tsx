@@ -39,7 +39,7 @@ export default function MobileClassMode(props) {
     if (classStarted && !showPhases) {
       setShowPhases(true);
     } else {
-      router.push("/instructor/dashboard");
+      router.push("dashboard");
     }
   };
 

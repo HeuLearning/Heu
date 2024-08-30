@@ -13,6 +13,7 @@ import { useRouter } from "next/router";
 import { useResponsive } from "components/all/ResponsiveContext";
 import { SessionsProvider } from "components/all/data-retrieval/SessionsContext";
 import dynamic from "next/dynamic";
+import { UserRoleProvider } from "components/all/data-retrieval/UserRoleContext";
 
 export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -107,13 +108,15 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <SessionsProvider accessToken={accessToken} userRole="in">
-          <PopUpProvider>
-            <Navbar activeTab="Dashboard" />
-            <DashboardContainer accessToken={accessToken} />
-            <EnhancedPopUp />
-          </PopUpProvider>
-        </SessionsProvider>
+        <UserRoleProvider accessToken={accessToken}>
+          <SessionsProvider accessToken={accessToken} userRole="in">
+            <PopUpProvider>
+              <Navbar activeTab="Dashboard" />
+              <DashboardContainer accessToken={accessToken} />
+              <EnhancedPopUp />
+            </PopUpProvider>
+          </SessionsProvider>
+        </UserRoleProvider>
       </div>
     </>
   );

@@ -7,12 +7,14 @@ import { useSessions } from "./data-retrieval/SessionsContext";
 import IconButton from "./buttons/IconButton";
 import Scrollbar from "./Scrollbar";
 import styles from "./popups/SidePopUp.module.css";
+import { useUserRole } from "./data-retrieval/UserRoleContext";
 
 export default function CalendarContainer({
   activeSessionId,
   setActiveSessionId,
 }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { userRole } = useUserRole();
   const [visibleMonth, setVisibleMonth] = useState(new Date());
   const [activeTab, setActiveTab] = useState("Monthly");
   const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
@@ -59,15 +61,32 @@ export default function CalendarContainer({
       const status = getSessionStatus(session);
       // circle color
       let color;
-      if (status === "Canceled" || status === "Attended")
-        color = "var(--typeface_tertiary)";
-      else if (status === "Confirmed" || status === "Online")
-        color = "var(--status_fg_positive)";
-      else if (status === "Pending") color = "var(--typeface_primary)";
-      if (sessionMap.get(dateKey)) {
-        sessionMap.get(dateKey).push(color);
-      } else {
-        sessionMap.set(dateKey, new Array(color));
+      if (userRole === "in") {
+        if (status === "Canceled" || status === "Attended")
+          color = "var(--typeface_tertiary)";
+        else if (status === "Confirmed" || status === "Online")
+          color = "var(--status_fg_positive)";
+        else if (status === "Pending") color = "var(--typeface_primary)";
+        if (sessionMap.get(dateKey)) {
+          sessionMap.get(dateKey).push(color);
+        } else if (color !== undefined) {
+          sessionMap.set(dateKey, new Array(color));
+        }
+      } else if (userRole === "st") {
+        if (status === "Enrolled") {
+          color = "var(--typeface_primary)";
+        } else if (status === "Confirmed") {
+          color = "var(--status_fg_positive)";
+        } else if (status === "Waitlisted") {
+          color = "var(--typeface_tertiary)";
+        } else if (status === "Attended") {
+          color = "var(--typeface_tertiary)";
+        }
+        if (sessionMap.get(dateKey)) {
+          sessionMap.get(dateKey).push(color);
+        } else if (color !== undefined) {
+          sessionMap.set(dateKey, new Array(color));
+        }
       }
     });
     return sessionMap;

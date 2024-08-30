@@ -115,7 +115,7 @@ export default function MobileClassDetails({
   };
 
   const handleEnterClass = () => {
-    router.push(`/instructor/${session.id}`);
+    router.push(`${session.id}`);
   };
 
   return isClassSchedShown ? (

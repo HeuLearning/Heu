@@ -152,6 +152,8 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   console.log({ ...allSessions });
 
+  // instructor session statuses: Confirmed, Online, Attended, Canceled
+  // learner session statuses: Available, Enrolled, Waitlisted, Confirmed
   const getSessionStatus = (session) => {
     if (userRole === "in") {
       const startDateWithBuffer = new Date(
@@ -174,7 +176,14 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       }
       return status;
     } else if (userRole === "st") {
-      return "Pending";
+      const endDate = new Date(session.end_time);
+      if (endDate < new Date() && status === "Confirmed") {
+        return "Attended";
+      } else if (session.isEnrolled) return "Enrolled";
+      else if (session.isWaitlisted) return "Waitlisted";
+      // need confirmed
+      else if (session.num_enrolled < session.max_capacity) return "Available";
+      else return "Class full";
     }
   };
 
@@ -222,6 +231,9 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         body: JSON.stringify({ task: `${taskString}` }),
       }
     );
+    if (res.status < 300) {
+      refreshData();
+    }
   }
 
   async function enrollSession(sessionId) {
