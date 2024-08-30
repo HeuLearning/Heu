@@ -76,7 +76,7 @@ export default function MiniClassBlock({
   };
 
   const renderContent = () => (
-    <div className={`space-y-[3px]`}>
+    <div className={`${isMobile ? "" : "space-y-[3px]"}`}>
       {sessionId ? (
         <div className="flex gap-[4px] pl-[4px]">
           <h1
@@ -166,12 +166,8 @@ export default function MiniClassBlock({
   return (
     <div
       className={`min-w-[282px] cursor-pointer ${
-        dateCard || arrow
-          ? isMobile
-            ? styles.dateCardMobile
-            : styles.dateCard
-          : styles.noDateCard
-      } ${styles.mini_class_block} ${
+        dateCard || arrow ? styles.dateCard : styles.noDateCard
+      } ${isMobile ? "-mr-[8px]" : ""} ${styles.mini_class_block} ${
         activeSessionId === sessionId && isDaily ? styles.selected : ""
       }`}
       onClick={() => handleClick(sessionId)}

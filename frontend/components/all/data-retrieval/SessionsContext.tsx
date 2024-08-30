@@ -95,7 +95,6 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         sessionOptions
       );
       const sessionsData = await sessionResponse.json();
-      console.log(sessionsData);
       let allSessions = [];
       if (sessionsData) {
         allSessions = sessionsData.sort((a, b) => {
@@ -103,6 +102,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
             new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
           );
         });
+        console.log(allSessions);
       }
       console.log(allSessions);
       setAllSessions(allSessions);
