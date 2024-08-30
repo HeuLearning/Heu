@@ -28,6 +28,7 @@ export default {
         action_bg_tertiary: "#EDEDED",
         action_bg_tertiary_hover: "#F5F5F5",
         action_bg_tertiary_press: "#D9D9D9",
+        action_bg_destructive: "#D50101",
         action_border_primary: "#D9D9D9",
         action_border_secondary: "#EDEDED",
         surface_bg_primary: "#999999",
@@ -98,6 +99,7 @@ export default {
           "--action_bg_tertiary_press": theme(
             "colors.action_bg_tertiary_press"
           ),
+          "--action_bg_destructive": theme("colors.action_bg_destructive"),
           "--action_border_primary": theme("colors.action_border_primary"),
           "--action_border_secondary": theme("colors.action_border_secondary"),
           "--surface_bg_primary": theme("colors.surface_bg_primary"),
@@ -460,6 +462,18 @@ export default {
             fontWeight: 600,
             letterSpacing: "-0.28px", // -2% of 14px
             lineHeight: "0.8",
+          },
+        },
+        ".text-caption": {
+          fontSize: "12px",
+          fontWeight: 500,
+          letterSpacing: "-0.24px", // -2% of 12px
+          lineHeight: "14.52px",
+          "@screen lg": {
+            fontSize: "12px",
+            fontWeight: 500,
+            letterSpacing: "-0.24px", // -2% of 12px
+            lineHeight: "14.52px",
           },
         },
         ".center-atop-svg": {
