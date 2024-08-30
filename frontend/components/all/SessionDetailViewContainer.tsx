@@ -88,7 +88,7 @@ export default function SessionDetailViewContainer({ activeSessionId }) {
       <SessionDetailContent
         lessonPlanData={lessonPlanData}
         isLessonPlanLoaded={isLessonPlanLoaded}
-        sessionId={activeSessionId}
+        activeSessionId={activeSessionId}
         handleShowClassSchedule={handleShowClassSchedule}
       />
     </div>

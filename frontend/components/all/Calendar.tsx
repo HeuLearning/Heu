@@ -19,7 +19,7 @@ export default function Calendar({
   sessionMap,
 }) {
   const { getSessionStatus, allSessions, upcomingSessions } = useSessions();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
   const [pressedDate, setPressedDate] = useState(null);
   const [multipleDates, setMultipleDates] = useState([]);
   const [popUpPosition, setPopUpPosition] = useState({ bottom: 0, left: 0 });
@@ -110,11 +110,13 @@ export default function Calendar({
     let isPressed =
       pressedDate && date.toDateString() === pressedDate.toDateString();
     let color = sessionMap?.get(dateKey) || [];
-
+    console.log(sessionMap);
     if (sessionMap) {
       if (isBeforeToday(date) && !isSelected && !isPressed) {
         color = color.map(() => "var(--typeface_tertiary)"); // Grey for past dates
-      } else if (isSelected || isPressed) {
+      } else if (color.length !== 0 && (isSelected || isPressed)) {
+        console.log(color);
+        console.log("selected and white");
         color = color.map(() => "white");
       }
     }
@@ -160,9 +162,6 @@ export default function Calendar({
       const session = allSessions.find(
         (session) => session.id === activeSessionId
       );
-      if (session) {
-        setSelectedDate(new Date(session.start_time));
-      }
     }
   }, [activeSessionId, allSessions]);
 
@@ -245,11 +244,14 @@ export default function Calendar({
             <div
               className={`-mt-[2px] flex flex-col items-center px-[17px] pb-[22px] ${styles["react-calendar"]}`}
             >
+              {/* this wrapper ref sets the color of the dot to white on press */}
               <div
                 ref={calendarWrapperRef}
                 onMouseDown={(event) => {
                   const target = event.target as HTMLElement;
-                  const tileElement = target.closest(".react-calendar__tile");
+                  const tileElement = target.closest(
+                    ".react-calendar__tile:not(:disabled)"
+                  );
                   if (tileElement) {
                     const abbrElement = tileElement.querySelector("abbr");
                     if (abbrElement) {
@@ -281,30 +283,31 @@ export default function Calendar({
                   showNavigation={false}
                   formatShortWeekday={formatShortWeekday} // changes Mon -> M etc.
                   showNeighboringMonth={false}
+                  tileDisabled={({ date }) => {
+                    return !allSessions.find((session) =>
+                      isSameDay(date, session.start_time)
+                    ); // later change this to if getSessionStatus(session) === "Available"
+                  }}
                   tileClassName={({ date, view }) => {
                     if (view === "month") {
-                      const classes = [styles["calendar-tile"]];
-                      if (isBeforeToday(date)) {
-                        classes.push(styles["disabled-date"]);
-                      }
+                      const classes = [];
                       const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
                       const color = sessionMap.get(dateKey);
+                      if (isBeforeToday(date)) {
+                        classes.push(styles["react-calendar--past-date"]);
+                      } else if (color && color.length > 0) {
+                        classes.push(styles["available-session"]);
+                      }
                       if (color) {
                         for (let i = 0; i < color.length; i++) {
                           if (
                             color[i] === "var(--status_fg_positive)" ||
                             color[i] === "var(--typeface_primary)"
                           ) {
-                            classes.push(styles["calendar-day-special"]);
+                            classes.push(styles["day-with-event"]);
                             break;
                           }
                         }
-                      }
-                      if (
-                        pressedDate &&
-                        date.toDateString() === pressedDate.toDateString()
-                      ) {
-                        classes.push(styles["pressed-date"]);
                       }
                       return classes.join(" ");
                     }

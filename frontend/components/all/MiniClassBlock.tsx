@@ -65,7 +65,7 @@ export default function MiniClassBlock({
   };
 
   const handleEnter = () => {
-    router.push("/instructor/" + sessionId);
+    router.push(sessionId);
   };
 
   const handleClick = (sessionId) => {

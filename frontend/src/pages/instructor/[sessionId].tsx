@@ -20,6 +20,7 @@ import { LessonPlanProvider } from "components/all/data-retrieval/LessonPlanCont
 import MobileClassMode from "components/all/mobile/MobileClassMode";
 import { useResponsive } from "components/all/ResponsiveContext";
 import { StopwatchProvider } from "components/all/class-mode/StopwatchContext";
+import { UserRoleProvider } from "components/all/data-retrieval/UserRoleContext";
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
@@ -118,20 +119,22 @@ export default function InstructorHome({
       </Head>
 
       <div>
-        <SessionsProvider accessToken={accessToken} userRole="in">
-          <LessonPlanProvider
-            sessionId={sessionId.toString()}
-            accessToken={accessToken}
-          >
-            <PopUpProvider>
-              {isDesktop && <Navbar activeTab={null} />}
-              <StopwatchProvider>
-                <ClassModeContainer sessionId={sessionId} />
-              </StopwatchProvider>
-              <EnhancedPopUp />
-            </PopUpProvider>
-          </LessonPlanProvider>
-        </SessionsProvider>
+        <UserRoleProvider accessToken={accessToken}>
+          <SessionsProvider accessToken={accessToken} userRole="in">
+            <LessonPlanProvider
+              sessionId={sessionId.toString()}
+              accessToken={accessToken}
+            >
+              <PopUpProvider>
+                {isDesktop && <Navbar activeTab={null} />}
+                <StopwatchProvider>
+                  <ClassModeContainer sessionId={sessionId} />
+                </StopwatchProvider>
+                <EnhancedPopUp />
+              </PopUpProvider>
+            </LessonPlanProvider>
+          </SessionsProvider>
+        </UserRoleProvider>
       </div>
     </>
   );

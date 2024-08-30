@@ -14,9 +14,11 @@ import ToggleButton from "./buttons/ToggleButton";
 import Button from "./buttons/Button";
 import Divider from "./Divider";
 import { useRouter } from "next/router";
+import { useUserRole } from "./data-retrieval/UserRoleContext";
 
 export default function Navbar({ activeTab }) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { userRole } = useUserRole();
   const [selectedButton, setSelectedButton] = useState(activeTab);
   const [isMobileNavMenuShown, setIsMobileNavMenuShown] = useState(false);
   const [activeNotifTab, setActiveNotifTab] = useState("New");
@@ -79,9 +81,11 @@ export default function Navbar({ activeTab }) {
   const handleButtonClick = (buttonText) => {
     setSelectedButton(buttonText);
     if (buttonText === "Dashboard") {
-      router.push("/instructor/dashboard");
-    } else if (buttonText === "Training") {
-      router.push("/instructor/training");
+      router.push("dashboard");
+    } else if (userRole === "in" && buttonText === "Training") {
+      router.push("training");
+    } else if (userRole === "st" && buttonText === "Diagnostic") {
+      router.push("diagnostic");
     }
   };
 
@@ -92,7 +96,7 @@ export default function Navbar({ activeTab }) {
     // Get the container element
     let dashboardContainer;
     // assumes that only two URLs are going to be the instructor dashboard and the class mode
-    if (router.pathname === "/instructor/dashboard")
+    if (router.pathname.includes("dashboard"))
       dashboardContainer = document.getElementById("dashboard-container");
     else dashboardContainer = document.getElementById("class-mode-container");
 
@@ -171,10 +175,9 @@ export default function Navbar({ activeTab }) {
             onClose={handleCloseNotifs}
           />
         ),
-        container:
-          router.pathname === "/instructor/dashboard"
-            ? "#dashboard-container"
-            : "#class-mode-container", // Ensure this ID exists in your DOM
+        container: router.pathname.includes("dashboard")
+          ? "#dashboard-container"
+          : "#class-mode-container", // Ensure this ID exists in your DOM
         style: {
           overlay: "overlay-low rounded-[20px]",
         },
@@ -223,11 +226,18 @@ export default function Navbar({ activeTab }) {
               selected={selectedButton === "Dashboard"}
               onClick={() => handleButtonClick("Dashboard")}
             />
-            <NavButton
-              buttonText="Training"
-              selected={selectedButton === "Training"}
-              onClick={() => handleButtonClick("Training")}
-            />
+            {userRole === "in" ? (
+              <NavButton
+                buttonText="Training"
+                selected={selectedButton === "Training"}
+                onClick={() => handleButtonClick("Training")}
+              />
+            ) : (
+              <NavButton
+                buttonText="Diagnostic"
+                selected={selectedButton === "Diagnostic"}
+              />
+            )}
           </div>
         </div>
         <div className="flex items-center gap-[16px]">
