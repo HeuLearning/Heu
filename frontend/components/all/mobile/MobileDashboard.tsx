@@ -4,7 +4,7 @@ import { useResponsive } from "../ResponsiveContext";
 import HorizontalDatePicker from "./HorizontalDatePicker";
 import { usePopUp } from "../popups/PopUpContext";
 import MobileClassDetails from "./MobileClassDetails";
-import { useInstructorSessions } from "../data-retrieval/SessionsContext";
+import { useSessions } from "../data-retrieval/SessionsContext";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { LessonPlanProvider } from "../data-retrieval/LessonPlanContext";
 import { isSameDay } from "date-fns";
@@ -18,8 +18,7 @@ export default function MobileDashboard({
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { allSessions, upcomingSessions, getSessionStatus } =
-    useInstructorSessions();
+  const { allSessions, upcomingSessions, getSessionStatus } = useSessions();
   const horizontalDatePickerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
 

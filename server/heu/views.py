@@ -1478,7 +1478,7 @@ class InstructorSessionsView(APIView):
                 Q(pending_instructors__contains=[user_id]) |
                 Q(confirmed_instructors__contains=[user_id]) |
                 Q(canceled_instructors__contains=[user_id])
-            ).select_related('learning_organization_location__learning_organization')
+            ).filter(approved=True).select_related('learning_organization_location__learning_organization')
 
             sessions_data = []
             for session in sessions:
@@ -1522,8 +1522,6 @@ class InstructorSessionsView(APIView):
                     "num_waitlist": len(waitlisted),
                     "learning_organization_name": learning_organization.name,
                     "location_name": location.name,
-                    "approved": session.approved,
-                    "viewed": session.viewed,
                     "other_instructors": list(other_instructors),
                     "instructor_status": instructor_status
                 })

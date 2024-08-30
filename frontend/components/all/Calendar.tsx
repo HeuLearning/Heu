@@ -283,7 +283,7 @@ export default function Calendar({
                   showNeighboringMonth={false}
                   tileClassName={({ date, view }) => {
                     if (view === "month") {
-                      const classes = [styles["calendar-tile"]]; // Add this line
+                      const classes = [styles["calendar-tile"]];
                       if (isBeforeToday(date)) {
                         classes.push(styles["disabled-date"]);
                       }
