@@ -143,21 +143,23 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 524288000
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-dbname = os.getenv("DATABASE_NAME")
-dbuser = os.getenv("DATABASE_USER")
-dbpassword = os.getenv("DATABASE_PASSWORD")
-dbhost = os.getenv("DATABASE_HOST")
-dbport = os.getenv("DATABASE_PORT")
+DB_NAME = os.getenv('SUPABASE_DB_NAME')
+DB_USER = os.getenv('SUPABASE_DB_USER')
+DB_PASSWORD = os.getenv('SUPABASE_DB_PASSWORD')
+DB_HOST = os.getenv('SUPABASE_DB_HOST')
+DB_PORT = os.getenv('SUPABASE_DB_PORT')
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': dbname,
-        'USER': dbuser,
-        'PASSWORD': dbpassword,
-        'HOST': dbhost,
-        'PORT': dbport,
-        'sslmode': 'require'
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
