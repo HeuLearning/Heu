@@ -178,6 +178,12 @@ class Session(models.Model):
         blank=True,
         default=list
     )
+    
+    confirmed_students = ArrayField(
+        models.CharField(max_length=255),
+        blank=True,
+        default=list
+    )
 
     pending_instructors = ArrayField(
         models.CharField(max_length=255),
