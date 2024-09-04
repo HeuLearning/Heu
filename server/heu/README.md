@@ -15,7 +15,7 @@
 **Description**: Fetches the learning organization that the admin is in charge of, including all their locations and all sessions for those locations.
 
 ### `GET /admin-sessions-location/{locationId}`
-**Description**: Fetches all sessions for a specific location within the learning organization. Can also be used to create sessions for that location.
+**Description**: Fetches all sessions for a specific location within the learning organization.
 
 ### `POST /admin-sessions-location`
 **Description**: Admin can create sessions in bulk without specifying a location.

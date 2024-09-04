@@ -30,5 +30,3 @@ def fetch_rows_starting_with(number: str):
         print(f"An error occurred: {e}")
         return []
 
-
-# File meant to 
