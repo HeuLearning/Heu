@@ -755,6 +755,21 @@ class UserSessionDetailView(APIView):
         session.confirmed_students = confirmed
         session.save()
         return Response({"message": "Successfully confirmed"}) 
+    
+    def cancel_user(self, session, u_id):
+        enrolled = session.enrolled_students or []
+        waitlist = session.waitlist_students or []
+        if u_id not in enrolled:
+            return Response({"message": "Not enrolled"})
+        enrolled.remove(u_id)
+
+        if waitlist:
+            temp = waitlist.pop(0)
+            enrolled.append(temp)
+        session.waitlist_students = waitlist
+        session.enrolled_students = enrolled
+        session.save()
+        return Response({"message": "Successfully confirmed"})
 
     def drop_waitlist_user(self, session, u_id):
         waitlist = session.waitlist_students or []
@@ -767,12 +782,10 @@ class UserSessionDetailView(APIView):
 
     def unenroll_user(self, session, u_id):
         enrolled = session.enrolled_students or []
-        confirmed = session.confirmed_students or []
         if u_id not in enrolled:
             return Response({"message": "Not enrolled"})
         enrolled.remove(u_id)
-        if u_id in confirmed:
-            confirmed.remove(u_id)
+
         waitlist = session.waitlist_students or []
         if waitlist:
             temp = waitlist.pop(0)
@@ -1345,13 +1358,9 @@ class AdminSessionDetailView(APIView):
             raise ValidationError("student_id is required")
 
         enrolled = session.enrolled_students or []
-        confirmed = session.confirmed_students or []
 
         if student_id not in enrolled:
             raise ValidationError("Student is not enrolled")
-        if student_id in confirmed:
-            confirmed.remove(student_id)
-        
 
         enrolled.remove(student_id)
         session.enrolled_students = enrolled
@@ -1394,13 +1403,28 @@ class AdminSessionDetailView(APIView):
         enrolled = session.enrolled_students or []
         confirmed = session.confirmed_students or []
 
+        if student_id not in enrolled:
+            raise ValidationError("Student is not enrolled")
+        
+        confirmed.append(student_id)
+        session.confirmed_students = confirmed
+
+        enrolled.remove(student_id)
+        session.enrolled_students = enrolled
+
+
+    def cancel_student(self,session,data):
+        student_id = data.get('student_id')
+        if not student_id: 
+            raise ValidationError("student_id is required")
+        
+        enrolled = session.enrolled_students or []
 
         if student_id not in enrolled:
             raise ValidationError("Student is not enrolled")
         
-        
-        confirmed.append(student_id)
-        session.confirmed_students = confirmed
+        enrolled.remove(student_id)
+        session.enrolled_students = enrolled
 
 
     def update_start_time(self, session, data):
