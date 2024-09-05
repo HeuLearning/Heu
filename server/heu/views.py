@@ -613,6 +613,9 @@ class UserSessionsView(APIView):
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
+            if not user_info.get('user_type', "") == 'st':
+                raise PermissionDenied("Only students can access this route")
+
             # Corrected query
             sessions = Session.objects.filter(approved=True).select_related(
                 'learning_organization_location__learning_organization'
@@ -626,6 +629,7 @@ class UserSessionsView(APIView):
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
+                confirmed = session.confirmed_students or []
                 instructor_ids = session.confirmed_instructors or []
                 instructors = CustomUser.objects.filter(user_id__in=instructor_ids).values('first_name', 'last_name')
                 return_ls.append({
@@ -634,10 +638,12 @@ class UserSessionsView(APIView):
                     "max_capacity": session.max_capacity or 0,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
+                    "num_confirmed": len(confirmed),
                     "learning_organization_name": session.learning_organization_location.learning_organization.name,
                     "location_name": session.learning_organization_location.name,
                     "isEnrolled": user_id in enrolled,
                     "isWaitlisted": user_id in waitlisted,
+                    "isConfirmed": user_id in confirmed,
                     "instructors": list(instructors),
                     "id": session.id
                 })
@@ -689,6 +695,9 @@ class UserSessionDetailView(APIView):
             user_info = self.get_user_info(token)
             u_id = user_info['sub']
 
+            if not user_info.get('user_type', "") == 'st':
+                raise PermissionDenied("Only students can access this route")
+
             session, max_cap = self.get_session_and_capacity(session_pk)
             if not session.approved:
                 raise PermissionDenied("This session is not approved for enrollment or waitlisting.")
@@ -700,6 +709,8 @@ class UserSessionDetailView(APIView):
                 return self.enroll_user(session, u_id, max_cap)
             elif task == "waitlist":
                 return self.waitlist_user(session, u_id)
+            elif task == "confirm":
+                return self.confirm_user(session, u_id)
             elif task == "drop_waitlist":
                 return self.drop_waitlist_user(session, u_id)
             elif task == "unenroll":
@@ -732,6 +743,33 @@ class UserSessionDetailView(APIView):
         session.waitlist_students = waitlist
         session.save()
         return Response({"message": "Successfully joined waitlist"})
+    
+    def confirm_user(self, session, u_id):
+        enrolled = session.enrolled_students or []
+        confirmed = session.confirmed_students or []
+        if u_id not in enrolled:
+            return Response({"message": "Not enrolled"})
+        if u_id in confirmed:
+            return Response({"message": "Already confirmed"})
+        confirmed.append(u_id)
+        session.confirmed_students = confirmed
+        session.save()
+        return Response({"message": "Successfully confirmed"}) 
+    
+    def cancel_user(self, session, u_id):
+        enrolled = session.enrolled_students or []
+        waitlist = session.waitlist_students or []
+        if u_id not in enrolled:
+            return Response({"message": "Not enrolled"})
+        enrolled.remove(u_id)
+
+        if waitlist:
+            temp = waitlist.pop(0)
+            enrolled.append(temp)
+        session.waitlist_students = waitlist
+        session.enrolled_students = enrolled
+        session.save()
+        return Response({"message": "Successfully confirmed"})
 
     def drop_waitlist_user(self, session, u_id):
         waitlist = session.waitlist_students or []
@@ -747,6 +785,7 @@ class UserSessionDetailView(APIView):
         if u_id not in enrolled:
             return Response({"message": "Not enrolled"})
         enrolled.remove(u_id)
+
         waitlist = session.waitlist_students or []
         if waitlist:
             temp = waitlist.pop(0)
@@ -817,6 +856,7 @@ class AdminSessionsView(APIView):
                 for session in sessions:
                     enrolled = session.enrolled_students or []
                     waitlisted = session.waitlist_students or []
+                    confirmed = session.confirmed_students or []
                     instructor_ids = session.instructors or []
                     instructors = CustomUser.objects.filter(user_id__in=instructor_ids).values('first_name', 'last_name', 'user_id')
                     
@@ -827,6 +867,7 @@ class AdminSessionsView(APIView):
                         "max_capacity": max_capacity,
                         "num_enrolled": len(enrolled),
                         "num_waitlist": len(waitlisted),
+                        "num_confirmed": len(confirmed),
                         "learning_organization": learning_organization.name,
                         "location": location.name,
                         "approved": session.approved,
@@ -1039,6 +1080,7 @@ class AdminSessionsByLocationView(APIView):
             for session in sessions:
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
+                confirmed = session.confirmed_students or []
                 sessions_data.append({
                     "id": session.id,
                     "start_time": session.start_time,
@@ -1046,6 +1088,7 @@ class AdminSessionsByLocationView(APIView):
                     "max_capacity": max_capacity,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
+                    "num_confirmed": len(confirmed),
                     "learning_organization": session.learning_organization_location.learning_organization.name,
                     "location_name": session.learning_organization_location.name,
                     "approved": session.approved,
@@ -1268,6 +1311,8 @@ class AdminSessionDetailView(APIView):
                 self.update_enrolled_students(session, data)
             elif task == 'update_waitlist':
                 self.update_waitlist_students(session, data)
+            elif task == 'update_confirmed':
+                self.update_confirmed_students(session, data)
             elif task == 'enroll_student':
                 self.enroll_student(session, data)
             elif task == 'unenroll_student':
@@ -1349,6 +1394,38 @@ class AdminSessionDetailView(APIView):
 
         waitlist.remove(student_id)
         session.waitlist_students = waitlist
+    
+    def confirm_student(self, session, data):
+        student_id = data.get('student_id')
+        if not student_id:
+            raise ValidationError("student_id is required")
+
+        enrolled = session.enrolled_students or []
+        confirmed = session.confirmed_students or []
+
+        if student_id not in enrolled:
+            raise ValidationError("Student is not enrolled")
+        
+        confirmed.append(student_id)
+        session.confirmed_students = confirmed
+
+        enrolled.remove(student_id)
+        session.enrolled_students = enrolled
+
+
+    def cancel_student(self,session,data):
+        student_id = data.get('student_id')
+        if not student_id: 
+            raise ValidationError("student_id is required")
+        
+        enrolled = session.enrolled_students or []
+
+        if student_id not in enrolled:
+            raise ValidationError("Student is not enrolled")
+        
+        enrolled.remove(student_id)
+        session.enrolled_students = enrolled
+
 
     def update_start_time(self, session, data):
         start_time = data.get('start_time')
@@ -1394,6 +1471,14 @@ class AdminSessionDetailView(APIView):
         if not isinstance(waitlist_students, list):
             raise ValidationError("waitlist_students must be a list")
         session.waitlist_students = waitlist_students
+    
+    def update_confirmed_students(self, session, data):
+        confirmed_students = data.get('confirmed_students')
+        if confirmed_students is None:
+            raise ValidationError("confirmed_students field is required")
+        if not isinstance(confirmed_students, list):
+            raise ValidationError("confirmed_students must be a list")
+        session.confirmed_students = confirmed_students
 
     # def get_user_django_info(self, user_id):
     #     return get_object_or_404(CustomUser, user_id=user_id)
@@ -1464,6 +1549,9 @@ class InstructorSessionsView(APIView):
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
+            
+            if not user_info.get('user_type', "") == 'in':
+                raise PermissionDenied("Only instructors can access this route")
 
             # Get InstructorData for the user
             try:
@@ -1487,6 +1575,7 @@ class InstructorSessionsView(APIView):
 
                 enrolled = session.enrolled_students or []
                 waitlisted = session.waitlist_students or []
+                confirmed = session.confirmed_students or []
 
                 # Calculate max capacity for this location
                 max_capacity = Room.objects.filter(
@@ -1520,6 +1609,7 @@ class InstructorSessionsView(APIView):
                     "max_capacity": max_capacity,
                     "num_enrolled": len(enrolled),
                     "num_waitlist": len(waitlisted),
+                    "num_confirmed": len(confirmed),
                     "learning_organization_name": learning_organization.name,
                     "location_name": location.name,
                     "other_instructors": list(other_instructors),
@@ -1658,6 +1748,9 @@ class InstructorSessionDetailView(APIView):
             token = auth_header.split(' ')[1]
             user_info = self.get_user_info(token)
             u_id = user_info['sub']
+
+            if not user_info.get('user_type', "") == 'in':
+                raise PermissionDenied("Only instructors can access this route")
 
             # Verify that the user is an instructor
             try:
