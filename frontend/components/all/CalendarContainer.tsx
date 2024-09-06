@@ -78,7 +78,7 @@ export default function CalendarContainer({
         } else if (status === "Confirmed") {
           color = "var(--status_fg_positive)";
         } else if (status === "Waitlisted") {
-          color = "var(--typeface_tertiary)";
+          color = "var(--typeface_primary)";
         } else if (status === "Attended") {
           color = "var(--typeface_tertiary)";
         }

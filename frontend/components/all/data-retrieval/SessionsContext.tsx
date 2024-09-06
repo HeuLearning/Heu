@@ -32,8 +32,8 @@ interface InstructorSessionContextType {
   getSessionStatus: (session) => any;
   allSessions: Session[];
   upcomingSessions: Session[];
-  cancelSession: (sessionId) => void;
   confirmSession: (sessionId) => void;
+  cancelSession: (sessionId) => void;
 }
 
 interface LearnerSessionContextType {
@@ -46,6 +46,7 @@ interface LearnerSessionContextType {
   unenrollSession: (sessionId) => void;
   unwaitlistSession: (sessionId) => void;
   confirmSession: (sessionId) => void;
+  cancelSession: (sessionId) => void;
 }
 
 type SessionContextType =
@@ -95,6 +96,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         sessionOptions
       );
       const sessionsData = await sessionResponse.json();
+      console.log(sessionsData);
       let allSessions = [];
       if (sessionsData) {
         allSessions = sessionsData.sort((a, b) => {
@@ -177,46 +179,54 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       return status;
     } else if (userRole === "st") {
       const endDate = new Date(session.end_time);
-      if (endDate < new Date() && status === "Confirmed") {
+      if (endDate < new Date() && session.isConfirmed === "Confirmed") {
         return "Attended";
       } else if (session.isEnrolled) return "Enrolled";
       else if (session.isWaitlisted) return "Waitlisted";
-      // need confirmed
+      else if (session.isConfirmed) return "Confirmed";
       else if (session.num_enrolled < session.max_capacity) return "Available";
       else return "Class full";
     }
   };
 
   async function confirmSession(sessionId) {
-    const res = await fetch(
-      `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`, // update to learner
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`, // Include the access token
-        },
-        body: JSON.stringify({
-          task: "confirm",
-        }),
-      }
-    );
+    if (userRole === "in") {
+      const res = await fetch(
+        `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`, // update to learner
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // Include the access token
+          },
+          body: JSON.stringify({
+            task: "confirm",
+          }),
+        }
+      );
+    } else if (userRole === "st") {
+      await handleChange("confirm", sessionId);
+    }
   }
 
   async function cancelSession(sessionId) {
-    const res = await fetch(
-      `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`, // Include the access token
-        },
-        body: JSON.stringify({
-          task: "cancel",
-        }),
-      }
-    );
+    if (userRole === "in") {
+      const res = await fetch(
+        `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // Include the access token
+          },
+          body: JSON.stringify({
+            task: "cancel",
+          }),
+        }
+      );
+    } else if (userRole === "st") {
+      await handleChange("cancel", sessionId);
+    }
   }
 
   async function handleChange(taskString, sessionId) {
@@ -273,6 +283,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         unenrollSession,
         unwaitlistSession,
         confirmSession,
+        cancelSession,
       };
     }
   };

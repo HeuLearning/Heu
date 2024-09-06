@@ -2,13 +2,17 @@ import { format } from "date-fns";
 import DateCard from "../DateCard";
 import PopUp from "./PopUpContainer";
 import { usePopUp } from "./PopUpContext";
-import { useInstructorSessions } from "../data-retrieval/SessionsContext";
+import {
+  useLearnerSessions,
+  useSessions,
+} from "../data-retrieval/SessionsContext";
 import styles from "../MiniClassBlock.module.css";
+import { Yeseva_One } from "next/font/google";
 
 export default function AttendancePopUp({ session, action, popUpId }) {
   const startDate = new Date(session.start_time);
   const { showPopUp, hidePopUp } = usePopUp();
-  const { confirmSession, cancelSession } = useInstructorSessions();
+  const { confirmSession, cancelSession } = useSessions();
 
   const handleConfirmSession = (sessionId) => {
     confirmSession(sessionId);
@@ -41,6 +45,62 @@ export default function AttendancePopUp({ session, action, popUpId }) {
   };
 
   const handleCancelSession = (sessionId) => {};
+
+  if (action === "enroll" || action === "waitlist") {
+    const { enrollSession, waitlistSession } = useLearnerSessions();
+    const handleEnrollSession = (sessionId) => {
+      enrollSession(sessionId);
+      window.location.reload();
+    };
+    const handleWaitlistSession = (sessionId) => {
+      waitlistSession(sessionId);
+      window.location.reload();
+    };
+    return (
+      <PopUp
+        header={
+          action === "enroll" ? "Enroll in this class" : "Join waiting list"
+        }
+        primaryButtonText={action === "enroll" ? "Enroll" : "Join waiting list"}
+        secondaryButtonText={"Cancel"}
+        primaryButtonOnClick={
+          action === "enroll"
+            ? () => handleEnrollSession(session.id)
+            : () => handleWaitlistSession(session.id)
+        }
+        secondaryButtonOnClick={() => hidePopUp(popUpId)}
+        popUpId={popUpId}
+      >
+        <p className="text-typeface_primary text-body-regular">
+          {action === "enroll"
+            ? "Are you sure you'd like to add this class to your schedule?"
+            : "This class is currently full. Upon joining the waiting list, if a spot becomes available, we'll notify you for you to confirm your attendance."}
+        </p>
+        <div className="relative pt-[32px]">
+          <div
+            className={`${styles.confirm_class_block} flex w-full items-center rounded-[14px]`}
+          >
+            <DateCard
+              month={format(startDate, "MMM")}
+              day={format(startDate, "d")}
+            />
+            <div className={`flex items-center justify-between px-[8px]`}>
+              <div className="flex gap-[4px] pl-[4px]">
+                <h1 className="text-typeface_primary text-body-semibold">
+                  {format(startDate, "eeee")}
+                </h1>
+                <h1 className="text-typeface_secondary text-body-medium">
+                  {format(startDate, "h:mm a") +
+                    " - " +
+                    format(session.end_time, "h:mm a")}
+                </h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PopUp>
+    );
+  }
 
   return (
     <PopUp

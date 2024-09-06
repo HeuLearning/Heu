@@ -14,6 +14,8 @@ import RSVPSelector from "./buttons/RSVPSelector";
 import { useRouter } from "next/router";
 import IconButton from "./buttons/IconButton";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
+import AttendancePopUp from "./popups/AttendancePopUp";
+import { usePopUp } from "./popups/PopUpContext";
 
 export default function SessionDetailContent({
   activeSessionId,
@@ -24,6 +26,7 @@ export default function SessionDetailContent({
 }) {
   // if it is null then placeholder
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { showPopUp, hidePopUp } = usePopUp();
   const { userRole } = useUserRole();
   const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
   let enrollSession;
@@ -55,7 +58,43 @@ export default function SessionDetailContent({
   const router = useRouter();
 
   const handleEnter = () => {
-    router.push(activeSessionId);
+    router.push(`${activeSessionId}`);
+  };
+
+  const showEnrollPopUp = () => {
+    showPopUp({
+      id: "enroll-session-poup",
+      content: (
+        <AttendancePopUp
+          session={session}
+          action="enroll"
+          popUpId="enroll-session-poup"
+        />
+      ),
+      container: null, // Ensure this ID exists in your DOM
+      style: {
+        overlay: "overlay-high",
+      },
+      height: "276px",
+    });
+  };
+
+  const showWaitingListPopUp = () => {
+    showPopUp({
+      id: "waitlist-session-poup",
+      content: (
+        <AttendancePopUp
+          session={session}
+          action="waitlist"
+          popUpId="waitlist-session-poup"
+        />
+      ),
+      container: null, // Ensure this ID exists in your DOM
+      style: {
+        overlay: "overlay-high",
+      },
+      height: "276px",
+    });
   };
 
   const getActionItem = () => {
@@ -81,25 +120,29 @@ export default function SessionDetailContent({
           ) {
             // if session was in the past and was not attended
             return null;
-          } else {
+          } else if (differenceInDaysToStart < 7) {
             return <RSVPSelector session={session} />;
-          }
+          } else return null;
         } else if (userRole === "st") {
           console.log("session status", getSessionStatus(session));
           if (getSessionStatus(session) === "Available") {
             return (
-              <Button
-                className="button-primary"
-                onClick={() => enrollSession(activeSessionId)}
-              >
+              <Button className="button-primary" onClick={showEnrollPopUp}>
                 Enroll
               </Button>
             );
           } else if (getSessionStatus(session) === "Class full") {
             return (
-              <Button className="button-primary">Join waiting list</Button>
+              <Button className="button-primary" onClick={showWaitingListPopUp}>
+                Join waiting list
+              </Button>
             );
-          } else if (getSessionStatus(session) === "Enrolled") {
+          } else if (
+            (getSessionStatus(session) === "Enrolled" &&
+              differenceInDaysToStart < 7) ||
+            getSessionStatus(session) === "Confirmed" ||
+            getSessionStatus(session) === "Canceled"
+          ) {
             return <RSVPSelector session={session} />;
           } else if (getSessionStatus(session) === "Waitlisted") {
             // no action if waitilisted, but info pill different
@@ -197,7 +240,9 @@ export default function SessionDetailContent({
           {activeSessionId &&
             (userRole === "in" && getSessionStatus(session) === "Online" ? (
               <InfoPill icon={true} text="Your class has started" />
-            ) : getSessionStatus(session) !== "Canceled" && isUpcoming ? (
+            ) : userRole === "in" &&
+              getSessionStatus(session) !== "Canceled" &&
+              isUpcoming ? (
               <InfoPill
                 icon={true}
                 text={
