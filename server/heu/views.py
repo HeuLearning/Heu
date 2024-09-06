@@ -148,7 +148,7 @@ class GetUserRole(APIView):
         cached_info = cache.get(cache_key)
         if cached_info:
             return cached_info
-
+        
         # If not in cache, fetch from Auth0
         domain = os.environ.get('AUTH0_DOMAIN')
         headers = {"Authorization": f'Bearer {token}'}
@@ -159,7 +159,6 @@ class GetUserRole(APIView):
             raise AuthenticationFailed("Failed to retrieve user info")
         
         user_info = response.json()
-        
         # Cache the user info
         cache.set(cache_key, user_info, 3600)  # Cache for 1 hour
         
@@ -613,8 +612,8 @@ class UserSessionsView(APIView):
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
 
-            if not user_info.get('user_type', "") == 'st':
-                raise PermissionDenied("Only students can access this route")
+            # if not user_info.get('user_type', "") == 'st':
+            #     raise PermissionDenied("Only students can access this route")
 
             # Corrected query
             sessions = Session.objects.filter(approved=True).select_related(
@@ -651,6 +650,7 @@ class UserSessionsView(APIView):
         except AuthenticationFailed as e:
             return Response({"error": str(e)}, status=401)
         except Exception as e:
+            print(f"Unexpected error in UserSessionsView: {str(e)}")
             logger.error(f"Unexpected error in UserSessionsView: {str(e)}")
             return Response({"error": "An unexpected error occurred"}, status=500)
 
@@ -695,8 +695,8 @@ class UserSessionDetailView(APIView):
             user_info = self.get_user_info(token)
             u_id = user_info['sub']
 
-            if not user_info.get('user_type', "") == 'st':
-                raise PermissionDenied("Only students can access this route")
+            # if not user_info.get('user_type', "") == 'st':
+            #     raise PermissionDenied("Only students can access this route")
 
             session, max_cap = self.get_session_and_capacity(session_pk)
             if not session.approved:
@@ -711,6 +711,8 @@ class UserSessionDetailView(APIView):
                 return self.waitlist_user(session, u_id)
             elif task == "confirm":
                 return self.confirm_user(session, u_id)
+            elif task == "cancel":
+                return self.cancel_user(session, u_id)
             elif task == "drop_waitlist":
                 return self.drop_waitlist_user(session, u_id)
             elif task == "unenroll":
@@ -745,6 +747,7 @@ class UserSessionDetailView(APIView):
         return Response({"message": "Successfully joined waitlist"})
     
     def confirm_user(self, session, u_id):
+        print("confirming")
         enrolled = session.enrolled_students or []
         confirmed = session.confirmed_students or []
         if u_id not in enrolled:
@@ -752,6 +755,7 @@ class UserSessionDetailView(APIView):
         if u_id in confirmed:
             return Response({"message": "Already confirmed"})
         confirmed.append(u_id)
+        enrolled.remove(u_id)
         session.confirmed_students = confirmed
         session.save()
         return Response({"message": "Successfully confirmed"}) 
@@ -763,13 +767,14 @@ class UserSessionDetailView(APIView):
             return Response({"message": "Not enrolled"})
         enrolled.remove(u_id)
 
+        # add next student from waitlist into enrolled
         if waitlist:
             temp = waitlist.pop(0)
             enrolled.append(temp)
         session.waitlist_students = waitlist
         session.enrolled_students = enrolled
         session.save()
-        return Response({"message": "Successfully confirmed"})
+        return Response({"message": "Successfully canceled"})
 
     def drop_waitlist_user(self, session, u_id):
         waitlist = session.waitlist_students or []
@@ -1550,8 +1555,8 @@ class InstructorSessionsView(APIView):
             user_info = self.get_user_info(token)
             user_id = user_info['sub']
             
-            if not user_info.get('user_type', "") == 'in':
-                raise PermissionDenied("Only instructors can access this route")
+            # if not user_info.get('user_type', "") == 'in':
+            #     raise PermissionDenied("Only instructors can access this route")
 
             # Get InstructorData for the user
             try:
@@ -1749,8 +1754,8 @@ class InstructorSessionDetailView(APIView):
             user_info = self.get_user_info(token)
             u_id = user_info['sub']
 
-            if not user_info.get('user_type', "") == 'in':
-                raise PermissionDenied("Only instructors can access this route")
+            # if not user_info.get('user_type', "") == 'in':
+            #     raise PermissionDenied("Only instructors can access this route")
 
             # Verify that the user is an instructor
             try:

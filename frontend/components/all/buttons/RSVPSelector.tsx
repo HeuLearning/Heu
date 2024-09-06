@@ -7,12 +7,14 @@ import { useSessions } from "../data-retrieval/SessionsContext";
 import Dot from "../Dot";
 import { usePopUp } from "../popups/PopUpContext";
 import AttendancePopUp from "../popups/AttendancePopUp";
+import { useUserRole } from "../data-retrieval/UserRoleContext";
 
 export default function RSVPSelector({ session }) {
   //allOptions in form of ["blah1", "blah2", "blah3"]
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownWidth, setDropdownWidth] = useState(0);
   const { confirmSession, getSessionStatus } = useSessions();
+  const { userRole } = useUserRole();
 
   const status = getSessionStatus(session);
 
@@ -107,7 +109,10 @@ export default function RSVPSelector({ session }) {
         {status}
       </div>
     );
-  } else if (status === "Pending")
+  } else if (
+    (userRole === "in" && status === "Pending") ||
+    (userRole === "st" && status === "Enrolled")
+  )
     return (
       <div className="relative flex flex-col" ref={dropdownRef}>
         <div className={`shown-button`} ref={shownButtonRef}>

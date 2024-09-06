@@ -110,13 +110,10 @@ export default function Calendar({
     let isPressed =
       pressedDate && date.toDateString() === pressedDate.toDateString();
     let color = sessionMap?.get(dateKey) || [];
-    console.log(sessionMap);
     if (sessionMap) {
       if (isBeforeToday(date) && !isSelected && !isPressed) {
         color = color.map(() => "var(--typeface_tertiary)"); // Grey for past dates
       } else if (color.length !== 0 && (isSelected || isPressed)) {
-        console.log(color);
-        console.log("selected and white");
         color = color.map(() => "white");
       }
     }

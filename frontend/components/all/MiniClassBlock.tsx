@@ -33,7 +33,12 @@ export default function MiniClassBlock({
   if (status === "Confirmed") {
     color = "text-status_fg_positive";
     fillColor = "var(--status_fg_positive)";
-  } else if (status === "Pending") {
+  } else if (
+    status === "Pending" ||
+    status === "Enrolled" ||
+    status === "Waitlisted" ||
+    status === "Available"
+  ) {
     color = "text-typeface_primary";
     fillColor = "#292929";
   } else if (status === "Online") {
@@ -66,6 +71,24 @@ export default function MiniClassBlock({
 
   const handleEnter = () => {
     router.push(sessionId);
+  };
+
+  const handleEnroll = () => {
+    showPopUp({
+      id: "enroll-session-poup",
+      content: (
+        <AttendancePopUp
+          session={session}
+          action="enroll"
+          popUpId="enroll-session-poup"
+        />
+      ),
+      container: null, // Ensure this ID exists in your DOM
+      style: {
+        overlay: "overlay-high",
+      },
+      height: "276px",
+    });
   };
 
   const handleClick = (sessionId) => {
@@ -127,7 +150,9 @@ export default function MiniClassBlock({
           <Dot color={sessionId ? fillColor : "var(--surface_bg_secondary)"} />
         )}
         {sessionId ? (
-          <h2 className={`text-body-semibold ${color}`}>{status}</h2>
+          <h2 className={`text-body-semibold ${color}`}>
+            {status === "Enrolled" ? "Pending" : status}
+          </h2>
         ) : (
           <Placeholder width={60} height={10} />
         )}
@@ -136,7 +161,7 @@ export default function MiniClassBlock({
   );
 
   const renderButton = () => {
-    if (status === "Pending") {
+    if (status === "Pending" || status === "Enrolled") {
       return (
         <div className="rounded-[10px] shadow-25">
           <Button
@@ -147,8 +172,7 @@ export default function MiniClassBlock({
           </Button>
         </div>
       );
-    }
-    if (status === "Online") {
+    } else if (status === "Online") {
       return (
         <div className="rounded-[10px] shadow-25">
           <Button
@@ -156,6 +180,17 @@ export default function MiniClassBlock({
             onClick={handleEnter}
           >
             Enter class
+          </Button>
+        </div>
+      );
+    } else if (status === "Available") {
+      return (
+        <div className="rounded-[10px] shadow-25">
+          <Button
+            className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
+            onClick={handleEnroll}
+          >
+            Enroll
           </Button>
         </div>
       );
