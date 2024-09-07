@@ -1,7 +1,7 @@
 .radioButton {
-  background-image: url("data:image/svg+xml,%3Csvg height='8' width='8' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle r='4' cx='4' cy='4' fill='white' /%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg height='6' width='6' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle r='3' cx='3' cy='3' fill='white' /%3E%3C/svg%3E");
   background-color: var(--surface_bg_highlight);
-  background-size: 8px 8px;
+  background-size: 6px 6px;
   background-position: center;
   background-repeat: no-repeat;
   width: 16px;
@@ -17,10 +17,14 @@
   border: none;
 }
 
+.radioButton:checked + label {
+  font-weight: 500;
+}
+
 .radioButton:disabled {
-  background-image: url("data:image/svg+xml,%3Csvg height='8' width='8' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle r='4' cx='4' cy='4' fill='%23BFBFBF' /%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg height='6' width='6' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle r='3' cx='3' cy='3' fill='%23BFBFBF' /%3E%3C/svg%3E");
   background-color: var(--action_bg_tertiary);
-  background-size: 8px 8px;
+  background-size: 6px 6px;
   background-position: center;
   background-repeat: no-repeat;
   outline: none;

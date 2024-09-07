@@ -13,6 +13,9 @@ import { withPageAuthRequired, getSession } from "@auth0/nextjs-auth0";
 import { getAccessToken } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
+import PopUp from "components/all/popups/PopUpContainer";
+import { PopUpProvider } from "components/all/popups/PopUpContext";
+import RegistrationComponent from "components/all/RegistrationComponent";
 
 interface AuthProps {
   role?: string;
@@ -304,8 +307,9 @@ export default function Home({
         />
       </Head>
 
-      <div>
+      <PopUpProvider>
         <div>
+          {/* <div>
           <button onClick={() => updateUser("st")}>
             Register as a Learner
           </button>
@@ -319,8 +323,10 @@ export default function Home({
           <button onClick={() => updateUser("ad")}>
             Request to be a Learning Center Administrator
           </button>
+        </div> */}
+          <RegistrationComponent />
         </div>
-      </div>
+      </PopUpProvider>
     </>
   );
 }

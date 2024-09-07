@@ -16,7 +16,7 @@ export default function PopUp({
   return (
     <div>
       <div
-        className={`z-[50] ${className} flex h-full w-[450px] flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
+        className={`z-[50] ${className} flex h-full w-[468px] flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
       >
         <div className="space-y-[12px]">
           <div className="flex items-center justify-between">
