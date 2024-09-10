@@ -3,7 +3,7 @@ export default function Dot({ color = "", status = "" }) {
   if (status) {
     if (status === "Confirmed" || status === "Online") {
       fillColor = "var(--status_fg_positive)";
-    } else if (status === "Pending") {
+    } else if (status === "Pending" || status === "Waitlisted") {
       fillColor = "var(--typeface_primary)";
     } else if (status === "Canceled" || status === "Attended") {
       fillColor = "var(--typeface_tertiary)";

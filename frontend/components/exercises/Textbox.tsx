@@ -5,7 +5,7 @@ import { useResponsive } from "../all/ResponsiveContext";
 
 interface TextboxProps {
   size: "small" | "big";
-  placeholder: string;
+  placeholder?: string;
   width: string;
   value: string;
   onChange: (value: string) => void;

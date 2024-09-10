@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import Dot from "./Dot";
 import AttendancePopUp from "./popups/AttendancePopUp";
 import Placeholder from "./Placeholder";
+import { useUserRole } from "./data-retrieval/UserRoleContext";
 
 export default function MiniClassBlock({
   dateCard = false,
@@ -21,6 +22,7 @@ export default function MiniClassBlock({
 }) {
   const { getSessionStatus, upcomingSessions, allSessions, confirmSession } =
     useSessions();
+  const { userRole } = useUserRole();
   const session = allSessions.find((session) => session.id === sessionId);
   const startDate = new Date(session.start_time);
   const router = useRouter();
@@ -166,7 +168,7 @@ export default function MiniClassBlock({
         <div className="rounded-[10px] shadow-25">
           <Button
             className="bg-white text-typeface_primary text-body-semibold-cap-height"
-            onClick={handleConfirmPopUp}
+            onClick={isMobile ? null : handleConfirmPopUp}
           >
             Confirm
           </Button>
@@ -176,10 +178,14 @@ export default function MiniClassBlock({
       return (
         <div className="rounded-[10px] shadow-25">
           <Button
-            className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
+            className={`whitespace-nowrap ${
+              isMobile && userRole === "st"
+                ? "button-primary"
+                : "bg-white text-typeface_primary text-body-semibold-cap-height"
+            }`}
             onClick={handleEnter}
           >
-            Enter class
+            {userRole === "st" ? "Join class" : "Enter class"}
           </Button>
         </div>
       );
@@ -188,7 +194,7 @@ export default function MiniClassBlock({
         <div className="rounded-[10px] shadow-25">
           <Button
             className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
-            onClick={handleEnroll}
+            onClick={isMobile ? null : handleEnroll}
           >
             Enroll
           </Button>

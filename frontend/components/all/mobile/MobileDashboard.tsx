@@ -8,6 +8,7 @@ import { useSessions } from "../data-retrieval/SessionsContext";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { LessonPlanProvider } from "../data-retrieval/LessonPlanContext";
 import { isSameDay } from "date-fns";
+import { useUserRole } from "../data-retrieval/UserRoleContext";
 
 // this is equivalent to the web DashboardContainer + CalendarContainer, since the dashboard is simply the calendar
 export default function MobileDashboard({
@@ -19,6 +20,7 @@ export default function MobileDashboard({
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { allSessions, upcomingSessions, getSessionStatus } = useSessions();
+  const { userRole } = useUserRole();
   const horizontalDatePickerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
@@ -96,6 +98,11 @@ export default function MobileDashboard({
       const previousDateKey = previousDate
         ? `${previousDate.getFullYear()}-${previousDate.getMonth()}-${previousDate.getDate()}`
         : null;
+      let firstActiveSession = upcomingSessions.find(
+        (session) =>
+          getSessionStatus(session) === "Online" ||
+          getSessionStatus(session) === "Confirmed"
+      );
       return (
         <div key={session.id}>
           {index > 0 && index < filteredSessions.length && (
@@ -103,9 +110,7 @@ export default function MobileDashboard({
           )}
           {currentDateKey === previousDateKey ? (
             <MiniClassBlock
-              dateCard={
-                index === 0 && filteredSessions[0].id === upcomingSessions[0].id
-              }
+              dateCard={index === 0 && firstActiveSession === session}
               sessionId={session.id}
               activeSessionId={activeSessionId}
               setActiveSessionId={setActiveSessionId}
@@ -114,9 +119,7 @@ export default function MobileDashboard({
             />
           ) : (
             <MiniClassBlock
-              dateCard={
-                index === 0 && filteredSessions[0].id === upcomingSessions[0].id
-              }
+              dateCard={index === 0 && firstActiveSession === session}
               sessionId={session.id}
               activeSessionId={activeSessionId}
               setActiveSessionId={setActiveSessionId}
@@ -143,15 +146,32 @@ export default function MobileDashboard({
       const status = getSessionStatus(session);
       // circle color
       let color;
-      if (status === "Canceled" || status === "Attended")
-        color = "var(--typeface_tertiary)";
-      else if (status === "Confirmed" || status === "Online")
-        color = "var(--status_fg_positive)";
-      else if (status === "Pending") color = "var(--typeface_primary)";
-      if (sessionMap.get(dateKey)) {
-        sessionMap.get(dateKey).push(color);
-      } else {
-        sessionMap.set(dateKey, new Array(color));
+      if (userRole === "in") {
+        if (status === "Canceled" || status === "Attended")
+          color = "var(--typeface_tertiary)";
+        else if (status === "Confirmed" || status === "Online")
+          color = "var(--status_fg_positive)";
+        else if (status === "Pending") color = "var(--typeface_primary)";
+        if (sessionMap.get(dateKey)) {
+          sessionMap.get(dateKey).push(color);
+        } else if (color !== undefined) {
+          sessionMap.set(dateKey, new Array(color));
+        }
+      } else if (userRole === "st") {
+        if (status === "Enrolled") {
+          color = "var(--typeface_primary)";
+        } else if (status === "Confirmed") {
+          color = "var(--status_fg_positive)";
+        } else if (status === "Waitlisted") {
+          color = "var(--typeface_primary)";
+        } else if (status === "Attended") {
+          color = "var(--typeface_tertiary)";
+        }
+        if (sessionMap.get(dateKey)) {
+          sessionMap.get(dateKey).push(color);
+        } else if (color !== undefined) {
+          sessionMap.set(dateKey, new Array(color));
+        }
       }
     });
     return sessionMap;
@@ -159,7 +179,7 @@ export default function MobileDashboard({
 
   const sessionMap = useMemo(() => createSessionMap(), [allSessions]);
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(null);
 
   return (
     <div

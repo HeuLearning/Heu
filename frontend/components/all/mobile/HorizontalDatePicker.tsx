@@ -13,6 +13,7 @@ import {
   startOfMonth,
 } from "date-fns";
 import BackButton from "../buttons/BackButton";
+import { useSessions } from "../data-retrieval/SessionsContext";
 
 export default function HorizontalDatePicker({
   endDate = null,
@@ -25,6 +26,7 @@ export default function HorizontalDatePicker({
   const lastDate = addDays(today, endDate || 120);
 
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
+  const { upcomingSessions } = useSessions();
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef(null);
 
@@ -50,7 +52,7 @@ export default function HorizontalDatePicker({
       return 0;
     }
 
-    const dateString = date.toISOString().split("T")[0];
+    const dateString = date.toLocaleDateString();
     const dateElement = container.querySelector(`[data-date^="${dateString}"]`);
 
     if (!dateElement) {
@@ -65,11 +67,9 @@ export default function HorizontalDatePicker({
 
     // Calculate the width of a single date element
     const dateWidth = dateElement.offsetWidth + 8; // margin left of each element
-
     // Calculate the scroll position
     const scrollPosition =
       dateIndex * dateWidth - container.offsetWidth / 2 + dateWidth / 2 + 4; // half of the margin left
-
     return Math.max(0, scrollPosition);
   };
 
@@ -82,7 +82,7 @@ export default function HorizontalDatePicker({
         left: scrollPosition,
         behavior: behavior,
       });
-      setTimeout(() => setIsScrolling(false), 1000);
+      setTimeout(() => setIsScrolling(false), 500);
     }
   };
 
@@ -149,10 +149,22 @@ export default function HorizontalDatePicker({
                   ? styles.today
                   : ""
               } ${
-                isBeforeToday(day) ? styles.pastDateLabel : styles.dateLabel
+                isBeforeToday(day)
+                  ? styles.pastDateLabel
+                  : upcomingSessions.filter((session) =>
+                      isSameDay(new Date(session.start_time), day)
+                    ).length > 0
+                  ? styles.dateLabelActive
+                  : styles.dateLabelInactive
               }`}
-              onClick={() => onDateClick(day)}
-              data-date={day.toISOString()}
+              onClick={
+                upcomingSessions.filter((session) =>
+                  isSameDay(new Date(session.start_time), day)
+                ).length > 0
+                  ? () => onDateClick(day)
+                  : null
+              }
+              data-date={day.toLocaleDateString()}
             >
               {format(day, dateFormat)}
               {sessionMap.get(dateKey) && (

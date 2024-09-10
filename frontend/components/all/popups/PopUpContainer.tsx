@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState } from "react";
 import Button from "../buttons/Button";
 import IconButton from "../buttons/IconButton";
+import { useResponsive } from "../ResponsiveContext";
 import { usePopUp } from "./PopUpContext";
 
-export default function PopUp({
+export default function PopUpContainer({
   header,
   className = "",
   children,
@@ -13,10 +15,23 @@ export default function PopUp({
   popUpId,
 }) {
   const { hidePopUp } = usePopUp();
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const popUpRef = useRef(null);
+  const [popUpWidth, setPopUpWidth] = useState(0);
+
+  useEffect(() => {
+    if (isMobile && popUpRef.current) {
+      setPopUpWidth(popUpRef.current.offsetWidth - 32);
+    }
+  }, [isMobile]);
+
   return (
-    <div>
+    <div ref={popUpRef}>
       <div
-        className={`z-[50] ${className} flex h-full w-[468px] flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
+        className={`z-[50] ${className} flex h-full ${
+          isMobile ? "" : "w-[468px]"
+        } flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
+        style={isMobile && popUpWidth !== 0 ? { width: popUpWidth } : {}}
       >
         <div className="space-y-[12px]">
           <div className="flex items-center justify-between">

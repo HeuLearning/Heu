@@ -16,6 +16,7 @@ import IconButton from "./buttons/IconButton";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 import AttendancePopUp from "./popups/AttendancePopUp";
 import { usePopUp } from "./popups/PopUpContext";
+import { differenceInDays } from "date-fns";
 
 export default function SessionDetailContent({
   activeSessionId,
@@ -48,9 +49,7 @@ export default function SessionDetailContent({
 
   console.log(lessonPlan);
 
-  const differenceInDaysToStart = Math.round(
-    differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000)
-  );
+  const differenceInDaysToStart = differenceInDays(startDate, new Date());
   const isUpcoming = differenceInDaysToStart < 14 && endDate > new Date();
 
   console.log("isLessonPlanLoaded", isLessonPlanLoaded);
@@ -120,7 +119,7 @@ export default function SessionDetailContent({
           ) {
             // if session was in the past and was not attended
             return null;
-          } else if (differenceInDaysToStart < 7) {
+          } else if (differenceInDaysToStart <= 7) {
             return <RSVPSelector session={session} />;
           } else return null;
         } else if (userRole === "st") {
@@ -139,7 +138,7 @@ export default function SessionDetailContent({
             );
           } else if (
             (getSessionStatus(session) === "Enrolled" &&
-              differenceInDaysToStart < 7) ||
+              differenceInDaysToStart <= 7) ||
             getSessionStatus(session) === "Confirmed" ||
             getSessionStatus(session) === "Canceled"
           ) {

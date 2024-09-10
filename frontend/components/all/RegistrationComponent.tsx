@@ -163,13 +163,37 @@ export default function RegistrationComponent({ className = "" }) {
                 />
               </div>
             </div>
-            <Button
-              className="button-primary self-end"
-              onClick={handleContinueSignUp}
-            >
-              Continue
-            </Button>
+            <div className="flex gap-[12px] self-end">
+              <Button className="button-secondary" onClick={goBack}>
+                Back
+              </Button>
+              <Button className="button-primary" onClick={handleContinueSignUp}>
+                Continue
+              </Button>
+            </div>
           </form>
+        </div>
+      </div>
+    );
+  };
+
+  const PickLearningCenter = () => {
+    return (
+      <div className="flex flex-col gap-[24px]">
+        <div className="flex flex-col gap-[16px]">
+          <h3 className="py-[3px] text-h3">Pick your learning center</h3>
+          <p className="text-typeface_primary text-body-regular">
+            For the 2024 Heu Learning Pilot, we are only offering classes at
+            ____.
+          </p>
+          <div className="flex gap-[12px] self-end">
+            <Button className="button-secondary" onClick={goBack}>
+              Back
+            </Button>
+            <Button className="button-primary" onClick={handleContinueSignUp}>
+              Confirm Sign Up
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -179,11 +203,17 @@ export default function RegistrationComponent({ className = "" }) {
     setSignUpStage(signUpStage + 1);
   };
 
+  const goBack = () => {
+    setSignUpStage(signUpStage - 1);
+  };
+
   const renderContent = () => {
     if (signUpStage === 0) {
       return <LogInSignUpPage />;
     } else if (signUpStage === 1) {
       return <SignUpDetails />;
+    } else if (signUpStage === 2) {
+      return <PickLearningCenter />;
     }
   };
 
