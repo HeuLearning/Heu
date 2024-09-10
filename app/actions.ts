@@ -49,7 +49,29 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect("/protected");
+  const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        redirect("/sign-in");
+        return;
+      }
+
+      const user = session.user;
+
+     
+
+      const { data: userData } = await supabase
+        .from("users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if(!userData){
+        return redirect("/role-sign-up");
+      }else{
+        return redirect("/protected");
+      }
+      
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {

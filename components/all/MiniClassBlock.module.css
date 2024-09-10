@@ -1,0 +1,55 @@
+.mini_class_block {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mini_class_block::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  z-index: -2;
+}
+
+.confirm_class_block {
+  position: relative;
+  z-index: 1;
+}
+
+.confirm_class_block::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  z-index: -1;
+  border-radius: 14px;
+  background-color: var(--surface_border_tertiary);
+}
+
+.mini_class_block:hover::before {
+  background-color: var(--surface_bg_secondary);
+  cursor: pointer;
+  border-radius: 18px;
+}
+
+.selected::before {
+  background-color: var(--surface_bg_secondary);
+  border-radius: 18px;
+}
+
+.dateCard {
+  padding: 0 8px 0 0;
+}
+
+.noDateCard {
+  padding: 9.5px 8px 9.5px 0;
+}

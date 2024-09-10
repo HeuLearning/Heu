@@ -1,0 +1,31 @@
+.radioButton {
+  background-image: url("data:image/svg+xml,%3Csvg height='6' width='6' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle r='3' cx='3' cy='3' fill='white' /%3E%3C/svg%3E");
+  background-color: var(--surface_bg_highlight);
+  background-size: 6px 6px;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--action_border_primary);
+  border-radius: 100%;
+  cursor: pointer;
+}
+
+.radioButton:checked {
+  background-color: var(--surface_bg_darkest);
+  outline: none;
+  border: none;
+}
+
+.radioButton:checked + label {
+  font-weight: 500;
+}
+
+.radioButton:disabled {
+  background-image: url("data:image/svg+xml,%3Csvg height='6' width='6' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle r='3' cx='3' cy='3' fill='%23BFBFBF' /%3E%3C/svg%3E");
+  background-color: var(--action_bg_tertiary);
+  background-size: 6px 6px;
+  background-position: center;
+  background-repeat: no-repeat;
+  outline: none;
+}
