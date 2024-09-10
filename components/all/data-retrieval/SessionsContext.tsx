@@ -86,7 +86,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     const fetchLearnerSessions = async () => {
       // Fetch or initialize your sessions here
       // if the user is verified then get the user's sessions
-
+      
       const { data: session, error } = await supabase
       .from('heu_session')
       .select('*')    
@@ -94,6 +94,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
 
       console.log(session);
+      
       let allSessions = [];
       if (session) {
         allSessions = session.sort((a, b) => {
@@ -110,23 +111,20 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     const fetchInstructorSessions = async () => {
       // Fetch or initialize your sessions here
       // if the user is verified then get the user's sessions
-      const sessionOptions = {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`, // Include the access token
-        },
-      };
+      const { data: { session } } = await supabase.auth.getSession();
+      const id = session?.user.id
 
-      let sessionResponse = await fetch(
-        `http://localhost:8000/api/instructor-sessions`,
-        sessionOptions
-      );
-      const sessionData = await sessionResponse.json();
-      const sessionsData = sessionData.sessions;
+      const { data: sessions, error } = await supabase
+      .from('heu_session')
+      .select('*')
+      .eq('approved', true)
+      .contains('confirmed_instructors', [id]);
+
+
+      console.log(sessions);
       let allSessions = [];
-      if (sessionsData) {
-        allSessions = sessionsData.sort((a, b) => {
+      if (sessions) {
+        allSessions = sessions.sort((a, b) => {
           return (
             new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
           );
@@ -188,9 +186,13 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   async function confirmSession(sessionId: string) {
     if (userRole === "in") {
+      const { data: { session } } = await supabase.auth.getSession();
+      const uuid = session?.user.id
+
+
       try {
         const { data: session, error: sessionError } = await supabase
-          .from('heu_sessions') // Replace with your actual table name
+          .from('heu_sessions')
           .select('*')
           .eq('id', sessionId)
           .single();
@@ -204,11 +206,11 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         if (!session.approved) {
           throw new Error("This session is not approved for instructor assignment.");
         }
-  
+
         const { data: userInfo, error: userInfoError } = await supabase
-          .from('user_roles') // Assuming you have a table that stores user roles
+          .from('user_roles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', uuid)
           .single();
   
         if (userInfoError) throw userInfoError;
