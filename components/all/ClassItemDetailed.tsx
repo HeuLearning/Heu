@@ -1,6 +1,12 @@
 import Badge from "./Badge";
 
-export default function ClassItemDetailed({ number, title, description }) {
+interface ClassItemDetailedProps {
+  number: number;
+  title: string;
+  description: string;
+}
+
+export default function ClassItemDetailed({ number, title, description }: ClassItemDetailedProps) {
   return (
     <div className="space-y-[12px]">
       <div className="flex items-center gap-[12px] text-typeface_primary text-body-semibold">

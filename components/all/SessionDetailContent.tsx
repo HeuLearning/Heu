@@ -17,13 +17,21 @@ import { useUserRole } from "./data-retrieval/UserRoleContext";
 import AttendancePopUp from "./popups/AttendancePopUp";
 import { usePopUp } from "./popups/PopUpContext";
 
+interface SessionDetailContentProps {
+  activeSessionId: number | null;
+  handleShowClassSchedule: () => void;
+  className?: string;
+  lessonPlanData: any;
+  isLessonPlanLoaded: string;
+}
+
 export default function SessionDetailContent({
   activeSessionId,
   handleShowClassSchedule,
   className = "",
   lessonPlanData,
   isLessonPlanLoaded,
-}) {
+}: SessionDetailContentProps) {
   // if it is null then placeholder
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { showPopUp, hidePopUp } = usePopUp();
@@ -36,9 +44,9 @@ export default function SessionDetailContent({
   }
   const { phases, getModules, phaseTimes, lessonPlan } = lessonPlanData;
 
-  let session;
-  let startDate;
-  let endDate;
+  let session: any;
+  let startDate: Date = new Date();
+  let endDate: Date = new Date();
 
   if (activeSessionId) {
     session = allSessions.find((session) => session.id === activeSessionId);
@@ -368,12 +376,12 @@ export default function SessionDetailContent({
                       isMobile ? "h-[32px] w-[32px]" : ""
                     } outline-surface_border_tertiary`}
                     disabled={
-                      !activeSessionId ||
+                      Boolean(!activeSessionId ||
                       (activeSessionId &&
                         (isLessonPlanLoaded === "loading" ||
                           isLessonPlanLoaded === "not confirmed instructor" ||
                           isLessonPlanLoaded === "canceled session" ||
-                          isLessonPlanLoaded === "no lesson plan"))
+                          isLessonPlanLoaded === "no lesson plan")))
                     }
                   >
                     <svg
@@ -408,7 +416,7 @@ export default function SessionDetailContent({
                     </div>
                   ) : (
                     <div className="flex flex-col gap-[19px]">
-                      {phases.map((phase) => (
+                      {phases.map((phase: any) => (
                         <ClassItem
                           phaseTitle={phase.name}
                           time={phaseTimes.get(phase.id)}

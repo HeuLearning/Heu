@@ -8,7 +8,11 @@ import { useSessions } from "./data-retrieval/SessionsContext";
 import ClassSchedulePopUpContainer from "./popups/ClassSchedulePopUpContent";
 import { useLessonPlan } from "./data-retrieval/LessonPlanContext";
 
-export default function SessionDetailViewContainer({ activeSessionId }) {
+interface SessionDetailViewContainerProps {
+  activeSessionId: number | null;
+}
+
+export default function SessionDetailViewContainer({ activeSessionId }: SessionDetailViewContainerProps) {
   const { allSessions, getSessionStatus } = useSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
 
@@ -55,7 +59,7 @@ export default function SessionDetailViewContainer({ activeSessionId }) {
     const dashboardContainer = document.getElementById("dashboard-container");
 
     // Calculate the height
-    const containerHeight = dashboardContainer.offsetHeight;
+    const containerHeight = dashboardContainer?.offsetHeight;
 
     showPopUp({
       id: "class-schedule-popup",

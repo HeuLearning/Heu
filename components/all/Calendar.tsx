@@ -1,5 +1,5 @@
 import ReactCalendar from "react-calendar";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, SetStateAction } from "react";
 import styles from "./Calendar.module.css";
 import ToggleButton from "./buttons/ToggleButton";
 import { useSessions } from "./data-retrieval/SessionsContext";
@@ -9,6 +9,16 @@ import MenuItem from "./buttons/MenuItem";
 import { format } from "date-fns";
 import Divider from "./Divider";
 
+interface CalendarProps {
+  visibleMonth: Date;
+  setVisibleMonth: (date: Date) => void;
+  activeTab: string;
+  onToggle: (tab: string) => void;
+  activeSessionId: number | null;
+  setActiveSessionId: (sessionId: number | null) => void;
+  sessionMap: Map<string, string[]>;
+}
+
 export default function Calendar({
   visibleMonth,
   setVisibleMonth,
@@ -17,16 +27,16 @@ export default function Calendar({
   activeSessionId,
   setActiveSessionId,
   sessionMap,
-}) {
+}: CalendarProps) {
   const { getSessionStatus, allSessions, upcomingSessions } = useSessions();
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [pressedDate, setPressedDate] = useState(null);
-  const [multipleDates, setMultipleDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [pressedDate, setPressedDate] = useState<Date | null>(null);
+  const [multipleDates, setMultipleDates] = useState<any>([]);
   const [popUpPosition, setPopUpPosition] = useState({ bottom: 0, left: 0 });
 
   const calendarWrapperRef = useRef(null);
 
-  const displaySessions = (date, calendarElement = null) => {
+  const displaySessions = (date: Date, calendarElement: Element | null = null) => {
     const sessions = allSessions.filter((session) =>
       isSameDay(new Date(session.start_time), date)
     );
@@ -56,7 +66,7 @@ export default function Calendar({
     }
   };
 
-  const handleDatePress = (date, isPressed) => {
+  const handleDatePress = (date: Date | null, isPressed: boolean) => {
     if (isPressed) {
       setPressedDate(date);
     } else {
@@ -65,9 +75,9 @@ export default function Calendar({
   };
 
   const showMultipleSessionPopUp = (
-    multipleSessions,
-    date,
-    calendarElement
+    multipleSessions: any,
+    date: Date,
+    calendarElement: Element | null
   ) => {
     setMultipleDates(multipleSessions);
     if (calendarElement) {
@@ -87,20 +97,20 @@ export default function Calendar({
     }
   };
 
-  const navigationLabel = ({ date, label }) => {
+  const navigationLabel = ({ date, label }: {date: Date, label: any}) => {
     return `${date.toLocaleString("default", {
       month: "short",
     })} ${date.getFullYear()}`;
   };
 
-  const formatShortWeekday = (locale, date) => {
+  const formatShortWeekday = (locale: any, date: Date) => {
     const day = date
       .toLocaleDateString(locale, { weekday: "short" })
       .slice(0, 1); // Get first letter
     return day;
   };
 
-  const tileContent = ({ date, view }) => {
+  const tileContent = ({ date, view }: {date: Date, view: string}) => {
     if (view !== "month") return null;
 
     let isSelected =
@@ -141,7 +151,7 @@ export default function Calendar({
     );
   };
 
-  const isBeforeToday = (date) => {
+  const isBeforeToday = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to midnight to ignore the time
     const compareDate = new Date(date);
@@ -162,12 +172,12 @@ export default function Calendar({
     }
   }, [activeSessionId, allSessions]);
 
-  const dropdownRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const calendarContainerRef = useRef(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
         setMultipleDates([]);
       }
     };
@@ -205,7 +215,7 @@ export default function Calendar({
             >
               {multipleDates.length !== 0 && (
                 <div className="rounded-[10px] bg-surface_bg_highlight p-[4px] shadow-150">
-                  {multipleDates.map((session, index) => (
+                  {multipleDates.map((session: any, index: number) => (
                     <>
                       {index > 0 && (
                         <div className="px-[6px]">
@@ -270,7 +280,8 @@ export default function Calendar({
                   calendarType={"gregory"}
                   activeStartDate={visibleMonth}
                   onActiveStartDateChange={({ activeStartDate }) =>
-                    setVisibleMonth(activeStartDate)
+                    {if(activeStartDate)
+                      setVisibleMonth(activeStartDate)}
                   }
                   navigationLabel={navigationLabel}
                   minDetail="month"

@@ -1,10 +1,16 @@
 import { useResponsive } from "../ResponsiveContext";
 
-export default function X({
+interface XButtonProps {
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  variation?: string;
+  className?: string;
+}
+
+export default function XButton({
   onClick,
   variation = "button-tertiary",
   className = "",
-}) {
+}: XButtonProps) {
   const { isMobile } = useResponsive();
   let size = isMobile ? "44" : "32";
 

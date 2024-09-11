@@ -1,4 +1,9 @@
-export default function Placeholder({ width, height }) {
+interface PlaceholderProps {
+  width: number;
+  height: number;
+}
+
+export default function Placeholder({ width, height }: PlaceholderProps) {
   return (
     <div
       className="rounded-[2px] bg-surface_bg_secondary"

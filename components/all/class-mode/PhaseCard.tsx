@@ -1,18 +1,29 @@
 import CompletionBar from "./CompletionBar";
 import InfoCard from "../InfoCard";
 
+interface PhaseCardProps {
+  type: string;
+  title: string;
+  time: undefined | number;
+  percentage: number;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  status?: string;
+}
+
 export default function PhaseCard({
   type,
   title,
   time,
   percentage,
-  onClick = null,
+  onClick = () => {},
   status = "",
-}) {
+}: PhaseCardProps) {
   let fillColor = "var(--surface_bg_darkest)";
   if (status === "done") fillColor = "var(--surface_bg_dark)";
 
-  let Icon;
+  type IconComponent = () => JSX.Element;
+  let Icon: IconComponent | undefined;
+
   if (type === "practice") {
     Icon = () => (
       <svg
@@ -38,7 +49,7 @@ export default function PhaseCard({
       onClick={onClick}
     >
       <div className="space-y-[24px]">
-        <Icon />
+        {Icon && <Icon />}
         <h2
           className={
             status === "done"

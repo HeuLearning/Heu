@@ -9,8 +9,12 @@ import { usePopUp } from "../popups/PopUpContext";
 import AttendancePopUp from "../popups/AttendancePopUp";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
 
-export default function RSVPSelector({ session }) {
-  //allOptions in form of ["blah1", "blah2", "blah3"]
+interface RSVPSelectorProps {
+  session: any;
+}
+
+export default function RSVPSelector({ session }: RSVPSelectorProps) {
+
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownWidth, setDropdownWidth] = useState(0);
   const { confirmSession, getSessionStatus } = useSessions();
@@ -18,12 +22,12 @@ export default function RSVPSelector({ session }) {
 
   const status = getSessionStatus(session);
 
-  const dropdownRef = useRef(null);
-  const shownButtonRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const shownButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };

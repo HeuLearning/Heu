@@ -1,8 +1,14 @@
+interface HamburgerButtonProps {
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  variation?: string;
+  className?: string;
+}
+
 export default function HamburgerButton({
   onClick,
   variation = "",
   className = "",
-}) {
+}: HamburgerButtonProps) {
   return (
     <button
       className={`${

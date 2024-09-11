@@ -1,10 +1,14 @@
-import RadioButton from "components/exercises/RadioButton";
+import RadioButton from "../../components/exercises/RadioButton";
 import Divider from "./Divider";
-import Textbox from "components/exercises/Textbox";
+import Textbox from "../../components/exercises/Textbox";
 import Button from "./buttons/Button";
 import { useState } from "react";
 
-export default function RegistrationComponent({ className = "" }) {
+interface RegistrationComponentProps {
+  className?: string;
+}
+
+export default function RegistrationComponent({ className = "" }: RegistrationComponentProps) {
   const [signUpStage, setSignUpStage] = useState(0);
 
   const LogInSignUpPage = () => {

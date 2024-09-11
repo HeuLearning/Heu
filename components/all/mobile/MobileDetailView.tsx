@@ -1,16 +1,24 @@
 import styles from "./MobileDetailView.module.css";
 import { useState, useEffect, useRef } from "react";
 
+interface MobileDetailViewProps {
+  backgroundColor: string;
+  className?: string;
+  children: React.ReactNode;
+  headerContent?: React.ReactNode;
+  buttonBar?: boolean;
+}
+
 export default function MobileDetailView({
   backgroundColor,
   className = "",
   children,
   headerContent = null,
   buttonBar = false,
-}) {
+}: MobileDetailViewProps) {
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const scrollableRef = useRef(null);
+  const scrollableRef = useRef<HTMLDivElement>(null);
 
   // check if scrolled
   useEffect(() => {
@@ -27,6 +35,7 @@ export default function MobileDetailView({
 
     handleScroll(); // Initial check
     const currentScrollable = scrollableRef.current;
+    if(currentScrollable === null) return;
     currentScrollable.addEventListener("scroll", handleScroll);
     // Clean up the event listener on component unmount
     return () => {

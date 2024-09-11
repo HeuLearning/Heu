@@ -1,14 +1,24 @@
 import BackButton from "../buttons/BackButton";
 import Button from "../buttons/Button";
 
+interface ClassModeHeaderBarProps {
+  onBack: () => void;
+  iconName?: string;
+  title: string;
+  subtitle?: string;
+  rightSide?: React.ReactNode;
+}
+
 export default function ClassModeHeaderBar({
   onBack,
   iconName = "",
   title,
   subtitle = "",
   rightSide,
-}) {
-  let Icon;
+}:  ClassModeHeaderBarProps) {
+  type IconComponent = () => JSX.Element;
+  let Icon: IconComponent | undefined;
+
   if (iconName === "calendar") {
     Icon = () => (
       <svg
@@ -45,7 +55,7 @@ export default function ClassModeHeaderBar({
       <div className="flex items-center gap-[16px]">
         <BackButton onClick={onBack} />
         <div className="flex gap-[8px]">
-          {iconName && <Icon />}
+          {iconName && Icon && <Icon />}
           <h3 className="text-typeface_primary text-h3">{title}</h3>
         </div>
         <h3 className="text-typeface_secondary text-h3">{subtitle}</h3>

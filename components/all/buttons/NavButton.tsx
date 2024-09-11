@@ -1,13 +1,19 @@
 import Button from "./Button";
 import { useResponsive } from "../ResponsiveContext";
-import { useState } from "react";
+
+interface NavButtonProps {
+  buttonText: string;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  selected: boolean;
+  disabled?: boolean;
+}
 
 export default function NavButton({
   buttonText,
-  onClick = null,
+  onClick = () => {},
   selected,
   disabled = false,
-}) {
+}: NavButtonProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   return (

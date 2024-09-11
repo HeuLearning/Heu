@@ -13,7 +13,22 @@ import ClassModeContent from "../class-mode/ClassModeContent";
 import MobileClassModeNotebook from "./MobileClassModeNotebook";
 import { useStopwatchState } from "../class-mode/StopwatchContext";
 
-export default function MobileClassMode(props) {
+interface MobileClassModeProps {
+  activePhase: any;
+  activePhaseId: number;
+  activeModule: any;
+  activeModuleIndex: number;
+  setActiveModuleIndex: (index: number) => void;
+  classStarted: boolean;
+  setClassStarted: (started: boolean) => void;
+  handleStartClass: () => void;
+  handleEndClass: () => void;
+  handleNextModule: (module: any, index: number) => void;
+  handleNextPhase: () => void;
+  learners: any;
+}
+
+export default function MobileClassMode(props : MobileClassModeProps) {
   const [activeTab, setActiveTab] = useState("Phases");
   const { phases, getModules, lessonPlan, phaseTimes } = useLessonPlan();
   const [isNotebookShown, setIsNotebookShown] = useState(false);
@@ -46,7 +61,7 @@ export default function MobileClassMode(props) {
   const state = useStopwatchState();
   const { elapsedTime, elapsedLapTime } = state;
 
-  const onToggle = (selected) => {
+  const onToggle = (selected: string) => {
     setActiveTab(selected);
   };
 

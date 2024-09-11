@@ -1,4 +1,8 @@
-export default function Divider({ spacing }) {
+interface DividerProps {
+  spacing: number;
+}
+
+export default function Divider({ spacing }: DividerProps) {
   return (
     <div
       style={{ marginTop: spacing, marginBottom: spacing }}

@@ -1,4 +1,9 @@
-export default function Dot({ color = "", status = "" }) {
+interface DotProps {
+  color?: string;
+  status?: string;
+}
+
+export default function Dot({ color = "", status = "" }: DotProps) {
   let fillColor = color;
   if (status) {
     if (status === "Confirmed" || status === "Online") {

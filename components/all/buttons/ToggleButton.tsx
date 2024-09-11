@@ -1,8 +1,14 @@
 import React from "react";
 import { useResponsive } from "../ResponsiveContext";
 
-export default function ToggleButton({ buttonOptions, selected, onToggle }) {
-  const handleToggle = (buttonText) => {
+interface ToggleButtonProps {
+  buttonOptions: string[];
+  selected: string;
+  onToggle: (buttonText: string) => void;
+}
+
+export default function ToggleButton({ buttonOptions, selected, onToggle }: ToggleButtonProps) {
+  const handleToggle = (buttonText: string) => {
     onToggle(buttonText);
   };
 

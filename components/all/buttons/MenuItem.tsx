@@ -1,7 +1,13 @@
 import Checkbox from "../../exercises/Checkbox";
 import { useResponsive } from "../ResponsiveContext";
 
-export default function MenuItem({ checkbox = false, onClick, children }) {
+interface MenuItemProps {
+  checkbox?: boolean;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  children: React.ReactNode;
+}
+
+export default function MenuItem({ checkbox = false, onClick, children }: MenuItemProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <button

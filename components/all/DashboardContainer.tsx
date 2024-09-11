@@ -7,9 +7,13 @@ import { useResponsive } from "./ResponsiveContext";
 import MobileDashboard from "../../components/all/mobile/MobileDashboard";
 import { LessonPlanProvider } from "./data-retrieval/LessonPlanContext";
 
-export default function DashboardContainer({ accessToken }) {
+interface DashboardContainerProps {
+  accessToken: string;
+}
+
+export default function DashboardContainer({ accessToken }: DashboardContainerProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
 
   // website navbar = 64, bottom margin = 16
   const dashboardHeight = window.innerHeight - 64 - 16;

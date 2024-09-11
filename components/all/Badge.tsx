@@ -1,6 +1,12 @@
 import { useResponsive } from "./ResponsiveContext";
 
-export default function Badge({ bgColor, textColor, children }) {
+interface BadgeProps {
+  bgColor: string;
+  textColor: string;
+  children: React.ReactNode;
+}
+
+export default function Badge({ bgColor, textColor, children }: BadgeProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const size = isMobile ? "32" : "24";
   return (

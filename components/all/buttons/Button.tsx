@@ -1,12 +1,20 @@
 import { useResponsive } from "../ResponsiveContext";
 
+interface ButtonProps {
+  justifyContent?: string;
+  className?: string;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  children: React.ReactNode;
+  disabled?: boolean;
+}
+
 export default function Button({
   justifyContent = "justify-center",
   className,
-  onClick = null,
+  onClick = () => {},
   children,
   disabled = false,
-}) {
+}: ButtonProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <button

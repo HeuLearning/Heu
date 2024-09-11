@@ -2,16 +2,23 @@ import AudioButton from "./AudioButton";
 import { useEffect, useState, useRef } from "react";
 import Checkbox from "./Checkbox";
 
+interface ImageCardProps {
+  imageLink: string;
+  audioSrc?: string;
+  checkbox?: boolean;
+  caption: string;
+}
+
 export default function ImageCard({
   imageLink,
   audioSrc = "",
   checkbox = false,
   caption,
-}) {
+}: ImageCardProps) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   if (audioSrc) {
     useEffect(() => {
@@ -41,9 +48,9 @@ export default function ImageCard({
 
   const togglePlay = () => {
     if (isPlaying) {
-      audioRef.current.pause();
+      audioRef.current?.pause();
     } else {
-      audioRef.current.play();
+      audioRef.current?.play();
     }
     setIsPlaying(!isPlaying);
   };

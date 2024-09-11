@@ -1,4 +1,9 @@
-export default function CompletionBar({ percentage, status = "" }) {
+interface CompletionBarProps {
+  percentage: number;
+  status?: string;
+}
+
+export default function CompletionBar({ percentage, status = "" }: CompletionBarProps) {
   return percentage >= 0 && percentage <= 1 ? (
     <div className="relative h-[4px] w-full rounded-full bg-surface_bg_secondary">
       <div

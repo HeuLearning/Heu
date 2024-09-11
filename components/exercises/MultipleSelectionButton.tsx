@@ -1,7 +1,7 @@
 interface MultipleSelectionButtonProps {
   text: string;
   isSelected: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const MultipleSelectionButton: React.FC<MultipleSelectionButtonProps> = ({

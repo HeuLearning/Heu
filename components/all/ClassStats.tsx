@@ -1,7 +1,15 @@
+import React from "react";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 import { useResponsive } from "./ResponsiveContext";
 
-function StatComponent({ heading, subheading, bgColor, children }) {
+interface StatComponentProps {
+  heading: string;
+  subheading: string;
+  bgColor: string;
+  children: React.ReactNode;
+}
+
+function StatComponent({ heading, subheading, bgColor, children }: StatComponentProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <div className="flex gap-[16px]">
@@ -50,6 +58,15 @@ function StatComponent({ heading, subheading, bgColor, children }) {
   );
 }
 
+interface ClassStatsProps {
+  attending: string;
+  level: string;
+  agenda: string;
+  classCode?: string;
+  direction?: string;
+  isMobile?: boolean;
+}
+
 export default function ClassStats({
   attending,
   level,
@@ -57,10 +74,10 @@ export default function ClassStats({
   classCode = "",
   direction = "",
   isMobile = false,
-}) {
+}: ClassStatsProps) {
   const { userRole } = useUserRole();
 
-  const ConditionalWrapper = ({ condition, children }) => {
+  const ConditionalWrapper = ({ condition, children }: {condition: boolean, children: React.ReactNode}) => {
     return condition ? (
       <div
         className={`${

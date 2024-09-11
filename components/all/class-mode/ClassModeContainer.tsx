@@ -93,7 +93,11 @@ const learners = [
   },
 ];
 
-export default function ClassModeContainer({ sessionId }) {
+interface ClassModeContainerProps {
+  sessionId: string;
+}
+
+export default function ClassModeContainer({ sessionId }: ClassModeContainerProps) {
   // website navbar = 64, bottom margin = 16
   const dashboardHeight = window.innerHeight - 64 - 16;
 
@@ -108,13 +112,25 @@ export default function ClassModeContainer({ sessionId }) {
   const [classStarted, setClassStarted] = useState(false);
 
   const { upcomingSessions } = useSessions();
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const { hidePopUp, showPopUp } = usePopUp();
 
-  const activePhase = phases.find((phase) => phase.id === activePhaseId);
-  const activeModule = activePhase?.modules[activeModuleIndex];
+  const activePhase: any = phases.find((phase) => phase.id === activePhaseId);
+  const activeModule: any = activePhase?.modules[activeModuleIndex];
+
+  const dashboardContainer = document.getElementById("class-mode-container");
+  let containerHeight: number | null;
+
+  if (dashboardContainer) {
+    // Calculate the height
+    containerHeight = dashboardContainer.offsetHeight;
+    // Use containerHeight here
+} else {
+    console.error("Element with ID 'class-mode-container' not found");
+    // Handle the case where the element is not found
+}
 
   useEffect(() => {
     const findSession = () => {
@@ -148,7 +164,7 @@ export default function ClassModeContainer({ sessionId }) {
     router.push("dashboard");
   };
 
-  const handleNextModule = (module, index) => {
+  const handleNextModule = (module: any, index: number) => {
     totalElapsedTime.push(
       totalElapsedTime[index] + module.suggested_duration_seconds
     );
@@ -219,11 +235,6 @@ export default function ClassModeContainer({ sessionId }) {
   };
 
   const handleShowLearners = () => {
-    // Get the container element
-    const dashboardContainer = document.getElementById("class-mode-container");
-
-    // Calculate the height
-    const containerHeight = dashboardContainer.offsetHeight;
 
     showPopUp({
       id: "learners-popup",
@@ -253,12 +264,7 @@ export default function ClassModeContainer({ sessionId }) {
     });
   };
 
-  const displayPhaseLineup = (phaseId) => {
-    // Get the container element
-    const dashboardContainer = document.getElementById("class-mode-container");
-
-    // Calculate the height
-    const containerHeight = dashboardContainer.offsetHeight;
+  const displayPhaseLineup = (phaseId: number) => {
 
     showPopUp({
       id: "phase-lineup-popup",
@@ -287,7 +293,7 @@ export default function ClassModeContainer({ sessionId }) {
     });
   };
 
-  const PhaseDetails = ({ onBack }) => (
+  const PhaseDetails = ({ onBack }: { onBack: () => void }) => (
     <div className="flex h-full flex-col gap-[8px]">
       <ClassModeHeaderBar
         onBack={onBack}

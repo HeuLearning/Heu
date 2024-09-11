@@ -12,10 +12,15 @@ import MenuItem from "../buttons/MenuItem";
 import { usePopUp } from "../popups/PopUpContext";
 import { useRouter } from "next/navigation";
 
+interface MobileClassDetailsProps {
+  activeSessionId: number | null;
+  closeClassDetails: () => void;
+}
+
 export default function MobileClassDetails({
   activeSessionId,
   closeClassDetails,
-}) {
+} : MobileClassDetailsProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const {
     allSessions,
@@ -43,13 +48,8 @@ export default function MobileClassDetails({
     return session ? getSessionStatus(session) : null;
   }, [session, getSessionStatus]);
 
-  console.log(session.id);
-
   useEffect(() => {
     let newState = "loading";
-    console.log("SESSION" + session.id);
-    console.log(sessionStatus);
-    console.log(lessonPlanData);
 
     if (!session) {
       newState = "loading";
@@ -79,7 +79,7 @@ export default function MobileClassDetails({
     setIsClassSchedShown(false);
   };
 
-  const handleConfirmAttendance = (sessionId) => {
+  const handleConfirmAttendance = (sessionId: number) => {
     confirmSession(sessionId);
     window.location.reload();
   };
@@ -98,10 +98,10 @@ export default function MobileClassDetails({
           />
           <div className="fixed bottom-[73px] z-50 w-full p-[8px]">
             <div className="flex w-full flex-col rounded-[10px] bg-surface_bg_highlight p-[4px]">
-              <MenuItem onClick={() => handleConfirmAttendance(session.id)}>
+              <MenuItem onClick={session?.id ? () => handleConfirmAttendance(session?.id) : () => {}}>
                 Confirm attendance
               </MenuItem>
-              <MenuItem onClick={""}>I can't attend</MenuItem>
+              <MenuItem onClick={() => {}}>I can't attend</MenuItem>
             </div>
           </div>
         </>
@@ -115,7 +115,7 @@ export default function MobileClassDetails({
   };
 
   const handleEnterClass = () => {
-    router.push(`${session.id}`);
+    router.push(`${session?.id}`);
   };
 
   return isClassSchedShown ? (
@@ -169,7 +169,7 @@ export default function MobileClassDetails({
           <SessionDetailContent
             lessonPlanData={lessonPlanData}
             isLessonPlanLoaded={isLessonPlanLoaded}
-            sessionId={activeSessionId}
+            activeSessionId={activeSessionId}
             handleShowClassSchedule={handleShowClassSchedule}
           />
         </div>
