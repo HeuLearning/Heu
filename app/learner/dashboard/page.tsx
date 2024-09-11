@@ -1,81 +1,88 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import Head from "next/head";
 import DashboardContainer from "../../../components/all/DashboardContainer";
 import { SessionsProvider } from "../../../components/all/data-retrieval/SessionsContext";
 import { UserRoleProvider } from "../../../components/all/data-retrieval/UserRoleContext";
 import { PopUpProvider } from "../../../components/all/popups/PopUpContext";
-
 import Navbar from "../../../components/all/Navbar";
 import EnhancedPopUp from "../../../components/all/popups/EnhancedPopUp";
 import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
 
+const LearnerDashboard = () => {
+  const [userData, setUserData] = useState(null);
+  const router = useRouter();
 
-const fetchUserData = async () => {
-  const supabase = createClient();
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const supabase = createClient();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  const { data: { session } } = await supabase.auth.getSession();
-  const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !session) {
+        router.push("/sign-in");
+        return;
+      }
 
-  if (!user || !session) {
-    redirect("/sign-in");
-  }
+      const { data: roleType, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
 
-  const accessToken = session.access_token;
+      if (rolesError) {
+        console.error("Error fetching roles:", rolesError);
+        router.push("/error");
+        return;
+      }
 
-  const { data: roleType, error: rolesError } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user.id)
-    .single();
+      if (roleType?.role === "ad") {
+        router.push("/admin/dashboard");
+      } else if (roleType?.role === "in") {
+        router.push("/instructordashboard");
+      } else if (roleType?.role !== "st") {
+        router.push("/role-sign-up");
+      }
 
-  if (rolesError) {
-    console.error("Error fetching roles:", rolesError);
-    redirect("/error");
-  }
+      setUserData({
+        user: { email: user.email },
+        role: roleType.role,
+        accessToken: session.access_token,
+      });
+    };
 
-  if (roleType?.role === "ad") {
-    redirect("/admin-dashboard");
-  } else if (roleType?.role === "in") {
-    redirect("/instructor-dashboard");
-  } else if (roleType?.role !== "st") {
-    redirect("/role-sign-up");
-  }
+    fetchUserData();
+  }, [router]);
 
-  return {
-    user: { email: user.email },
-    role: roleType.role,
-    accessToken,
-  };
+  if (!userData) return null; // or a loading state
+
+  return (
+    <>
+      <Head>
+        <title>Heu Learning</title>
+        <meta name="description" content="Teach more English better" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="icon" href="/icon.ico" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
+      </Head>
+      <div>
+        <ResponsiveProvider>
+          <UserRoleProvider accessToken={userData.accessToken}>
+            <SessionsProvider accessToken={userData.accessToken} userRole="st">
+              <PopUpProvider>
+                <Navbar activeTab="Dashboard" />
+                <DashboardContainer accessToken={userData.accessToken} />
+                <EnhancedPopUp />
+              </PopUpProvider>
+            </SessionsProvider>
+          </UserRoleProvider>
+        </ResponsiveProvider>
+      </div>
+    </>
+  );
 };
 
-export default async function LearnerDashboard() {
-    const { user, role, accessToken } = await fetchUserData();
-  
-    return (
-      <>
-        <Head>
-          <title>Heu Learning</title>
-          <meta name="description" content="Teach more English better" />
-          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-          <link rel="icon" href="/icon.ico" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
-        </Head>
-        <div>
-          <ResponsiveProvider> {/* Wrap with ResponsiveProvider */}
-            <UserRoleProvider accessToken={accessToken}>
-              <SessionsProvider accessToken={accessToken} userRole="st">
-                <PopUpProvider>
-                  <Navbar activeTab="Dashboard"/>
-                  <DashboardContainer accessToken={accessToken} />
-                  <EnhancedPopUp />
-                </PopUpProvider>
-              </SessionsProvider>
-            </UserRoleProvider>
-          </ResponsiveProvider>
-        </div>
-      </>
-    );
-  }
+export default LearnerDashboard;
