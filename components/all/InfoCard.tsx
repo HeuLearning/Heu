@@ -1,6 +1,12 @@
 import { useResponsive } from "./ResponsiveContext";
 
-export default function InfoCard({ className = "", onClick = null, children }) {
+interface InfoCardProps {
+  className?: string;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  children: React.ReactNode;
+}
+
+export default function InfoCard({ className = "", onClick = () => {}, children }: InfoCardProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <div

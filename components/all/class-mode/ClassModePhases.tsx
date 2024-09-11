@@ -3,7 +3,13 @@ import PhaseCard from "./PhaseCard";
 import { useResponsive } from "../ResponsiveContext";
 import { useStopwatchControls, useStopwatchState } from "./StopwatchContext";
 
-export default function ClassModePhases({ phases, phaseTimes, activePhase }) {
+interface ClassModePhasesProps {
+  phases: any[];
+  phaseTimes: Map<string, number>;
+  activePhase: any;
+}
+
+export default function ClassModePhases({ phases, phaseTimes, activePhase }: ClassModePhasesProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const state = useStopwatchState();
   const { elapsedTime } = state;

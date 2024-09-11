@@ -1,22 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 import Button from "./Button";
 
+interface DropDownSelectorProps {
+  selectedButtonStyling?: string;
+  selected: string;
+  allOptions: string[];
+}
+
 export default function DropDownSelector({
   selectedButtonStyling = "",
   selected,
   allOptions,
-}) {
-  //allOptions in form of ["blah1", "blah2", "blah3"]
+}: DropDownSelectorProps) {
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedButton, setSelectedButton] = useState(selected);
   const [dropdownWidth, setDropdownWidth] = useState(0);
 
-  const dropdownRef = useRef(null);
-  const shownButtonRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const shownButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: PointerEvent) => {
+      if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
@@ -33,7 +39,7 @@ export default function DropDownSelector({
     }
   }, [selected]);
 
-  const handleSelect = (option) => {
+  const handleSelect = (option: string) => {
     setSelectedButton(option);
     setIsOpen(false);
   };

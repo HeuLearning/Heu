@@ -1,15 +1,21 @@
 import { useResponsive } from "../ResponsiveContext";
 
+interface BackButtonProps {
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  variation?: string;
+  className?: string;
+  direction?: "back" | "forward"; // forward really only used in mobile horizontal date picker
+}
+
 export default function BackButton({
   onClick,
   variation = "button-tertiary",
   className = "",
   direction = "back",
-}) {
+}: BackButtonProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   let size = isMobile ? "44" : "32";
 
-  // direction = "back" | "forward", forward really only used in mobile horizontal date picker
   return (
     <button
       onClick={onClick}

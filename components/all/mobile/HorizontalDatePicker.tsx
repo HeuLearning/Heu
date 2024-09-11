@@ -14,29 +14,36 @@ import {
 } from "date-fns";
 import BackButton from "../buttons/BackButton";
 
+interface HorizontalDatePickerProps {
+  endDate?: number;
+  sessionMap: Map<string, string[]>;
+  selectedDate: Date | null;
+  setSelectedDate: (date: Date | null) => void;
+}
+
 export default function HorizontalDatePicker({
-  endDate = null,
+  endDate,
   sessionMap,
   selectedDate,
   setSelectedDate,
-}) {
+}: HorizontalDatePickerProps) {
   const today = new Date();
   const startDate = subDays(today, 120);
   const lastDate = addDays(today, endDate || 120);
 
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
   const [isScrolling, setIsScrolling] = useState(false);
-  const scrollContainerRef = useRef(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const getId = (day) => {
-    if (isSameDay(day, selectedDate)) {
+  const getId = (day: Date) => {
+    if (isSameDay(day, selectedDate as Date)) {
       return "selected";
     } else {
       return "";
     }
   };
 
-  const isBeforeToday = (date) => {
+  const isBeforeToday = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to midnight to ignore the time
     const compareDate = new Date(date);
@@ -44,14 +51,14 @@ export default function HorizontalDatePicker({
     return compareDate < today;
   };
 
-  const calculateScrollPositionForDate = (date) => {
+  const calculateScrollPositionForDate = (date: Date) => {
     const container = scrollContainerRef.current;
     if (!container) {
       return 0;
     }
 
     const dateString = date.toISOString().split("T")[0];
-    const dateElement = container.querySelector(`[data-date^="${dateString}"]`);
+    const dateElement : HTMLElement | null = container.querySelector(`[data-date^="${dateString}"]`);
 
     if (!dateElement) {
       return 0;
@@ -73,7 +80,7 @@ export default function HorizontalDatePicker({
     return Math.max(0, scrollPosition);
   };
 
-  const scrollToDate = (date, behavior = "auto") => {
+  const scrollToDate = (date: Date, behavior : ScrollBehavior = "auto") => {
     const container = scrollContainerRef.current;
     if (container) {
       const scrollPosition = calculateScrollPositionForDate(date);
@@ -104,12 +111,15 @@ export default function HorizontalDatePicker({
 
         const visibleDayElement = document.elementFromPoint(middleX, middleY);
 
-        if (visibleDayElement && visibleDayElement.hasAttribute("data-date")) {
-          const day = new Date(visibleDayElement.getAttribute("data-date"));
-          const monthStart = startOfMonth(day);
-
-          if (!isSameMonth(monthStart, currentMonth)) {
-            setCurrentMonth(monthStart);
+        if (visibleDayElement && visibleDayElement instanceof HTMLElement && visibleDayElement.hasAttribute("data-date")) {
+          const dateAttr = visibleDayElement.getAttribute("data-date");
+          if (dateAttr) {
+            const day = new Date(dateAttr);
+            const monthStart = startOfMonth(day);
+  
+            if (!isSameMonth(monthStart, currentMonth)) {
+              setCurrentMonth(monthStart);
+            }
           }
         }
       };
@@ -143,9 +153,9 @@ export default function HorizontalDatePicker({
             <div
               id={`${getId(day)}`}
               className={`relative ${styles.dateDayItem} ${
-                isSameDay(day, selectedDate) ? styles.selectedDate : ""
+                isSameDay(day, selectedDate as Date) ? styles.selectedDate : ""
               } ${
-                !isSameDay(today, selectedDate) && isSameDay(day, today)
+                !isSameDay(today, selectedDate as Date) && isSameDay(day, today)
                   ? styles.today
                   : ""
               } ${
@@ -158,7 +168,7 @@ export default function HorizontalDatePicker({
               {sessionMap.get(dateKey) && (
                 <div className="z-5 absolute bottom-[6px] flex items-center gap-[2px]">
                   {Array.isArray(sessionMap.get(dateKey)) &&
-                    sessionMap.get(dateKey).map((dotColor, index) => (
+                    sessionMap.get(dateKey)?.map((dotColor, index) => (
                       <svg
                         key={index}
                         width="4"
@@ -189,8 +199,8 @@ export default function HorizontalDatePicker({
     return <div className="flex">{months}</div>;
   }
 
-  const onDateClick = (day) => {
-    if (isSameDay(day, selectedDate)) {
+  const onDateClick = (day: Date) => {
+    if (isSameDay(day, selectedDate as Date)) {
       setSelectedDate(null);
     } else {
       setSelectedDate(day);
@@ -209,7 +219,7 @@ export default function HorizontalDatePicker({
     setCurrentMonth(prevMonth);
   };
 
-  const scrollToMonth = (date) => {
+  const scrollToMonth = (date: Date) => {
     const container = scrollContainerRef.current;
     if (!container) return;
 

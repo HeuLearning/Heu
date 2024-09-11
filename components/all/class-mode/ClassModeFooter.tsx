@@ -4,6 +4,16 @@ import CompletionBar from "./CompletionBar";
 import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
 import { useStopwatchContext } from "./StopwatchContext";
 
+interface ClassModeFooterProps {
+  totalElapsedTime: number[];
+  activePhase: any;
+  activeModule: any;
+  activeModuleIndex: number;
+  handleNextModule: (module: any, index: number) => void;
+  handleNextPhase: () => void;
+  handleEndClass: () => void;
+}
+
 export default function ClassModeFooter({
   totalElapsedTime,
   activePhase,
@@ -12,7 +22,7 @@ export default function ClassModeFooter({
   handleNextModule,
   handleNextPhase,
   handleEndClass,
-}) {
+}: ClassModeFooterProps) {
   const { phases, phaseTimes, getModules } = useLessonPlan();
   const { state, controls } = useStopwatchContext();
   const { elapsedTime, elapsedLapTime } = state;
@@ -33,7 +43,7 @@ export default function ClassModeFooter({
   return (
     <div className="flex items-center justify-between gap-[24px] px-[24px] pb-[10px] pt-[12px]">
       <div className="flex flex-grow gap-[8px]">
-        {getModules(activePhase.id).map((module, index) => (
+        {getModules(activePhase.id)?.map((module, index) => (
           <CompletionBar
             key={index}
             percentage={

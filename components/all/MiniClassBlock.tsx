@@ -10,18 +10,28 @@ import Dot from "./Dot";
 import AttendancePopUp from "./popups/AttendancePopUp";
 import Placeholder from "./Placeholder";
 
+interface MiniClassBlockProps {
+  dateCard?: boolean;
+  sessionId: number;
+  setActiveSessionId: (sessionId: number) => void;
+  activeSessionId?: number | null;
+  handleMobileShowClassDetails?: (sessionId: number) => void;
+  isDaily?: boolean;
+  arrow?: boolean;
+}
+
 export default function MiniClassBlock({
   dateCard = false,
   sessionId,
   setActiveSessionId,
-  activeSessionId = false,
-  handleMobileShowClassDetails = null,
+  activeSessionId,
+  handleMobileShowClassDetails = () => {},
   isDaily = false,
   arrow = false,
-}) {
+}: MiniClassBlockProps) {
   const { getSessionStatus, upcomingSessions, allSessions, confirmSession } =
     useSessions();
-  const session = allSessions.find((session) => session.id === sessionId);
+  const session: any = allSessions.find((session) => session.id === sessionId);
   const startDate = new Date(session.start_time);
   const router = useRouter();
 
@@ -70,7 +80,7 @@ export default function MiniClassBlock({
   };
 
   const handleEnter = () => {
-    router.push(sessionId);
+    router.push(`${sessionId}`);
   };
 
   const handleEnroll = () => {
@@ -91,7 +101,7 @@ export default function MiniClassBlock({
     });
   };
 
-  const handleClick = (sessionId) => {
+  const handleClick = (sessionId: number) => {
     setActiveSessionId(sessionId);
     if (isMobile) {
       handleMobileShowClassDetails(sessionId);

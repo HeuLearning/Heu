@@ -9,17 +9,23 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { LessonPlanProvider } from "../data-retrieval/LessonPlanContext";
 import { isSameDay } from "date-fns";
 
+interface MobileDashboardProps {
+  activeSessionId: number | null;
+  setActiveSessionId: (id: number | null) => void;
+  accessToken: string;
+}
+
 // this is equivalent to the web DashboardContainer + CalendarContainer, since the dashboard is simply the calendar
 export default function MobileDashboard({
   activeSessionId,
   setActiveSessionId,
   accessToken,
-}) {
+}: MobileDashboardProps) {
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { allSessions, upcomingSessions, getSessionStatus } = useSessions();
-  const horizontalDatePickerRef = useRef(null);
+  const horizontalDatePickerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(0);
 
   let session;
@@ -50,7 +56,7 @@ export default function MobileDashboard({
     }
   }, [activeSessionId, isPopUpVisible, accessToken]);
 
-  const handleMobileShowClassDetails = (sessionId) => {
+  const handleMobileShowClassDetails = (sessionId: number) => {
     setIsPopUpVisible(true);
     showPopUp({
       id: "mobile-class-details-popup",
@@ -159,7 +165,7 @@ export default function MobileDashboard({
 
   const sessionMap = useMemo(() => createSessionMap(), [allSessions]);
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   return (
     <div

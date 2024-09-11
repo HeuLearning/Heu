@@ -2,13 +2,21 @@ import styles from "./ModuleDetail.module.css";
 import Badge from "../Badge";
 import { useResponsive } from "../ResponsiveContext";
 
+interface ModuleDetailProps {
+  active: boolean;
+  number: number;
+  title: string;
+  description: string;
+  done?: boolean;
+}
+
 export default function ModuleDetail({
   active,
   number,
   title,
   description,
   done,
-}) {
+}: ModuleDetailProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return active ? (
     <div

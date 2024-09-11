@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode, useMemo } from "react";
-import useStopwatch from "components/all/hooks/useStopwatch";
+import useStopwatch from "../../../components/all/hooks/useStopwatch";
 
 // Split into two contexts
 const StopwatchStateContext = createContext<

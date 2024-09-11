@@ -1,12 +1,19 @@
 import { useState } from "react";
 import Button from "./Button";
 
+interface ShowMoreButtonProps {
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+  childrenStyling: string;
+}
+
 export default function ShowMoreButton({
   title,
   subtitle,
   children,
   childrenStyling,
-}) {
+}: ShowMoreButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

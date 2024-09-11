@@ -9,21 +9,26 @@ import Scrollbar from "./Scrollbar";
 import styles from "./popups/SidePopUp.module.css";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 
+interface CalendarContainerProps {
+  activeSessionId: number | null;
+  setActiveSessionId: (id: number | null) => void;
+}
+
 export default function CalendarContainer({
   activeSessionId,
   setActiveSessionId,
-}) {
+}: CalendarContainerProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { userRole } = useUserRole();
-  const [visibleMonth, setVisibleMonth] = useState(new Date());
+  const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState("Monthly");
   const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
 
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const scrollableRef = useRef(null);
+  const scrollableRef = useRef<HTMLDivElement>(null);
 
-  const handleToggle = (selectedOption) => {
+  const handleToggle = (selectedOption: string) => {
     setActiveTab(selectedOption);
   };
 

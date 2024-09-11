@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 
-const AudioButton = ({ size, togglePlay, isPlaying }) => (
+interface AudioButtonProps {
+  size: number;
+  togglePlay: () => void;
+  isPlaying: boolean;
+}
+
+const AudioButton = ({ size, togglePlay, isPlaying }: AudioButtonProps) => (
   <button
     onClick={togglePlay}
     className="flex h-full w-full items-center justify-center focus:outline-none"
@@ -35,17 +41,22 @@ const AudioButton = ({ size, togglePlay, isPlaying }) => (
   </button>
 );
 
-export default function AudioPlayerMobile({ audioSrc, title }) {
+interface AudioPlayerMobileProps {
+  audioSrc: string;
+  title: string;
+}
+
+export default function AudioPlayerMobile({ audioSrc, title }: AudioPlayerMobileProps) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const togglePlay = () => {
     if (isPlaying) {
-      audioRef.current.pause();
+      audioRef.current?.pause();
     } else {
-      audioRef.current.play();
+      audioRef.current?.play();
     }
     setIsPlaying(!isPlaying);
   };
@@ -78,7 +89,7 @@ export default function AudioPlayerMobile({ audioSrc, title }) {
   const circumference = radius * Math.PI * 2;
   const progress = isPlaying ? (currentTime / duration) * circumference : 0;
 
-  const formatTime = (time) => {
+  const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;

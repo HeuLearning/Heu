@@ -1,10 +1,20 @@
 import React from "react";
-import MatchingExercise from "components/exercises/MatchingExercise";
-import FillInTheBlankExercise from "components/exercises/FillInTheBlankExercise";
-import QAFillInBlankExercise from "components/exercises/QAFillInTheBlankExercise";
-import AudioSelectionExercise from "components/exercises/AudioSelectionExercise";
-import AudioWritingExercise from "components/exercises/AudioWriting";
+import MatchingExercise from "../../../components/exercises/MatchingExercise";
+import FillInTheBlankExercise from "../../../components/exercises/FillInTheBlankExercise";
+import QAFillInBlankExercise from "../../../components/exercises/QAFillInTheBlankExercise";
+import AudioSelectionExercise from "../../../components/exercises/AudioSelectionExercise";
+import AudioWritingExercise from "../../../components/exercises/AudioWriting";
 import { useStopwatchState } from "./StopwatchContext";
+
+interface ClassModeContentProps {
+  activeModuleIndex: number;
+  activeModule: any;
+  testFillInTheBlank?: boolean;
+  testMatchingExercise?: boolean;
+  testQAFillInTheBlank?: boolean;
+  testAudioSelection?: boolean;
+  testAudioWriting?: boolean;
+}
 
 function ClassModeContent({
   activeModuleIndex,
@@ -14,7 +24,7 @@ function ClassModeContent({
   testQAFillInTheBlank = false,
   testAudioSelection = false,
   testAudioWriting = false,
-}) {
+}: ClassModeContentProps) {
   const state = useStopwatchState();
   const { elapsedTime, elapsedLapTime } = state;
 

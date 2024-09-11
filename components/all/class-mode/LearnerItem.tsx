@@ -1,7 +1,12 @@
 import Dot from "../Dot";
 import ProfilePic from "../ProfilePic";
 
-export default function LearnerItem({ name, status }) {
+interface LearnerItemProps {
+  name: string;
+  status: string;
+}
+
+export default function LearnerItem({ name, status }: LearnerItemProps) {
   let fillColor;
   let textColor;
   if (status === "In class") {

@@ -16,9 +16,15 @@ import Divider from "./Divider";
 import { useRouter } from "next/navigation";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 import { signOutAction } from "@/app/actions";
+import { usePathname } from 'next/navigation';
 
+const pathname = usePathname();
 
-export default function Navbar({ activeTab }) {
+interface NavbarProps {
+  activeTab: string;
+}
+
+export default function Navbar({ activeTab }: NavbarProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { userRole } = useUserRole();
   const [selectedButton, setSelectedButton] = useState(activeTab);
@@ -27,15 +33,15 @@ export default function Navbar({ activeTab }) {
   const [isNotifsOpen, setIsNotifsOpen] = useState(false);
   const [isSettingsShown, setIsSettingsShown] = useState(false);
 
-  const dropdownRef = useRef(null);
-  const profilePicRef = useRef(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const profilePicRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: PointerEvent) => {
       if (
-        dropdownRef.current &&
+        dropdownRef.current && event.target instanceof Node &&
         !dropdownRef.current.contains(event.target) &&
-        !profilePicRef.current.contains(event.target)
+        !profilePicRef.current?.contains(event.target)
       ) {
         setIsSettingsShown(false);
       }
@@ -80,7 +86,7 @@ export default function Navbar({ activeTab }) {
     setIsMobileNavMenuShown(false);
   };
 
-  const handleButtonClick = (buttonText) => {
+  const handleButtonClick = (buttonText: string) => {
     setSelectedButton(buttonText);
     if (buttonText === "Dashboard") {
       router.push("dashboard");
@@ -93,17 +99,17 @@ export default function Navbar({ activeTab }) {
 
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
 
-  const NotifContent = ({ activeTab, onToggle, onClose }) => {
+  const NotifContent = ({ activeTab, onToggle, onClose } : { activeTab: string, onToggle: (selected: string) => void, onClose: () => void}) => {
     const notifs = activeTab === "New" ? newNotifs : oldNotifs;
     // Get the container element
     let dashboardContainer;
     // assumes that only two URLs are going to be the instructor dashboard and the class mode
-    if (router.pathname.includes("dashboard"))
+    if (pathname?.includes("dashboard"))
       dashboardContainer = document.getElementById("dashboard-container");
     else dashboardContainer = document.getElementById("class-mode-container");
 
     // Calculate the height
-    const containerHeight = dashboardContainer.offsetHeight;
+    const containerHeight = dashboardContainer?.offsetHeight;
 
     return (
       <SidePopUp
@@ -152,7 +158,7 @@ export default function Navbar({ activeTab }) {
     );
   };
 
-  const onToggle = (selected) => {
+  const onToggle = (selected: string) => {
     setActiveNotifTab(selected);
     updatePopUp(
       "notifs-popup",
@@ -164,7 +170,7 @@ export default function Navbar({ activeTab }) {
     );
   };
 
-  const toggleNotifs = (isNotifsOpen) => {
+  const toggleNotifs = (isNotifsOpen: boolean) => {
     setIsNotifsOpen(!isNotifsOpen);
     if (isNotifsOpen) handleCloseNotifs();
     else {
@@ -177,7 +183,7 @@ export default function Navbar({ activeTab }) {
             onClose={handleCloseNotifs}
           />
         ),
-        container: router.pathname.includes("dashboard")
+        container: pathname?.includes("dashboard")
           ? "#dashboard-container"
           : "#class-mode-container", // Ensure this ID exists in your DOM
         style: {

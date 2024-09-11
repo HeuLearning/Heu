@@ -1,7 +1,11 @@
 import ClassStats from "../ClassStats";
 import SideBar from "../SideBar";
 
-export default function ClassDetailsContainer({ lessonPlan }) {
+interface ClassDetailsContainerProps {
+  lessonPlan: any;
+}
+
+export default function ClassDetailsContainer({ lessonPlan }: ClassDetailsContainerProps) {
   return (
     <SideBar className="flex flex-col justify-between">
       <div className="space-y-[24px]">

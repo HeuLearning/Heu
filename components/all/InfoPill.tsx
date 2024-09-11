@@ -1,6 +1,11 @@
 import { useResponsive } from "./ResponsiveContext";
 
-export default function InfoPill({ icon = false, text }) {
+interface InfoPillProps {
+  icon?: boolean;
+  text: string;
+}
+
+export default function InfoPill({ icon = false, text }: InfoPillProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   return (

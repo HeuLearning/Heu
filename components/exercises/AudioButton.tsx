@@ -1,4 +1,10 @@
-export default function AudioButton({ size, togglePlay, isPlaying }) {
+interface AudioButtonProps {
+  size: number;
+  togglePlay: () => void;
+  isPlaying: boolean;
+}
+
+export default function AudioButton({ size, togglePlay, isPlaying }: AudioButtonProps) {
   return (
     <button onClick={togglePlay} className="relative">
       <svg

@@ -1,10 +1,23 @@
-import Badge from "components/all/Badge";
+import Badge from "../../components/all/Badge";
 import Droppable from "./Droppable";
 import Draggable from "./Draggable";
 import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import RadioButton from "./RadioButton";
 import Checkbox from "./Checkbox";
-import IconButton from "components/all/buttons/IconButton";
+import IconButton from "../../components/all/buttons/IconButton";
+
+interface WordBankItemProps {
+  id: string;
+  radio?: boolean;
+  checkbox?: boolean;
+  draggable?: boolean;
+  droppable?: boolean;
+  letter?: string;
+  children?: React.ReactNode;
+  x?: boolean;
+  handleReset?: (id: string) => void;
+  placeholder?: boolean;
+}
 
 export default function WordBankItem({
   id,
@@ -15,9 +28,9 @@ export default function WordBankItem({
   letter = "",
   children = null,
   x = false,
-  handleReset = null,
+  handleReset = () => {},
   placeholder = false,
-}) {
+}: WordBankItemProps) {
   if ((!x && !children && !droppable) || (placeholder && droppable))
     return (
       <div className="border-1px min-h-[32px] flex-1 rounded-[10px] outline-dashed-surface_border_primary">
@@ -55,7 +68,7 @@ export default function WordBankItem({
               />
             </svg>
           ) : null}
-          {radio ? <RadioButton /> : null}
+          {radio ? <RadioButton label={""} name={""} /> : null}
           {checkbox ? <Checkbox /> : null}
           {letter ? (
             <div className="z-0">

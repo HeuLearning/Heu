@@ -41,7 +41,7 @@ export default function Textbox({
     onChange("");
   };
 
-  const togglePassWordVisibility = (e) => {
+  const togglePassWordVisibility = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
     setIsPasswordShown(!isPasswordShown);

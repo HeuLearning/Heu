@@ -1,6 +1,11 @@
 import { useResponsive } from "./ResponsiveContext";
 
-export default function DateCard({ month, day }) {
+interface DateCardProps {
+  month: string;
+  day: string;
+}
+
+export default function DateCard({ month, day }: DateCardProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <div

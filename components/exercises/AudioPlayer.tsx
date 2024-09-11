@@ -1,16 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 
-export default function AudioPlayer({ audioSrc, title }) {
+interface AudioPlayerProps {
+  audioSrc: string;
+  title: string;
+}
+
+export default function AudioPlayer({ audioSrc, title }: AudioPlayerProps) {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const togglePlay = () => {
     if (isPlaying) {
-      audioRef.current.pause();
+      audioRef.current?.pause();
     } else {
-      audioRef.current.play();
+      audioRef.current?.play();
     }
     setIsPlaying(!isPlaying);
   };
@@ -43,7 +48,7 @@ export default function AudioPlayer({ audioSrc, title }) {
   const circumference = 2 * Math.PI * radius;
   const progress = (currentTime / duration) * circumference;
 
-  const formatTime = (time) => {
+  const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;

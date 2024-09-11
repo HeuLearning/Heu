@@ -1,14 +1,24 @@
 import Button from "../buttons/Button";
 
+interface ButtonBarProps {
+  primaryButtonText: string;
+  primaryButtonClassName?: string;
+  primaryButtonOnClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  secondaryButtonText?: string;
+  secondaryButtonClassName?: string;
+  secondaryButtonOnClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  secondaryContent?: React.ReactNode;
+}
+
 export default function ButtonBar({
   primaryButtonText,
   primaryButtonClassName = "",
   primaryButtonOnClick,
   secondaryButtonText = "",
   secondaryButtonClassName = "",
-  secondaryButtonOnClick = null,
+  secondaryButtonOnClick = () => {},
   secondaryContent = null,
-}) {
+}: ButtonBarProps) {
   return (
     <div className="z-25 fixed bottom-0 flex h-[65px] w-full items-center justify-center border-t-[1px] border-surface_border_tertiary bg-white p-[8px] shadow-200">
       <div className="flex w-full items-center gap-[8px]">

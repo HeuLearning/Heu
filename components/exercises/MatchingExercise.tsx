@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import WordBankItem from "components/exercises/WordBankItem";
-import Badge from "components/all/Badge";
+import WordBankItem from "../../components/exercises/WordBankItem";
+
 import {
   DndContext,
   closestCenter,
@@ -9,10 +9,29 @@ import {
   PointerSensor,
   MouseSensor,
   TouchSensor,
+  DragEndEvent,
 } from "@dnd-kit/core";
 
+interface DragItem {
+  id: string;
+  content: string;
+  letter: string | null;
+  draggable: boolean;
+  droppable: boolean;
+  x: boolean;
+}
+
+interface DropItem {
+  id: string;
+  letter: string | null;
+  content: string;
+  droppable: boolean;
+  draggable: boolean;
+  x: boolean;
+}
+
 function MatchingExercise() {
-  const [dropItems, setDropItems] = useState([
+  const [dropItems, setDropItems] = useState<DropItem[]>([
     {
       id: "drop1",
       letter: "",
@@ -55,7 +74,7 @@ function MatchingExercise() {
     },
   ]);
 
-  const [dragItems, setDragItems] = useState([
+  const [dragItems, setDragItems] = useState<DragItem[]>([
     {
       id: "drag1",
       content: "It's 19 Solo Drive.",
@@ -98,7 +117,7 @@ function MatchingExercise() {
     },
   ]);
 
-  const [originalDragItems, setOriginalDragItems] = useState([]);
+  const [originalDragItems, setOriginalDragItems] = useState<DragItem[]>([]);
 
   useEffect(() => {
     setOriginalDragItems([...dragItems]);
@@ -118,7 +137,7 @@ function MatchingExercise() {
     useSensor(TouchSensor)
   );
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active) {

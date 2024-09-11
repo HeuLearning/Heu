@@ -1,8 +1,14 @@
+interface ProfilePicProps {
+  size?: number;
+  isMobile?: boolean;
+  onClick?: (() => void) | null;
+}
+
 export default function ProfilePic({
   size = 32,
   isMobile = false,
   onClick = null,
-}) {
+}: ProfilePicProps) {
   if (isMobile && size === 32) {
     return (
       <div style={{ width: size, height: size }}>
@@ -25,7 +31,7 @@ export default function ProfilePic({
           height: "100%",
           cursor: onClick ? "pointer" : "",
         }}
-        onClick={onClick}
+        onClick={onClick ? onClick : () => {}}
         viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

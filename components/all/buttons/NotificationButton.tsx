@@ -1,4 +1,9 @@
-export default function NotificationButton({ onClick, isOpen }) {
+interface NotificationButtonProps {
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  isOpen: boolean;
+}
+
+export default function NotificationButton({ onClick, isOpen }: NotificationButtonProps) {
   return (
     <button
       onClick={onClick}
