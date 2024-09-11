@@ -1,8 +1,8 @@
 "use client"; // Mark this as a Client Component
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabase/client"; // Adjust the import based on your Supabase client setup
-import { useRouter } from "next/navigation"; // Use next/navigation for routing in the App Router
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function RoleSignUpPage() {
   const [role, setRole] = useState('');
