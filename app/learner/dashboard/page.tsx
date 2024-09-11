@@ -51,7 +51,7 @@ const fetchUserData = async () => {
   };
 };
 
-export default async function StudentDash() {
+export default async function LearnerDashboard() {
     const { user, role, accessToken } = await fetchUserData();
   
     return (
