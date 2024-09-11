@@ -4,24 +4,27 @@ import IconButton from "../all/buttons/IconButton";
 import { useResponsive } from "../all/ResponsiveContext";
 
 interface TextboxProps {
+  name: string;
   size: "small" | "big";
   placeholder: string;
   width: string;
   value: string;
   onChange: (value: string) => void;
+  required?: boolean;
   password?: boolean;
 }
 
 export default function Textbox({
+  name,
   size,
   placeholder,
   width,
   value,
   onChange,
+  required,
   password,
 }: TextboxProps) {
   const [inputValue, setInputValue] = useState(value);
-  const { isMobile } = useResponsive();
   const [isPasswordShown, setIsPasswordShown] = useState(false);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export default function Textbox({
   }, [value]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const newValue = e.target.value;
     setInputValue(newValue);
@@ -51,6 +54,7 @@ export default function Textbox({
     return (
       <div className="relative inline-block">
         <input
+          name={name}
           type={password && !isPasswordShown ? "password" : "text"}
           value={inputValue}
           onChange={handleInputChange}
@@ -60,6 +64,7 @@ export default function Textbox({
             width: `${width}px`,
             paddingRight: inputValue ? "36px" : "12px", // Adjust padding to accommodate the IconButton
           }}
+          required={required}
         />
         {inputValue && (
           <div className="absolute right-[10px] top-1/2 -translate-y-1/2 transform">
