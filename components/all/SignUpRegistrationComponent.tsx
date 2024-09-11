@@ -1,14 +1,16 @@
-import RadioButton from "../../components/exercises/RadioButton";
+import RadioButton from "../exercises/RadioButton";
 import Divider from "./Divider";
-import Textbox from "../../components/exercises/Textbox";
+import Textbox from "../exercises/Textbox";
 import Button from "./buttons/Button";
 import { useState } from "react";
 
-interface RegistrationComponentProps {
+interface SignUpRegistrationComponent {
   className?: string;
 }
 
-export default function RegistrationComponent({ className = "" }: RegistrationComponentProps) {
+export default function SignUpRegistrationComponent({
+  className = "",
+}: SignUpRegistrationComponent) {
   const [signUpStage, setSignUpStage] = useState(0);
 
   const LogInSignUpPage = () => {
@@ -31,10 +33,11 @@ export default function RegistrationComponent({ className = "" }: RegistrationCo
             </div>
             <Divider spacing={8} />
             <Textbox
+              name="email"
               size="small"
               width="324"
               value=""
-              onChange={null}
+              onChange={() => {}}
               placeholder="Email address"
             />
             <Button
@@ -108,17 +111,19 @@ export default function RegistrationComponent({ className = "" }: RegistrationCo
               <p className="text-typeface_primary text-body-regular">Name:</p>
               <div className="flex gap-[12px]">
                 <Textbox
+                  name="firstName"
                   size="small"
                   width="204"
                   value=""
-                  onChange={null}
+                  onChange={() => {}}
                   placeholder="First name*"
                 />
                 <Textbox
+                  name="lastName"
                   size="small"
                   width="204"
                   value=""
-                  onChange={null}
+                  onChange={() => {}}
                   placeholder="Last name*"
                 />
               </div>
@@ -129,17 +134,19 @@ export default function RegistrationComponent({ className = "" }: RegistrationCo
               </p>
               <div className="flex gap-[12px]">
                 <Textbox
+                  name="email"
                   size="small"
                   width="204"
                   value=""
-                  onChange={null}
+                  onChange={() => {}}
                   placeholder="Email address*"
                 />
                 <Textbox
+                  name="phoneNumber"
                   size="small"
                   width="204"
                   value=""
-                  onChange={null}
+                  onChange={() => {}}
                   placeholder="Telephone number*"
                 />
               </div>
@@ -150,18 +157,20 @@ export default function RegistrationComponent({ className = "" }: RegistrationCo
               </p>
               <div className="flex gap-[12px]">
                 <Textbox
+                  name="password"
                   size="small"
                   width="204"
                   value=""
-                  onChange={null}
+                  onChange={() => {}}
                   placeholder="New Password*"
                   password={true}
                 />
                 <Textbox
+                  name="confirmPassword"
                   size="small"
                   width="204"
                   value=""
-                  onChange={null}
+                  onChange={() => {}}
                   placeholder="Retype Password*"
                   password={true}
                 />

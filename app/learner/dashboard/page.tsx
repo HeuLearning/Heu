@@ -42,7 +42,7 @@ const LearnerDashboard = () => {
       if (roleType?.role === "ad") {
         router.push("/admin/dashboard");
       } else if (roleType?.role === "in") {
-        router.push("/instructordashboard");
+        router.push("/instructor/dashboard");
       } else if (roleType?.role !== "st") {
         router.push("/role-sign-up");
       }

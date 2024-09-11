@@ -16,9 +16,7 @@ import Divider from "./Divider";
 import { useRouter } from "next/navigation";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 import { signOutAction } from "@/app/actions";
-import { usePathname } from 'next/navigation';
-
-const pathname = usePathname();
+import { usePathname } from "next/navigation";
 
 interface NavbarProps {
   activeTab: string;
@@ -33,13 +31,16 @@ export default function Navbar({ activeTab }: NavbarProps) {
   const [isNotifsOpen, setIsNotifsOpen] = useState(false);
   const [isSettingsShown, setIsSettingsShown] = useState(false);
 
+  const pathname = usePathname();
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profilePicRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
       if (
-        dropdownRef.current && event.target instanceof Node &&
+        dropdownRef.current &&
+        event.target instanceof Node &&
         !dropdownRef.current.contains(event.target) &&
         !profilePicRef.current?.contains(event.target)
       ) {
@@ -99,7 +100,15 @@ export default function Navbar({ activeTab }: NavbarProps) {
 
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
 
-  const NotifContent = ({ activeTab, onToggle, onClose } : { activeTab: string, onToggle: (selected: string) => void, onClose: () => void}) => {
+  const NotifContent = ({
+    activeTab,
+    onToggle,
+    onClose,
+  }: {
+    activeTab: string;
+    onToggle: (selected: string) => void;
+    onClose: () => void;
+  }) => {
     const notifs = activeTab === "New" ? newNotifs : oldNotifs;
     // Get the container element
     let dashboardContainer;
@@ -166,7 +175,7 @@ export default function Navbar({ activeTab }: NavbarProps) {
         activeTab={selected}
         onToggle={onToggle}
         onClose={handleCloseNotifs}
-      />
+      />,
     );
   };
 
