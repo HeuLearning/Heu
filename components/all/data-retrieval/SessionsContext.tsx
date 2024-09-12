@@ -8,6 +8,7 @@ import React, {
 import { isWithinInterval } from "date-fns";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../utils/supabase/client"
+import { data } from "autoprefixer";
 
 interface UserProps {
   userRole: "ad" | "in" | "st";
@@ -83,29 +84,94 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   // Example effect to fetch sessions (replace with your actual data fetching logic)
   useEffect(() => {
+
+    // Function to fetch the organization name based on learning_organization_location_id
+    const fetchOrganizationName = async (locationId) => {
+      const { data: organization, error: orgError } = await supabase
+        .from('heu_learningorganization')
+        .select('name')
+        .eq('id', parseInt(locationId, 10))
+        .single();
+      
+      if (orgError) {
+        console.error(`fetchOrganizationName: Error fetching organization for location id ${locationId}:`, orgError);
+      }
+  
+      return organization?.name || null;
+    };
+  
+    // Function to fetch the location name based on learning_organization_location_id
+    const fetchLocationName = async (locationId) => {
+      const { data: location, error: locError } = await supabase
+        .from('heu_learningorganizationlocation')
+        .select('name')
+        .eq('id', locationId)
+        .single();
+      
+      if (locError) {
+        console.error(`fetchLocationName: Error fetching location for location id ${locationId}:`, locError);
+        return null;
+      }
+  
+      return location?.name || null;
+    };
+
+          
     const fetchLearnerSessions = async () => {
       // Fetch or initialize your sessions here
-      // if the user is verified then get the user's sessions
+      console.log("FETCH LEARNER CALLED");
       
-      const { data: session, error } = await supabase
-      .from('heu_session')
-      .select('*')    
-      .eq('approved', true);
+      const { data: sessions, error: sessionError } = await supabase
+        .from('heu_session')
+        .select('*')
+        .eq('approved', true);
 
-
-      console.log(session);
-      
-      let allSessions = [];
-      if (session) {
-        allSessions = session.sort((a, b) => {
-          return (
-            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-          );
-        });
-        console.log(allSessions);
+      console.log("original sessions");
+      console.log(sessions);
+    
+      if (sessionError) {
+        console.error("Error fetching sessions:", sessionError);
+        return;
       }
-      console.log(allSessions);
-      setAllSessions(allSessions);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const user_id = user?.id;
+
+      // Process all sessions and fetch corresponding organization and location names
+      const allSessions = await Promise.all(
+        sessions.map(async (session) => {
+          const organizationName = await fetchOrganizationName(session.learning_organization_location_id);
+          const locationName = await fetchLocationName(session.learning_organization_location_id);
+          
+          const enrolled = session.enrolled_students || [];
+          const waitlisted = session.waitlist_students || [];
+          const confirmed = session.confirmed_students || [];
+          const instructors = session.confirmed_instructors || [];
+
+          return {
+            start_time: session.start_time,
+            end_time: session.end_time,
+            max_capacity: session.max_capacity || 0,
+            num_enrolled: enrolled.length,
+            num_waitlist: waitlisted.length,
+            num_confirmed: confirmed.length,
+            learning_organization_name: organizationName,
+            location_name: locationName,
+            isEnrolled: enrolled.includes(user_id),
+            isWaitlisted: waitlisted.includes(user_id),
+            isConfirmed: confirmed.includes(user_id),
+            instructors: [...instructors],
+            id: session.id,
+          };
+        })
+      );
+    
+      // Sort sessions by start_time
+      const sortedSessions = allSessions.sort((a, b) => {
+        return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+      });
+    
+      setAllSessions(sortedSessions);
+      console.log("Final sessions:", sortedSessions);
     };
 
     const fetchInstructorSessions = async () => {
@@ -114,6 +180,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       const { data: { session } } = await supabase.auth.getSession();
       const id = session?.user.id
 
+
       const { data: sessions, error } = await supabase
       .from('heu_session')
       .select('*')
@@ -121,6 +188,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       .contains('confirmed_instructors', [id]);
 
 
+      console.log("sessions");
       console.log(sessions);
       let allSessions = [];
       if (sessions) {
@@ -133,6 +201,9 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       console.log("instructor " + allSessions);
       setAllSessions(allSessions);
     };
+
+    console.log("ROLE CALL")
+    console.log(userRole);
 
     if (userRole === "in") fetchInstructorSessions();
     else if (userRole === "st") fetchLearnerSessions();
