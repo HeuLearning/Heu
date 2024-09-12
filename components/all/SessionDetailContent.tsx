@@ -61,8 +61,6 @@ export default function SessionDetailContent({
   );
   const isUpcoming = differenceInDaysToStart < 14 && endDate > new Date();
 
-  console.log("isLessonPlanLoaded", isLessonPlanLoaded);
-
   const router = useRouter();
 
   const handleEnter = () => {
