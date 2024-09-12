@@ -62,10 +62,10 @@ export const signInAction = async (formData: FormData) => {
 
   const user = session.user;
 
-  const { data: userData } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
+  const { data: rolesData, error: rolesError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
     .single();
 
   setCookie(null, 'session', session.access_token, {
@@ -74,12 +74,19 @@ export const signInAction = async (formData: FormData) => {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
   });
-
-  if (!userData) {
-    return redirect("/role-sign-up");
-  } else {
-    return redirect("/protected");
-  }
+  
+  console.log(rolesData?.role);
+  switch (rolesData?.role) {
+      case 'ad':
+        return redirect("/admin/dashboard");
+      case 'in':
+        return redirect("/instructor/dashboard");
+      case 'st':
+        return redirect("/learner/dashboard");
+      default:
+        console.log(rolesData?.role);
+        return redirect("/role-sing-up"); // Redirect to role sign up
+    }
 };
 
 // Forgot Password Action
