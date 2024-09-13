@@ -202,6 +202,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         const waitlisted = session.waitlisted || [];
         const confirmed = session.confirmed_instructors || [];
         
+        
         // Get other instructor IDs by filtering out the current instructor ID
         const other_instructor_ids = confirmed.filter(instructor => instructor !== id);
         
