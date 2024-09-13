@@ -36,9 +36,6 @@ export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({ children, ac
       .eq("user_id", userID)
       .single();
 
-      console.log("da Role");
-      console.log(roleType);
-
       if (rolesError) {
         console.error("Error fetching user role:", rolesError);
         return;

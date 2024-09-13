@@ -126,8 +126,6 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         .select('*')
         .eq('approved', true);
 
-      console.log("original sessions");
-      console.log(sessions);
     
       if (sessionError) {
         console.error("Error fetching sessions:", sessionError);
@@ -150,7 +148,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           return {
             start_time: session.start_time,
             end_time: session.end_time,
-            max_capacity: session.max_capacity || 0,
+            max_capacity: session.total_max_capacity || 0,
             num_enrolled: enrolled.length,
             num_waitlist: waitlisted.length,
             num_confirmed: confirmed.length,
@@ -164,6 +162,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           };
         })
       );
+
     
       // Sort sessions by start_time
       const sortedSessions = allSessions.sort((a, b) => {
@@ -201,9 +200,6 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       console.log("instructor " + allSessions);
       setAllSessions(allSessions);
     };
-
-    console.log("ROLE CALL")
-    console.log(userRole);
 
     if (userRole === "in") fetchInstructorSessions();
     else if (userRole === "st") fetchLearnerSessions();
@@ -250,7 +246,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       } else if (session.isEnrolled) return "Enrolled";
       else if (session.isWaitlisted) return "Waitlisted";
       else if (session.isConfirmed) return "Confirmed";
-      else if (session.num_enrolled < session.max_capacity) return "Available";
+      else if (session.num_enrolled < session.total_max_capacity) return "Available";
       else return "Class full";
     }
   };
