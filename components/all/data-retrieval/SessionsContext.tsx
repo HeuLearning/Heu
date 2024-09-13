@@ -355,13 +355,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   async function cancelSession(sessionId) {
     if (userRole === "in") {
-      try{
-        const { data, error } = await supabase.rpc('delete_session_by_id', {
-          p_session_id: sessionId,
-        });
-      }catch(err){
-        console.error('Unexpected error:', err);
-      }
+     // not fixed yet 
     } else if (userRole === "st") {
       await handleChange("cancel", sessionId);
     }
