@@ -202,7 +202,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         const waitlisted = session.waitlisted || [];
         const confirmed = session.confirmed_instructors || [];
         
-        
+
         // Get other instructor IDs by filtering out the current instructor ID
         const other_instructor_ids = confirmed.filter(instructor => instructor !== id);
         
@@ -374,19 +374,37 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
   }
 
   async function handleChange(taskString, sessionId) {
-    const res = await fetch(
-      `http://localhost:8000/api/user-session-detail/${sessionId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`, // Include the access token
-        },
-        body: JSON.stringify({ task: `${taskString}` }),
-      },
-    );
-    if (res.status < 300) {
-      refreshData();
+    const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      const user_id = user?.id;
+
+
+    switch (taskString) {
+      case "enroll":
+
+      const sessionIdInt = parseInt(sessionId, 10); // Convert to number if needed
+      const userIdString = String(user_id); // Ensure user_id is a string
+
+      const { data, error } = await supabase.rpc('add_student_to_session', {
+        p_session_id: sessionIdInt,
+        p_user_id: userIdString
+      });
+
+      console.error(error);
+      break;
+    case "waitlist":
+      await waitlistSession(sessionId);
+      break;
+    case "unenroll":
+      await unenrollSession(sessionId);
+      break;
+    case "drop_waitlist":
+      await unwaitlistSession(sessionId);
+      break;
+    default:
+      console.error(`Unknown task: ${taskString}`);
     }
   }
 
