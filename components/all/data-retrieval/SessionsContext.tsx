@@ -355,19 +355,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   async function cancelSession(sessionId) {
     if (userRole === "in") {
-      const res = await fetch(
-        `http://localhost:8000/api/instructor-sessions-detail/${sessionId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`, // Include the access token
-          },
-          body: JSON.stringify({
-            task: "cancel",
-          }),
-        },
-      );
+     // not fixed yet 
     } else if (userRole === "st") {
       await handleChange("cancel", sessionId);
     }
@@ -437,6 +425,16 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       }catch(err){
         console.error('Unexpected error:', err);
       }
+      break;
+    case "cancel":
+      try{
+        const { data, error } = await supabase.rpc('add_student_to_session', {
+          p_session_id: sessionIdInt,
+          p_user_id: userIdString
+        });
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      }  
       break;
     default:
       console.error(`Unknown task: ${taskString}`);
