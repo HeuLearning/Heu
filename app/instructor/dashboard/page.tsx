@@ -12,7 +12,7 @@ import Navbar from "../../../components/all/Navbar";
 import EnhancedPopUp from "../../../components/all/popups/EnhancedPopUp";
 import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
 
-const LearnerDashboard = () => {
+const InstructorDashboard = () => {
   const [userData, setUserData] = useState(null);
   const router = useRouter();
 
@@ -47,8 +47,8 @@ const LearnerDashboard = () => {
 
       if (roleType?.role === "ad") {
         router.push("/admin/dashboard");
-      } else if (roleType?.role === "in") {
-        router.push("/instructor/dashboard");
+      } else if (roleType?.role === "st") {
+        router.push("/learner/dashboard");
       } else if (roleType?.role !== "st") {
         router.push("/sign-in");
       }
@@ -83,7 +83,7 @@ const LearnerDashboard = () => {
       <div>
         <ResponsiveProvider>
           <UserRoleProvider accessToken={userData.accessToken}>
-            <SessionsProvider accessToken={userData.accessToken} userRole="st">
+            <SessionsProvider accessToken={userData.accessToken} userRole="in">
               <PopUpProvider>
                 <Navbar activeTab="Dashboard" />
                 <DashboardContainer accessToken={userData.accessToken} />
@@ -97,4 +97,4 @@ const LearnerDashboard = () => {
   );
 };
 
-export default LearnerDashboard;
+export default InstructorDashboard;
