@@ -56,11 +56,14 @@ export default function SignInRegistrationComponent({
     return (
       <div className="flex flex-col gap-[24px]">
         <h3 className="py-[3px] text-h3">Sign in to Heu Learning</h3>
-        <form className="flex flex-col gap-[24px]" onSubmit={(e) => {
+        <form
+          className="flex flex-col gap-[24px]"
+          onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             signInAction(formData);
-          }}>
+          }}
+        >
           <div className="flex flex-col gap-[12px]">
             <Textbox
               name="email"

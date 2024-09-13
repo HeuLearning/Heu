@@ -1,48 +1,54 @@
-import { signUpAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { SmtpMessage } from "../smtp-message";
+"use client";
 
-export default function Signup({ searchParams }: { searchParams: Message }) {
-  if ("message" in searchParams) {
-    return (
-      <div className="w-full flex-1 flex items-center h-screen sm:max-w-md justify-center gap-2 p-4">
-        <FormMessage message={searchParams} />
-      </div>
-    );
+import { FormMessage, Message } from "@/components/form-message";
+import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import SignUpRegistrationComponent from "@/components/all/SignUpRegistrationComponent";
+
+export default function SignUp({ searchParams }: { searchParams: Message }) {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  useEffect(() => {
+    async function checkSignedIn() {
+      const supabase = createClient();
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setIsSignedIn(false);
+        setIsLoading(false);
+        return;
+      }
+
+      const user = session.user;
+
+      const { data: rolesData, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .single();
+
+      switch (rolesData?.role) {
+        case "ad":
+          return router.push("/admin/dashboard");
+        case "in":
+          return router.push("/instructor/dashboard");
+        case "st":
+          return router.push("/learner/dashboard");
+      }
+    }
+
+    checkSignedIn();
+  }, []);
+
+  if (isLoading) {
+    return <div></div>;
   }
 
-  return (
-    <>
-      <form className="flex flex-col min-w-64 max-w-64 mx-auto">
-        <h1 className="text-2xl font-medium">Sign up</h1>
-        <p className="text-sm text text-foreground">
-          Already have an account?{" "}
-          <Link className="text-primary font-medium underline" href="/sign-in">
-            Sign in
-          </Link>
-        </p>
-        <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-          <Label htmlFor="email">Email</Label>
-          <Input name="email" placeholder="you@example.com" required />
-          <Label htmlFor="password">Password</Label>
-          <Input
-            type="password"
-            name="password"
-            placeholder="Your password"
-            minLength={6}
-            required
-          />
-          <SubmitButton formAction={signUpAction} pendingText="Signing up...">
-            Sign up
-          </SubmitButton>
-          <FormMessage message={searchParams} />
-        </div>
-      </form>
-      <SmtpMessage />
-    </>
-  );
+  return isSignedIn ? null : <SignUpRegistrationComponent />;
 }
