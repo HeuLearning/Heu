@@ -34,7 +34,7 @@ export const signUpAction = async (formData: FormData) => {
     return encodedRedirect(
       "success",
       "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link."
+      "Thanks for signing up! Please check your email for a verification link.",
     );
   }
 };
@@ -54,7 +54,9 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session) {
     return redirect("/sign-in");
@@ -63,30 +65,30 @@ export const signInAction = async (formData: FormData) => {
   const user = session.user;
 
   const { data: rolesData, error: rolesError } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', user.id)
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
     .single();
 
-  setCookie(null, 'session', session.access_token, {
+  setCookie(null, "session", session.access_token, {
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    path: '/',
-    secure: process.env.NODE_ENV === 'production',
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
     httpOnly: true,
   });
-  
+
   console.log(rolesData?.role);
   switch (rolesData?.role) {
-      case 'ad':
-        return redirect("/admin/dashboard");
-      case 'in':
-        return redirect("/instructor/dashboard");
-      case 'st':
-        return redirect("/learner/dashboard");
-      default:
-        console.log(rolesData?.role);
-        return redirect("/role-sing-up"); // Redirect to role sign up
-    }
+    case "ad":
+      return redirect("/admin/dashboard");
+    case "in":
+      return redirect("/instructor/dashboard");
+    case "st":
+      return redirect("/learner/dashboard");
+    default:
+      console.log(rolesData?.role);
+      return redirect("/role-sign-up"); // Redirect to role sign up
+  }
 };
 
 // Forgot Password Action
@@ -109,7 +111,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/forgot-password",
-      "Could not reset password"
+      "Could not reset password",
     );
   }
 
@@ -120,7 +122,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/forgot-password",
-    "Check your email for a link to reset your password."
+    "Check your email for a link to reset your password.",
   );
 };
 
@@ -135,7 +137,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password and confirm password are required"
+      "Password and confirm password are required",
     );
   }
 
@@ -143,7 +145,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Passwords do not match"
+      "Passwords do not match",
     );
   }
 
@@ -155,11 +157,15 @@ export const resetPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password update failed"
+      "Password update failed",
     );
   }
 
-  return encodedRedirect("success", "/protected/reset-password", "Password updated");
+  return encodedRedirect(
+    "success",
+    "/protected/reset-password",
+    "Password updated",
+  );
 };
 
 // Sign-Out Action
