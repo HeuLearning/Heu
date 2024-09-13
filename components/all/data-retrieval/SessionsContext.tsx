@@ -385,7 +385,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
 
     switch (taskString) {
-      case "enroll":
+    case "enroll":
         try{
           const { data, error } = await supabase.rpc('add_student_to_session', {
             p_session_id: sessionIdInt,
@@ -414,9 +414,29 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       }catch(err){
         console.error('Unexpected error:', err);
       }
+
+
+
       break;
     case "drop_waitlist":
-      await unwaitlistSession(sessionId);
+      try {   
+        const { data, error } = await supabase.rpc('remove_student_from_waitlist', {
+          p_session_id: sessionIdInt,
+          p_user_id: userIdString
+        });
+      }catch(err){
+        console.error('Unexpected error:', err);
+      }
+      break;
+    case "confirm":
+      try {   
+        const { data, error } = await supabase.rpc('move_student_to_confirmed', {
+          p_session_id: sessionIdInt,
+          p_user_id: userIdString
+        });
+      }catch(err){
+        console.error('Unexpected error:', err);
+      }
       break;
     default:
       console.error(`Unknown task: ${taskString}`);
