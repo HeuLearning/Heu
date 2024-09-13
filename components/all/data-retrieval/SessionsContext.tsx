@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { isWithinInterval } from "date-fns";
 import { useRouter } from "next/navigation";
-import { createClient } from "../../../utils/supabase/client"
+import { createClient } from "../../../utils/supabase/client";
 import { data } from "autoprefixer";
 
 interface UserProps {
@@ -23,8 +23,6 @@ interface Session {
   num_waitlist: number;
   learning_organization: string;
   location: string;
-  approved: boolean;
-  viewed: boolean;
   other_instructors: [];
 }
 
@@ -51,7 +49,7 @@ interface LearnerSessionContextType {
   cancelSession: (sessionId) => void;
 }
 
-const supabase = createClient()
+const supabase = createClient();
 
 type SessionContextType =
   | InstructorSessionContextType
@@ -59,7 +57,7 @@ type SessionContextType =
 
 // create context with initial undefined value
 const SessionsContext = createContext<SessionContextType | undefined>(
-  undefined
+  undefined,
 );
 
 // props for provider
@@ -84,62 +82,72 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   // Example effect to fetch sessions (replace with your actual data fetching logic)
   useEffect(() => {
-
     // Function to fetch the organization name based on learning_organization_location_id
     const fetchOrganizationName = async (locationId) => {
       const { data: organization, error: orgError } = await supabase
-        .from('heu_learningorganization')
-        .select('name')
-        .eq('id', parseInt(locationId, 10))
+        .from("heu_learningorganization")
+        .select("name")
+        .eq("id", parseInt(locationId, 10))
         .single();
-      
+
       if (orgError) {
-        console.error(`fetchOrganizationName: Error fetching organization for location id ${locationId}:`, orgError);
+        console.error(
+          `fetchOrganizationName: Error fetching organization for location id ${locationId}:`,
+          orgError,
+        );
       }
-  
+
       return organization?.name || null;
     };
-  
+
     // Function to fetch the location name based on learning_organization_location_id
     const fetchLocationName = async (locationId) => {
       const { data: location, error: locError } = await supabase
-        .from('heu_learningorganizationlocation')
-        .select('name')
-        .eq('id', locationId)
+        .from("heu_learningorganizationlocation")
+        .select("name")
+        .eq("id", locationId)
         .single();
-      
+
       if (locError) {
-        console.error(`fetchLocationName: Error fetching location for location id ${locationId}:`, locError);
+        console.error(
+          `fetchLocationName: Error fetching location for location id ${locationId}:`,
+          locError,
+        );
         return null;
       }
-  
+
       return location?.name || null;
     };
 
-          
     const fetchLearnerSessions = async () => {
       // Fetch or initialize your sessions here
       console.log("FETCH LEARNER CALLED");
-      
-      const { data: sessions, error: sessionError } = await supabase
-        .from('heu_session')
-        .select('*')
-        .eq('approved', true);
 
-    
+      const { data: sessions, error: sessionError } = await supabase
+        .from("heu_session")
+        .select("*")
+        .eq("approved", true);
+
       if (sessionError) {
         console.error("Error fetching sessions:", sessionError);
         return;
       }
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       const user_id = user?.id;
 
       // Process all sessions and fetch corresponding organization and location names
       const allSessions = await Promise.all(
         sessions.map(async (session) => {
-          const organizationName = await fetchOrganizationName(session.learning_organization_location_id);
-          const locationName = await fetchLocationName(session.learning_organization_location_id);
-          
+          const organizationName = await fetchOrganizationName(
+            session.learning_organization_location_id,
+          );
+          const locationName = await fetchLocationName(
+            session.learning_organization_location_id,
+          );
+
           const enrolled = session.enrolled_students || [];
           const waitlisted = session.waitlist_students || [];
           const confirmed = session.confirmed_students || [];
@@ -148,7 +156,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           return {
             start_time: session.start_time,
             end_time: session.end_time,
-            max_capacity: session.total_max_capacity || 0,
+            total_max_capacity: session.total_max_capacity || 0,
             num_enrolled: enrolled.length,
             num_waitlist: waitlisted.length,
             num_confirmed: confirmed.length,
@@ -160,15 +168,16 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
             instructors: [...instructors],
             id: session.id,
           };
-        })
+        }),
       );
 
-    
       // Sort sessions by start_time
       const sortedSessions = allSessions.sort((a, b) => {
-        return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+        return (
+          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+        );
       });
-    
+
       setAllSessions(sortedSessions);
       console.log("Final sessions:", sortedSessions);
     };
@@ -176,16 +185,16 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     const fetchInstructorSessions = async () => {
       // Fetch or initialize your sessions here
       // if the user is verified then get the user's sessions
-      const { data: { session } } = await supabase.auth.getSession();
-      const id = session?.user.id
-
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const id = session?.user.id;
 
       const { data: sessions, error } = await supabase
-      .from('heu_session')
-      .select('*')
-      .eq('approved', true)
-      .contains('confirmed_instructors', [id]);
-
+        .from("heu_session")
+        .select("*")
+        .eq("approved", true)
+        .contains("confirmed_instructors", [id]);
 
       console.log("sessions");
       console.log(sessions);
@@ -218,10 +227,10 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   // instructor session statuses: Confirmed, Online, Attended, Canceled
   // learner session statuses: Available, Enrolled, Waitlisted, Confirmed
-  const getSessionStatus = (session) => {
+  const getSessionStatus = (session: any) => {
     if (userRole === "in") {
       const startDateWithBuffer = new Date(
-        new Date(session.start_time).getTime() - 5 * 60000
+        new Date(session.start_time).getTime() - 5 * 60000,
       );
       const endDate = new Date(session.end_time);
       let status =
@@ -246,60 +255,69 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       } else if (session.isEnrolled) return "Enrolled";
       else if (session.isWaitlisted) return "Waitlisted";
       else if (session.isConfirmed) return "Confirmed";
-      else if (session.num_enrolled < session.total_max_capacity) return "Available";
+      else if (session.num_enrolled < session.total_max_capacity)
+        return "Available";
       else return "Class full";
     }
   };
 
   async function confirmSession(sessionId: string) {
     if (userRole === "in") {
-      const { data: { session } } = await supabase.auth.getSession();
-      const uuid = session?.user.id
-
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const uuid = session?.user.id;
 
       try {
         const { data: session, error: sessionError } = await supabase
-          .from('heu_sessions')
-          .select('*')
-          .eq('id', sessionId)
+          .from("heu_sessions")
+          .select("*")
+          .eq("id", sessionId)
           .single();
-          
+
         if (sessionError) throw sessionError;
-        
+
         if (!session) {
           throw new Error("Session not found");
         }
-        
+
         if (!session.approved) {
-          throw new Error("This session is not approved for instructor assignment.");
+          throw new Error(
+            "This session is not approved for instructor assignment.",
+          );
         }
 
         const { data: userInfo, error: userInfoError } = await supabase
-          .from('user_roles')
-          .select('*')
-          .eq('user_id', uuid)
+          .from("user_roles")
+          .select("*")
+          .eq("user_id", uuid)
           .single();
-  
+
         if (userInfoError) throw userInfoError;
-  
-        if (!userInfo || userInfo.role !== 'in') {
+
+        if (!userInfo || userInfo.role !== "in") {
           throw new Error("Only instructors can access this route");
         }
-        
+
         // Assuming you have these fields in your session table
         let { data: updatedSession, error: updateError } = await supabase
-          .from('sessions')
+          .from("sessions")
           .update({
-            pending_instructors: supabase.raw('array_remove(pending_instructors, ?)', [user.id]),
-            confirmed_instructors: supabase.raw('array_append(confirmed_instructors, ?)', [user.id])
+            pending_instructors: supabase.raw(
+              "array_remove(pending_instructors, ?)",
+              [user.id],
+            ),
+            confirmed_instructors: supabase.raw(
+              "array_append(confirmed_instructors, ?)",
+              [user.id],
+            ),
           })
-          .eq('id', sessionId)
+          .eq("id", sessionId)
           .single();
-  
+
         if (updateError) throw updateError;
-        
+
         return { message: "Successfully confirmed to teach this session" };
-  
       } catch (error) {
         console.error(error);
         return { error: error.message };
@@ -322,7 +340,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           body: JSON.stringify({
             task: "cancel",
           }),
-        }
+        },
       );
     } else if (userRole === "st") {
       await handleChange("cancel", sessionId);
@@ -339,7 +357,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           Authorization: `Bearer ${accessToken}`, // Include the access token
         },
         body: JSON.stringify({ task: `${taskString}` }),
-      }
+      },
     );
     if (res.status < 300) {
       refreshData();
@@ -409,7 +427,7 @@ export const useInstructorSessions = (): InstructorSessionContextType => {
   const context = useSessions();
   if (context.type !== "instructor") {
     throw new Error(
-      "useInstructorSessions must be used with an instructor role"
+      "useInstructorSessions must be used with an instructor role",
     );
   }
   return context;
