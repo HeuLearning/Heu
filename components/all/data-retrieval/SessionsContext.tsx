@@ -191,22 +191,48 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       const id = session?.user.id;
 
       const { data: sessions, error } = await supabase
-        .from("heu_session")
-        .select("*")
-        .eq("approved", true)
-        .contains("confirmed_instructors", [id]);
+      .from('heu_session')
+      .select('*')
+      .eq('approved', true)
+      .or(`pending_instructors.cs.{${id}},confirmed_instructors.cs.{${id}},canceled_instructors.cs.{${id}}`);
 
-      console.log("sessions");
-      console.log(sessions);
-      let allSessions = [];
-      if (sessions) {
-        allSessions = sessions.sort((a, b) => {
-          return (
-            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-          );
+      let sessions_data: { id: any; start_time: any; end_time: any; max_capacity: any; num_enrolled: any; num_waitlist: any; num_confirmed: any; learning_organization_name: any; location_name: any; other_instructors: any; instructor_status: string | undefined; }[] = [];
+      sessions?.forEach(async (session) => {
+        const enrolled = session.enrolled || [];
+        const waitlisted = session.waitlisted || [];
+        const confirmed = session.confirmed_instructors || [];
+        
+        
+        // Get other instructor IDs by filtering out the current instructor ID
+        const other_instructor_ids = confirmed.filter(instructor => instructor !== id);
+        
+        // Determine the instructor status
+        let instructor_status;
+        if (session.confirmed_instructors.includes(id)) {
+          instructor_status = 'confirmed';
+        } else if (session.pending_instructors.includes(id)) {
+          instructor_status = 'pending';
+        } else if (session.canceled_instructors.includes(id)) {
+          instructor_status = 'canceled';
+        }
+    
+        // Push the session data to the array
+        sessions_data.push({
+          "id": session.id,
+          "start_time": session.start_time,
+          "end_time": session.end_time,
+          "max_capacity": session.max_capacity,
+          "num_enrolled": enrolled.length,
+          "num_waitlist": waitlisted.length,
+          "num_confirmed": confirmed.length,
+          "learning_organization_name": session.learning_organization.name,
+          "location_name": session.location.name,
+          "other_instructors": other_instructor_ids,
+          "instructor_status": instructor_status
         });
-      }
-      console.log("instructor " + allSessions);
+      });
+    
+      sessions_data?.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
       setAllSessions(allSessions);
     };
 
