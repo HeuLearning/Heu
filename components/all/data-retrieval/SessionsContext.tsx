@@ -380,25 +380,40 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       } = await supabase.auth.getUser();
       const user_id = user?.id;
 
-
-    switch (taskString) {
-      case "enroll":
-
       const sessionIdInt = parseInt(sessionId, 10); // Convert to number if needed
       const userIdString = String(user_id); // Ensure user_id is a string
 
-      const { data, error } = await supabase.rpc('add_student_to_session', {
-        p_session_id: sessionIdInt,
-        p_user_id: userIdString
-      });
 
-      console.error(error);
-      break;
+    switch (taskString) {
+      case "enroll":
+        try{
+          const { data, error } = await supabase.rpc('add_student_to_session', {
+            p_session_id: sessionIdInt,
+            p_user_id: userIdString
+          });
+        } catch (err) {
+          console.error('Unexpected error:', err);
+        }  
+        break;
     case "waitlist":
-      await waitlistSession(sessionId);
+      try{
+        const { data, error } = await supabase.rpc('add_student_to_waitlist', {
+          p_session_id: sessionIdInt,
+          p_user_id: userIdString
+        });
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      }
       break;
     case "unenroll":
-      await unenrollSession(sessionId);
+      try {
+        const { data, error } = await supabase.rpc('remove_student_from_session', {
+          p_session_id: sessionIdInt,
+          p_user_id: userIdString
+        });
+      }catch(err){
+        console.error('Unexpected error:', err);
+      }
       break;
     case "drop_waitlist":
       await unwaitlistSession(sessionId);
