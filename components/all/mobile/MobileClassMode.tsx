@@ -15,7 +15,7 @@ import { useStopwatchState } from "../class-mode/StopwatchContext";
 
 interface MobileClassModeProps {
   activePhase: any;
-  activePhaseId: number;
+  activePhaseId: string;
   activeModule: any;
   activeModuleIndex: number;
   setActiveModuleIndex: (index: number) => void;
@@ -28,7 +28,7 @@ interface MobileClassModeProps {
   learners: any;
 }
 
-export default function MobileClassMode(props : MobileClassModeProps) {
+export default function MobileClassMode(props: MobileClassModeProps) {
   const [activeTab, setActiveTab] = useState("Phases");
   const { phases, getModules, lessonPlan, phaseTimes } = useLessonPlan();
   const [isNotebookShown, setIsNotebookShown] = useState(false);
@@ -36,7 +36,6 @@ export default function MobileClassMode(props : MobileClassModeProps) {
   const {
     activePhase,
     activePhaseId,
-    setActivePhaseId,
     activeModule,
     activeModuleIndex,
     setActiveModuleIndex,
@@ -167,10 +166,10 @@ export default function MobileClassMode(props : MobileClassModeProps) {
             showPhases
               ? () => setShowPhases(false)
               : activeModuleIndex === activePhase.modules.length - 1
-              ? phases.indexOf(activePhase) === phases.length - 1
-                ? () => handleEndClass()
-                : () => handleNextPhase()
-              : () => handleNextModule(activeModule, activeModuleIndex)
+                ? phases.indexOf(activePhase) === phases.length - 1
+                  ? () => handleEndClass()
+                  : () => handleNextPhase()
+                : () => handleNextModule(activeModule, activeModuleIndex)
           }
           secondaryContent={
             <div className="flex items-center gap-[4px]">
@@ -191,7 +190,8 @@ export default function MobileClassMode(props : MobileClassModeProps) {
               <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
                 {activeModule &&
                   Math.round(
-                    (activeModule.suggested_duration_seconds - elapsedTime) / 60
+                    (activeModule.suggested_duration_seconds - elapsedTime) /
+                      60,
                   )}{" "}
                 mins left
               </p>

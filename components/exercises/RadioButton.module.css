@@ -17,7 +17,7 @@
   border: none;
 }
 
-.radioButton:checked + label {
+.radioButton:checked + span {
   font-weight: 500;
 }
 

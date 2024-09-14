@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import CalendarContainer from "./CalendarContainer";
 import SessionDetailViewContainer from "./SessionDetailViewContainer";
 import { useResponsive } from "./ResponsiveContext";
@@ -11,9 +11,11 @@ interface DashboardContainerProps {
   accessToken: string;
 }
 
-export default function DashboardContainer({ accessToken }: DashboardContainerProps) {
+export default function DashboardContainer({
+  accessToken,
+}: DashboardContainerProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   // website navbar = 64, bottom margin = 16
   const dashboardHeight = window.innerHeight - 64 - 16;

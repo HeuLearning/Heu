@@ -4,7 +4,7 @@ import InfoCard from "../InfoCard";
 interface PhaseCardProps {
   type: string;
   title: string;
-  time: undefined | number;
+  time: string | undefined;
   percentage: number;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   status?: string;

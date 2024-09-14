@@ -23,7 +23,7 @@ export default function Button({
       } ${
         isMobile ? "h-[44px]" : "h-[32px] pt-[1.12px]" // supposed to be 11px but cap height on button slightly off...
       }`}
-      onClick={onClick}
+      onClick={disabled ? () => {} : onClick}
     >
       {children}
     </button>

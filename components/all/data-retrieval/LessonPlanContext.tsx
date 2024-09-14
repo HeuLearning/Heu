@@ -9,7 +9,7 @@ import { useSessions } from "./SessionsContext";
 import { format } from "date-fns";
 
 interface LessonPlan {
-  session_id: number;
+  session_id: string;
   lesson_plan_id: number;
   lesson_plan_name: string;
   lesson_plan_description: string;
@@ -17,7 +17,7 @@ interface LessonPlan {
 }
 
 interface Phase {
-  id: number;
+  id: string;
   name: string;
   type: string;
   description: string;
@@ -26,7 +26,7 @@ interface Phase {
 }
 
 interface Module {
-  id: number;
+  id: string;
   name: string;
   description: string;
   suggested_duration_seconds: number;
@@ -36,21 +36,21 @@ interface Module {
 interface LessonPlanContextType {
   lessonPlan: LessonPlan;
   phases: Phase[];
-  getModules: (phaseId: number) => Module[] | undefined;
-  phaseTimes;
-  isLoading;
-  error;
+  getModules: (phaseId: string) => Module[] | undefined;
+  phaseTimes: Map<string, string>;
+  isLoading: boolean;
+  error: any;
 }
 
 // create context with initial undefined value
 const LessonPlanContext = createContext<LessonPlanContextType | undefined>(
-  undefined
+  undefined,
 );
 
 // props for provider
 interface LessonPlanProviderProps {
   children: ReactNode;
-  sessionId: string;
+  sessionId: string | null;
   accessToken: string;
 }
 
@@ -59,7 +59,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   sessionId,
   accessToken,
 }) => {
-  const [lessonPlan, setLessonPlan] = useState<LessonPlan>(null);
+  const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { upcomingSessions } = useSessions();
@@ -86,7 +86,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
         const response = await fetch(
           `http://localhost:8000/api/instructor-sessions/${sessionId}/phases`,
-          options
+          options,
         );
 
         if (response.status === 404) {
@@ -107,7 +107,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
         setError(
           `Failed to fetch phases: ${
             e instanceof Error ? e.message : String(e)
-          }`
+          }`,
         );
       } finally {
         setIsLoading(false);
@@ -120,7 +120,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   useEffect(() => {
     if (upcomingSessions && upcomingSessions.length > 0 && sessionId) {
       const session = upcomingSessions.find(
-        (session) => session.id === Number(sessionId)
+        (session) => session.id === sessionId,
       );
 
       if (session && session.start_time) {
@@ -135,7 +135,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
       }
     } else {
       console.log(
-        "upcomingSessions not available or empty, or sessionId not provided"
+        "upcomingSessions not available or empty, or sessionId not provided",
       );
     }
   }, [upcomingSessions, sessionId]);
@@ -148,7 +148,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
     const phase = phases[i];
     const phaseDuration = phase.phase_duration_seconds;
     const phaseEndTime = new Date(
-      new Date(prevStartTime).getTime() + phaseDuration * 1000
+      new Date(prevStartTime).getTime() + phaseDuration * 1000,
     );
     const timeString =
       format(prevStartTime, "h:mm") + " - " + format(phaseEndTime, "h:mm");
@@ -156,7 +156,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
     prevStartTime = phaseEndTime;
   }
 
-  const getModules = (phaseId: number): Module[] | undefined => {
+  const getModules = (phaseId: string): Module[] | undefined => {
     return lessonPlan?.phases.find((phase) => phase.id === phaseId)?.modules;
   };
 

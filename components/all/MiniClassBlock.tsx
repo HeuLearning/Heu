@@ -12,10 +12,10 @@ import Placeholder from "./Placeholder";
 
 interface MiniClassBlockProps {
   dateCard?: boolean;
-  sessionId: number;
-  setActiveSessionId: (sessionId: number) => void;
-  activeSessionId?: number | null;
-  handleMobileShowClassDetails?: (sessionId: number) => void;
+  sessionId: string;
+  setActiveSessionId: (sessionId: string) => void;
+  activeSessionId?: string | null;
+  handleMobileShowClassDetails?: (sessionId: string) => void;
   isDaily?: boolean;
   arrow?: boolean;
 }
@@ -101,7 +101,7 @@ export default function MiniClassBlock({
     });
   };
 
-  const handleClick = (sessionId: number) => {
+  const handleClick = (sessionId: string) => {
     setActiveSessionId(sessionId);
     if (isMobile) {
       handleMobileShowClassDetails(sessionId);
@@ -117,8 +117,8 @@ export default function MiniClassBlock({
               activeSessionId === sessionId && isDaily
                 ? "text-typeface_primary text-body-semibold"
                 : status === "Canceled"
-                ? "text-typeface_secondary text-body-medium"
-                : "text-typeface_primary text-body-medium"
+                  ? "text-typeface_secondary text-body-medium"
+                  : "text-typeface_primary text-body-medium"
             }
           >
             {dateCard || arrow

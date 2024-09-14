@@ -18,7 +18,7 @@ import AttendancePopUp from "./popups/AttendancePopUp";
 import { usePopUp } from "./popups/PopUpContext";
 
 interface SessionDetailContentProps {
-  activeSessionId: number | null;
+  activeSessionId: string | null;
   handleShowClassSchedule: () => void;
   className?: string;
   lessonPlanData: any;
@@ -57,7 +57,7 @@ export default function SessionDetailContent({
   console.log(lessonPlan);
 
   const differenceInDaysToStart = Math.round(
-    differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000)
+    differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000),
   );
   const isUpcoming = differenceInDaysToStart < 14 && endDate > new Date();
 
@@ -232,11 +232,7 @@ export default function SessionDetailContent({
               )}
             </p>
             {isMobile ? null : (
-              <Button
-                className={
-                  activeSessionId ? "button-secondary" : "button-disabled"
-                }
-              >
+              <Button className="button-secondary" disabled={!activeSessionId}>
                 Get directions
               </Button>
             )}
@@ -373,14 +369,14 @@ export default function SessionDetailContent({
                     className={`${
                       isMobile ? "h-[32px] w-[32px]" : ""
                     } outline-surface_border_tertiary`}
-                    disabled={
-                      Boolean(!activeSessionId ||
-                      (activeSessionId &&
-                        (isLessonPlanLoaded === "loading" ||
-                          isLessonPlanLoaded === "not confirmed instructor" ||
-                          isLessonPlanLoaded === "canceled session" ||
-                          isLessonPlanLoaded === "no lesson plan")))
-                    }
+                    disabled={Boolean(
+                      !activeSessionId ||
+                        (activeSessionId &&
+                          (isLessonPlanLoaded === "loading" ||
+                            isLessonPlanLoaded === "not confirmed instructor" ||
+                            isLessonPlanLoaded === "canceled session" ||
+                            isLessonPlanLoaded === "no lesson plan")),
+                    )}
                   >
                     <svg
                       width="16"

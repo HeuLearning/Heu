@@ -5,15 +5,22 @@ import MobileDetailView from "./MobileDetailView";
 import PhaseLineUp from "../class-mode/PhaseLineup";
 import LearnerItem from "../class-mode/LearnerItem";
 
+interface MobileClassModeNotebookProps {
+  activeModuleIndex: number;
+  modules: any;
+  learners: any;
+  setIsNotebookShown: (shown: boolean) => void;
+}
+
 export default function MobileClassModeNotebook({
   activeModuleIndex,
   modules,
   learners,
   setIsNotebookShown,
-}) {
+}: MobileClassModeNotebookProps) {
   const [activeTab, setActiveTab] = useState("Modules in this phase");
 
-  const onToggle = (selected) => {
+  const onToggle = (selected: string) => {
     setActiveTab(selected);
   };
   return (
@@ -47,7 +54,7 @@ export default function MobileClassModeNotebook({
         </div>
       ) : (
         <div className="flex flex-col gap-[20px] px-[16px] pt-[16px]">
-          {learners.map((learner) => (
+          {learners.map((learner: any) => (
             <LearnerItem name={learner.name} status={learner.status} />
           ))}
         </div>

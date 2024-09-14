@@ -14,8 +14,8 @@ interface CalendarProps {
   setVisibleMonth: (date: Date) => void;
   activeTab: string;
   onToggle: (tab: string) => void;
-  activeSessionId: number | null;
-  setActiveSessionId: (sessionId: number | null) => void;
+  activeSessionId: string | null;
+  setActiveSessionId: (sessionId: string | null) => void;
   sessionMap: Map<string, string[]>;
 }
 
@@ -36,12 +36,15 @@ export default function Calendar({
 
   const calendarWrapperRef = useRef(null);
 
-  const displaySessions = (date: Date, calendarElement: Element | null = null) => {
+  const displaySessions = (
+    date: Date,
+    calendarElement: Element | null = null,
+  ) => {
     const sessions = allSessions.filter((session) =>
-      isSameDay(new Date(session.start_time), date)
+      isSameDay(new Date(session.start_time), date),
     );
     const upcoming = upcomingSessions.filter((session) =>
-      isSameDay(new Date(session.start_time), date)
+      isSameDay(new Date(session.start_time), date),
     );
     if (sessions.length === 0) {
       setActiveSessionId(null);
@@ -53,8 +56,8 @@ export default function Calendar({
       setSelectedDate(date);
       setActiveSessionId(
         sessions.filter(
-          (session) => getSessionStatus(session) !== "Canceled"
-        )[0].id
+          (session) => getSessionStatus(session) !== "Canceled",
+        )[0].id,
       );
     } else if (sessions.length > 1) {
       showMultipleSessionPopUp(sessions, date, calendarElement);
@@ -77,13 +80,13 @@ export default function Calendar({
   const showMultipleSessionPopUp = (
     multipleSessions: any,
     date: Date,
-    calendarElement: Element | null
+    calendarElement: Element | null,
   ) => {
     setMultipleDates(multipleSessions);
     if (calendarElement) {
       const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
       const tileElement = calendarElement.querySelector(
-        `[data-date="${dateKey}"]`
+        `[data-date="${dateKey}"]`,
       );
       if (tileElement) {
         const tileRect = tileElement.getBoundingClientRect();
@@ -97,7 +100,7 @@ export default function Calendar({
     }
   };
 
-  const navigationLabel = ({ date, label }: {date: Date, label: any}) => {
+  const navigationLabel = ({ date, label }: { date: Date; label: any }) => {
     return `${date.toLocaleString("default", {
       month: "short",
     })} ${date.getFullYear()}`;
@@ -110,7 +113,7 @@ export default function Calendar({
     return day;
   };
 
-  const tileContent = ({ date, view }: {date: Date, view: string}) => {
+  const tileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view !== "month") return null;
 
     let isSelected =
@@ -167,7 +170,7 @@ export default function Calendar({
   useEffect(() => {
     if (activeSessionId) {
       const session = allSessions.find(
-        (session) => session.id === activeSessionId
+        (session) => session.id === activeSessionId,
       );
     }
   }, [activeSessionId, allSessions]);
@@ -177,7 +180,11 @@ export default function Calendar({
 
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
-      if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        event.target instanceof Node &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setMultipleDates([]);
       }
     };
@@ -257,7 +264,7 @@ export default function Calendar({
                 onMouseDown={(event) => {
                   const target = event.target as HTMLElement;
                   const tileElement = target.closest(
-                    ".react-calendar__tile:not(:disabled)"
+                    ".react-calendar__tile:not(:disabled)",
                   );
                   if (tileElement) {
                     const abbrElement = tileElement.querySelector("abbr");
@@ -279,10 +286,9 @@ export default function Calendar({
                   value={selectedDate}
                   calendarType={"gregory"}
                   activeStartDate={visibleMonth}
-                  onActiveStartDateChange={({ activeStartDate }) =>
-                    {if(activeStartDate)
-                      setVisibleMonth(activeStartDate)}
-                  }
+                  onActiveStartDateChange={({ activeStartDate }) => {
+                    if (activeStartDate) setVisibleMonth(activeStartDate);
+                  }}
                   navigationLabel={navigationLabel}
                   minDetail="month"
                   maxDetail="month"
@@ -293,7 +299,7 @@ export default function Calendar({
                   showNeighboringMonth={false}
                   tileDisabled={({ date }) => {
                     return !allSessions.find((session) =>
-                      isSameDay(date, session.start_time)
+                      isSameDay(date, session.start_time),
                     ); // later change this to if getSessionStatus(session) === "Available"
                   }}
                   tileClassName={({ date, view }) => {

@@ -97,7 +97,9 @@ interface ClassModeContainerProps {
   sessionId: string;
 }
 
-export default function ClassModeContainer({ sessionId }: ClassModeContainerProps) {
+export default function ClassModeContainer({
+  sessionId,
+}: ClassModeContainerProps) {
   // website navbar = 64, bottom margin = 16
   const dashboardHeight = window.innerHeight - 64 - 16;
 
@@ -105,7 +107,9 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
 
   const { phases, getModules, lessonPlan, phaseTimes } = useLessonPlan();
 
-  const [activePhaseId, setActivePhaseId] = useState<number | null>(null);
+  const [activePhaseId, setActivePhaseId] = useState<string>(
+    phases.length > 0 ? phases[0].id : "",
+  );
   const [showInitialClassPage, setShowInitialClassPage] = useState(true);
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
   const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
@@ -127,15 +131,15 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
     // Calculate the height
     containerHeight = dashboardContainer.offsetHeight;
     // Use containerHeight here
-} else {
+  } else {
     console.error("Element with ID 'class-mode-container' not found");
     // Handle the case where the element is not found
-}
+  }
 
   useEffect(() => {
     const findSession = () => {
       if (upcomingSessions && sessionId) {
-        const found = upcomingSessions.find((s) => s.id === Number(sessionId));
+        const found = upcomingSessions.find((s) => s.id === sessionId);
         setSession(found || null);
         setIsLoading(false);
       }
@@ -143,13 +147,6 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
 
     findSession();
   }, [sessionId, upcomingSessions]);
-
-  // set initial activePhaseId
-  useEffect(() => {
-    if (phases.length > 0) {
-      setActivePhaseId(phases[0].id);
-    }
-  }, [phases]);
 
   useEffect(() => {
     setActiveModuleIndex(0);
@@ -166,7 +163,7 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
 
   const handleNextModule = (module: any, index: number) => {
     totalElapsedTime.push(
-      totalElapsedTime[index] + module.suggested_duration_seconds
+      totalElapsedTime[index] + module.suggested_duration_seconds,
     );
     setElapsedTime(totalElapsedTime[index + 1]);
     startTimer();
@@ -176,7 +173,7 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
 
   const handleNextPhase = () => {
     const currentPhaseIndex = phases.findIndex(
-      (phase) => phase.id === activePhaseId
+      (phase) => phase.id === activePhaseId,
     );
     if (currentPhaseIndex < phases.length - 1) {
       const nextPhase = phases[currentPhaseIndex + 1];
@@ -235,7 +232,6 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
   };
 
   const handleShowLearners = () => {
-
     showPopUp({
       id: "learners-popup",
       content: (
@@ -264,8 +260,7 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
     });
   };
 
-  const displayPhaseLineup = (phaseId: number) => {
-
+  const displayPhaseLineup = (phaseId: string) => {
     showPopUp({
       id: "phase-lineup-popup",
       content: (
@@ -450,10 +445,10 @@ export default function ClassModeContainer({ sessionId }: ClassModeContainerProp
                     phases.length === 1
                       ? "grid-cols-1 grid-rows-1 gap-[16px]"
                       : phases.length === 2
-                      ? "grid-cols-2 grid-rows-1 gap-[16px]"
-                      : phases.length === 3
-                      ? "grid-cols-3 grid-rows-1 gap-[16px]"
-                      : "grid-cols-3 grid-rows-2 gap-[16px]"
+                        ? "grid-cols-2 grid-rows-1 gap-[16px]"
+                        : phases.length === 3
+                          ? "grid-cols-3 grid-rows-1 gap-[16px]"
+                          : "grid-cols-3 grid-rows-2 gap-[16px]"
                   }`}
                 >
                   <ClassModePhases

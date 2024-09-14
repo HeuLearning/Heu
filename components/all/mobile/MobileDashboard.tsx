@@ -10,8 +10,8 @@ import { LessonPlanProvider } from "../data-retrieval/LessonPlanContext";
 import { isSameDay } from "date-fns";
 
 interface MobileDashboardProps {
-  activeSessionId: number | null;
-  setActiveSessionId: (id: number | null) => void;
+  activeSessionId: string | null;
+  setActiveSessionId: (id: string | null) => void;
   accessToken: string;
 }
 
@@ -51,12 +51,12 @@ export default function MobileDashboard({
             closeClassDetails={closeClassDetails}
             activeSessionId={activeSessionId}
           />
-        </LessonPlanProvider>
+        </LessonPlanProvider>,
       );
     }
   }, [activeSessionId, isPopUpVisible, accessToken]);
 
-  const handleMobileShowClassDetails = (sessionId: number) => {
+  const handleMobileShowClassDetails = (sessionId: string) => {
     setIsPopUpVisible(true);
     showPopUp({
       id: "mobile-class-details-popup",
@@ -82,7 +82,7 @@ export default function MobileDashboard({
   useEffect(() => {
     if (horizontalDatePickerRef.current) {
       setContainerHeight(
-        horizontalDatePickerRef.current.getBoundingClientRect().height
+        horizontalDatePickerRef.current.getBoundingClientRect().height,
       );
     }
   }, []);
@@ -91,7 +91,7 @@ export default function MobileDashboard({
     let sessions;
     if (selectedDate)
       sessions = allSessions.filter((session) =>
-        isSameDay(selectedDate, new Date(session.start_time))
+        isSameDay(selectedDate, new Date(session.start_time)),
       );
     else sessions = upcomingSessions;
     return sessions?.map((session, index, filteredSessions) => {

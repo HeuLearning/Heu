@@ -9,10 +9,12 @@ import ClassSchedulePopUpContainer from "./popups/ClassSchedulePopUpContent";
 import { useLessonPlan } from "./data-retrieval/LessonPlanContext";
 
 interface SessionDetailViewContainerProps {
-  activeSessionId: number | null;
+  activeSessionId: string | null;
 }
 
-export default function SessionDetailViewContainer({ activeSessionId }: SessionDetailViewContainerProps) {
+export default function SessionDetailViewContainer({
+  activeSessionId,
+}: SessionDetailViewContainerProps) {
   const { allSessions, getSessionStatus } = useSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
 

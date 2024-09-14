@@ -5,11 +5,15 @@ import { useStopwatchControls, useStopwatchState } from "./StopwatchContext";
 
 interface ClassModePhasesProps {
   phases: any[];
-  phaseTimes: Map<string, number>;
+  phaseTimes: Map<string, string>;
   activePhase: any;
 }
 
-export default function ClassModePhases({ phases, phaseTimes, activePhase }: ClassModePhasesProps) {
+export default function ClassModePhases({
+  phases,
+  phaseTimes,
+  activePhase,
+}: ClassModePhasesProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const state = useStopwatchState();
   const { elapsedTime } = state;
@@ -31,15 +35,15 @@ export default function ClassModePhases({ phases, phaseTimes, activePhase }: Cla
         activePhase === phase
           ? elapsedTime / phase.phase_duration_seconds
           : phases.indexOf(activePhase) > index
-          ? 1
-          : 0
+            ? 1
+            : 0
       }
       status={
         phases.indexOf(activePhase) > index
           ? "done"
           : activePhase === phase
-          ? "active"
-          : ""
+            ? "active"
+            : ""
       }
     />
   ));
