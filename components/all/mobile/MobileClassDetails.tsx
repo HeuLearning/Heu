@@ -13,14 +13,14 @@ import { usePopUp } from "../popups/PopUpContext";
 import { useRouter } from "next/navigation";
 
 interface MobileClassDetailsProps {
-  activeSessionId: number | null;
+  activeSessionId: string | null;
   closeClassDetails: () => void;
 }
 
 export default function MobileClassDetails({
   activeSessionId,
   closeClassDetails,
-} : MobileClassDetailsProps) {
+}: MobileClassDetailsProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const {
     allSessions,
@@ -79,7 +79,7 @@ export default function MobileClassDetails({
     setIsClassSchedShown(false);
   };
 
-  const handleConfirmAttendance = (sessionId: number) => {
+  const handleConfirmAttendance = (sessionId: string) => {
     confirmSession(sessionId);
     window.location.reload();
   };
@@ -98,7 +98,13 @@ export default function MobileClassDetails({
           />
           <div className="fixed bottom-[73px] z-50 w-full p-[8px]">
             <div className="flex w-full flex-col rounded-[10px] bg-surface_bg_highlight p-[4px]">
-              <MenuItem onClick={session?.id ? () => handleConfirmAttendance(session?.id) : () => {}}>
+              <MenuItem
+                onClick={
+                  session?.id
+                    ? () => handleConfirmAttendance(session?.id)
+                    : () => {}
+                }
+              >
                 Confirm attendance
               </MenuItem>
               <MenuItem onClick={() => {}}>I can't attend</MenuItem>
@@ -145,8 +151,9 @@ export default function MobileClassDetails({
     <div className="absolute inset-0 max-h-screen overflow-y-auto">
       <MobileDetailView
         buttonBar={
-          (session && getSessionStatus(session) === "Pending") ||
-          getSessionStatus(session) === "Online"
+          session &&
+          (getSessionStatus(session) === "Pending" ||
+            getSessionStatus(session) === "Online")
             ? true
             : false
         }

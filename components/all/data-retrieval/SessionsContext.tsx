@@ -15,7 +15,7 @@ interface UserProps {
 }
 
 interface Session {
-  id: number;
+  id: string;
   start_time: string;
   end_time: string;
   max_capacity: number;
@@ -29,24 +29,24 @@ interface Session {
 // context type
 interface InstructorSessionContextType {
   type: "instructor";
-  getSessionStatus: (session) => any;
+  getSessionStatus: (session: Session) => any;
   allSessions: Session[];
   upcomingSessions: Session[];
-  confirmSession: (sessionId) => void;
-  cancelSession: (sessionId) => void;
+  confirmSession: (sessionId: string) => void;
+  cancelSession: (sessionId: string) => void;
 }
 
 interface LearnerSessionContextType {
   type: "learner";
-  getSessionStatus: (session) => any;
+  getSessionStatus: (session: Session) => any;
   allSessions: Session[];
   upcomingSessions: Session[];
-  enrollSession: (sessionId) => void;
-  waitlistSession: (sessionId) => void;
-  unenrollSession: (sessionId) => void;
-  unwaitlistSession: (sessionId) => void;
-  confirmSession: (sessionId) => void;
-  cancelSession: (sessionId) => void;
+  enrollSession: (sessionId: string) => void;
+  waitlistSession: (sessionId: string) => void;
+  unenrollSession: (sessionId: string) => void;
+  unwaitlistSession: (sessionId: string) => void;
+  confirmSession: (sessionId: string) => void;
+  cancelSession: (sessionId: string) => void;
 }
 
 const supabase = createClient();
@@ -83,7 +83,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
   // Example effect to fetch sessions (replace with your actual data fetching logic)
   useEffect(() => {
     // Function to fetch the organization name based on learning_organization_location_id
-    const fetchOrganizationName = async (locationId) => {
+    const fetchOrganizationName = async (locationId: string) => {
       const { data: organization, error: orgError } = await supabase
         .from("heu_learningorganization")
         .select("name")
@@ -101,7 +101,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     };
 
     // Function to fetch the location name based on learning_organization_location_id
-    const fetchLocationName = async (locationId) => {
+    const fetchLocationName = async (locationId: string) => {
       const { data: location, error: locError } = await supabase
         .from("heu_learningorganizationlocation")
         .select("name")
@@ -191,48 +191,65 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       const id = session?.user.id;
 
       const { data: sessions, error } = await supabase
-      .from('heu_session')
-      .select('*')
-      .eq('approved', true)
-      .or(`pending_instructors.cs.{${id}},confirmed_instructors.cs.{${id}},canceled_instructors.cs.{${id}}`);
+        .from("heu_session")
+        .select("*")
+        .eq("approved", true)
+        .or(
+          `pending_instructors.cs.{${id}},confirmed_instructors.cs.{${id}},canceled_instructors.cs.{${id}}`,
+        );
 
-      let sessions_data: { id: any; start_time: any; end_time: any; max_capacity: any; num_enrolled: any; num_waitlist: any; num_confirmed: any; learning_organization_name: any; location_name: any; other_instructors: any; instructor_status: string | undefined; }[] = [];
+      let sessions_data: {
+        id: any;
+        start_time: any;
+        end_time: any;
+        max_capacity: any;
+        num_enrolled: any;
+        num_waitlist: any;
+        num_confirmed: any;
+        learning_organization_name: any;
+        location_name: any;
+        other_instructors: any;
+        instructor_status: string | undefined;
+      }[] = [];
       sessions?.forEach(async (session) => {
         const enrolled = session.enrolled || [];
         const waitlisted = session.waitlisted || [];
         const confirmed = session.confirmed_instructors || [];
-        
 
         // Get other instructor IDs by filtering out the current instructor ID
-        const other_instructor_ids = confirmed.filter(instructor => instructor !== id);
-        
+        const other_instructor_ids = confirmed.filter(
+          (instructor: any) => instructor !== id,
+        );
+
         // Determine the instructor status
         let instructor_status;
         if (session.confirmed_instructors.includes(id)) {
-          instructor_status = 'confirmed';
+          instructor_status = "confirmed";
         } else if (session.pending_instructors.includes(id)) {
-          instructor_status = 'pending';
+          instructor_status = "pending";
         } else if (session.canceled_instructors.includes(id)) {
-          instructor_status = 'canceled';
+          instructor_status = "canceled";
         }
-    
+
         // Push the session data to the array
         sessions_data.push({
-          "id": session.id,
-          "start_time": session.start_time,
-          "end_time": session.end_time,
-          "max_capacity": session.max_capacity,
-          "num_enrolled": enrolled.length,
-          "num_waitlist": waitlisted.length,
-          "num_confirmed": confirmed.length,
-          "learning_organization_name": session.learning_organization.name,
-          "location_name": session.location.name,
-          "other_instructors": other_instructor_ids,
-          "instructor_status": instructor_status
+          id: session.id,
+          start_time: session.start_time,
+          end_time: session.end_time,
+          max_capacity: session.max_capacity,
+          num_enrolled: enrolled.length,
+          num_waitlist: waitlisted.length,
+          num_confirmed: confirmed.length,
+          learning_organization_name: session.learning_organization.name,
+          location_name: session.location.name,
+          other_instructors: other_instructor_ids,
+          instructor_status: instructor_status,
         });
       });
-    
-      sessions_data?.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+
+      sessions_data?.sort(
+        (a, b) => new Date(a.start_time) - new Date(b.start_time),
+      );
       setAllSessions(allSessions);
     };
 
@@ -353,9 +370,9 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     }
   }
 
-  async function cancelSession(sessionId) {
+  async function cancelSession(sessionId: string) {
     if (userRole === "in") {
-     // not fixed yet 
+      // not fixed yet
     } else if (userRole === "st") {
       await handleChange("cancel", sessionId);
     }
@@ -363,97 +380,106 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
   async function handleChange(taskString, sessionId) {
     const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      const user_id = user?.id;
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    const user_id = user?.id;
 
-      const sessionIdInt = parseInt(sessionId, 10); // Convert to number if needed
-      const userIdString = String(user_id); // Ensure user_id is a string
-
+    const sessionIdInt = parseInt(sessionId, 10); // Convert to number if needed
+    const userIdString = String(user_id); // Ensure user_id is a string
 
     switch (taskString) {
-    case "enroll":
-        try{
-          const { data, error } = await supabase.rpc('add_student_to_session', {
+      case "enroll":
+        try {
+          const { data, error } = await supabase.rpc("add_student_to_session", {
             p_session_id: sessionIdInt,
-            p_user_id: userIdString
+            p_user_id: userIdString,
           });
         } catch (err) {
-          console.error('Unexpected error:', err);
-        }  
+          console.error("Unexpected error:", err);
+        }
         break;
-    case "waitlist":
-      try{
-        const { data, error } = await supabase.rpc('add_student_to_waitlist', {
-          p_session_id: sessionIdInt,
-          p_user_id: userIdString
-        });
-      } catch (err) {
-        console.error('Unexpected error:', err);
-      }
-      break;
-    case "unenroll":
-      try {
-        const { data, error } = await supabase.rpc('remove_student_from_session', {
-          p_session_id: sessionIdInt,
-          p_user_id: userIdString
-        });
-      }catch(err){
-        console.error('Unexpected error:', err);
-      }
+      case "waitlist":
+        try {
+          const { data, error } = await supabase.rpc(
+            "add_student_to_waitlist",
+            {
+              p_session_id: sessionIdInt,
+              p_user_id: userIdString,
+            },
+          );
+        } catch (err) {
+          console.error("Unexpected error:", err);
+        }
+        break;
+      case "unenroll":
+        try {
+          const { data, error } = await supabase.rpc(
+            "remove_student_from_session",
+            {
+              p_session_id: sessionIdInt,
+              p_user_id: userIdString,
+            },
+          );
+        } catch (err) {
+          console.error("Unexpected error:", err);
+        }
 
-
-
-      break;
-    case "drop_waitlist":
-      try {   
-        const { data, error } = await supabase.rpc('remove_student_from_waitlist', {
-          p_session_id: sessionIdInt,
-          p_user_id: userIdString
-        });
-      }catch(err){
-        console.error('Unexpected error:', err);
-      }
-      break;
-    case "confirm":
-      try {   
-        const { data, error } = await supabase.rpc('move_student_to_confirmed', {
-          p_session_id: sessionIdInt,
-          p_user_id: userIdString
-        });
-      }catch(err){
-        console.error('Unexpected error:', err);
-      }
-      break;
-    case "cancel":
-      try{
-        const { data, error } = await supabase.rpc('add_student_to_session', {
-          p_session_id: sessionIdInt,
-          p_user_id: userIdString
-        });
-      } catch (err) {
-        console.error('Unexpected error:', err);
-      }  
-      break;
-    default:
-      console.error(`Unknown task: ${taskString}`);
+        break;
+      case "drop_waitlist":
+        try {
+          const { data, error } = await supabase.rpc(
+            "remove_student_from_waitlist",
+            {
+              p_session_id: sessionIdInt,
+              p_user_id: userIdString,
+            },
+          );
+        } catch (err) {
+          console.error("Unexpected error:", err);
+        }
+        break;
+      case "confirm":
+        try {
+          const { data, error } = await supabase.rpc(
+            "move_student_to_confirmed",
+            {
+              p_session_id: sessionIdInt,
+              p_user_id: userIdString,
+            },
+          );
+        } catch (err) {
+          console.error("Unexpected error:", err);
+        }
+        break;
+      case "cancel":
+        try {
+          const { data, error } = await supabase.rpc("add_student_to_session", {
+            p_session_id: sessionIdInt,
+            p_user_id: userIdString,
+          });
+        } catch (err) {
+          console.error("Unexpected error:", err);
+        }
+        break;
+      default:
+        console.error(`Unknown task: ${taskString}`);
     }
   }
 
-  async function enrollSession(sessionId) {
+  async function enrollSession(sessionId: string) {
     await handleChange("enroll", sessionId);
   }
 
-  async function waitlistSession(sessionId) {
+  async function waitlistSession(sessionId: string) {
     await handleChange("waitlist", sessionId);
   }
 
-  async function unenrollSession(sessionId) {
+  async function unenrollSession(sessionId: string) {
     await handleChange("unenroll", sessionId);
   }
 
-  async function unwaitlistSession(sessionId) {
+  async function unwaitlistSession(sessionId: string) {
     await handleChange("drop_waitlist", sessionId);
   }
 

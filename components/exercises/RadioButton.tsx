@@ -1,22 +1,36 @@
+import { forwardRef } from "react";
 import styles from "./RadioButton.module.css";
 
 interface RadioButtonProps {
   label: string;
   className?: string;
   name: string;
+  value?: string;
+  checked?: boolean;
+  onChange?: any;
+  ref?: React.RefObject<HTMLDivElement>;
 }
 
-export default function RadioButton({ label, className = "", name }: RadioButtonProps) {
-  return (
-    <div className={`${className} flex items-center`}>
-      <input
-        name={name}
-        type="radio"
-        className={`appearance-none ${styles.radioButton}`}
-      />
-      <label className="text-typeface_primary text-body-regular-cap-height">
-        {label}
-      </label>
-    </div>
-  );
-}
+const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
+  ({ label, className = "", name, value, checked, onChange }, ref) => {
+    return (
+      <div ref={ref}>
+        <label
+          className={`${className} flex cursor-pointer items-center text-typeface_primary text-body-regular-cap-height`}
+        >
+          <input
+            name={name}
+            type="radio"
+            value={value}
+            checked={checked}
+            className={`appearance-none ${styles.radioButton}`}
+            onChange={onChange}
+          />
+          <span>{label}</span>
+        </label>
+      </div>
+    );
+  },
+);
+
+export default RadioButton;

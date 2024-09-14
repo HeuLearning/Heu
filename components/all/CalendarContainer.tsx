@@ -10,8 +10,8 @@ import styles from "./popups/SidePopUp.module.css";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 
 interface CalendarContainerProps {
-  activeSessionId: number | null;
-  setActiveSessionId: (id: number | null) => void;
+  activeSessionId: string | null;
+  setActiveSessionId: (id: string | null) => void;
 }
 
 export default function CalendarContainer({
