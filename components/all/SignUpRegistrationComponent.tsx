@@ -3,6 +3,7 @@ import Divider from "./Divider";
 import Textbox from "../exercises/Textbox";
 import Button from "./buttons/Button";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { signUpAction } from "@/app/actions";
 
 interface SignUpRegistrationComponent {
   className?: string;
@@ -70,16 +71,15 @@ export default function SignUpRegistrationComponent({
     phoneNumber: "",
     email: "",
     role: "",
-    hasPassword: 1,
+    passwordConfirmed: false,
   });
 
   let localEmail = formDataRef.current.email;
   let localFirstName = formDataRef.current.firstName;
   let localLastName = formDataRef.current.lastName;
   let localPhoneNumber = formDataRef.current.phoneNumber;
-  let localHasPassword = formDataRef.current.hasPassword;
 
-  console.log(localEmail);
+  console.log(formDataRef.current);
 
   const emailRef = useRef<HTMLDivElement>(null);
   const firstNameRef = useRef<HTMLDivElement>(null);
@@ -87,6 +87,8 @@ export default function SignUpRegistrationComponent({
   const phoneNumberRef = useRef<HTMLDivElement>(null);
   const learnerRef = useRef<HTMLDivElement>(null);
   const instructorRef = useRef<HTMLDivElement>(null);
+
+  const passwordRef = useRef<{ value: string }>({ value: "" });
 
   const backgroundRef = useRef<HTMLDivElement>(null);
 
@@ -156,27 +158,35 @@ export default function SignUpRegistrationComponent({
 
   const updateFormData = () => {
     formDataRef.current = {
+      ...formDataRef.current,
       email: localEmail,
       firstName: localFirstName,
       lastName: localLastName,
       phoneNumber: localPhoneNumber,
       role,
-      hasPassword: localHasPassword,
     };
     debouncedCheckFormValidity();
   };
 
   const debouncedCheckFormValidity = useCallback(
     debounce(() => {
-      const { email, firstName, lastName, phoneNumber, role, hasPassword } =
-        formDataRef.current;
+      console.log(isFormValid);
+      const {
+        email,
+        firstName,
+        lastName,
+        phoneNumber,
+        role,
+        passwordConfirmed,
+      } = formDataRef.current;
       const newValidity = Boolean(
         email &&
           firstName &&
           lastName &&
           phoneNumber &&
           role &&
-          hasPassword == 0,
+          passwordConfirmed &&
+          passwordRef.current.value,
       );
       if (newValidity !== isFormValid) {
         console.log(formDataRef.current);
@@ -388,9 +398,9 @@ export default function SignUpRegistrationComponent({
                 name="password"
                 size="small"
                 width="204"
-                value=""
+                value={passwordRef.current.value}
                 onChange={(value: string) => {
-                  localHasPassword = 5;
+                  passwordRef.current.value = value;
                   updateFormData();
                 }}
                 placeholder="New Password*"
@@ -401,10 +411,10 @@ export default function SignUpRegistrationComponent({
                 name="confirmPassword"
                 size="small"
                 width="204"
-                value=""
+                value={passwordRef.current.value}
                 onChange={(value: string) => {
-                  localHasPassword *= 0;
-                  console.log(localHasPassword);
+                  formDataRef.current.passwordConfirmed =
+                    value === passwordRef.current.value;
                   updateFormData();
                 }}
                 placeholder="Retype Password*"
@@ -443,7 +453,7 @@ export default function SignUpRegistrationComponent({
           <Button className="button-secondary" onClick={handleBack}>
             Back
           </Button>
-          <Button className="button-primary" onClick={handleContinueSignUp}>
+          <Button className="button-primary" onClick={handleFinishSignUp}>
             Finish Signing Up
           </Button>
         </div>
@@ -456,8 +466,32 @@ export default function SignUpRegistrationComponent({
     setSignUpStage(Math.min(signUpStage + 1, 2));
   };
 
+  const handleFinishSignUp = () => {
+    const { passwordConfirmed, ...restOfFormData } = formDataRef.current;
+    const finalFormData = {
+      ...restOfFormData,
+      password: passwordRef.current.value,
+    };
+    // Create a new FormData instance
+    const formData = new FormData();
+
+    // Append each field from finalFormData to the FormData object
+    Object.entries(finalFormData).forEach(([key, value]) => {
+      formData.append(key, value as string);
+    });
+
+    signUpAction(formData);
+
+    console.log("final form data");
+    console.log(finalFormData);
+    passwordRef.current.value = "";
+    formDataRef.current.passwordConfirmed = false;
+  };
+
   const handleBack = () => {
     updateFormData();
+    passwordRef.current.value = "";
+    formDataRef.current.passwordConfirmed = false;
     setSignUpStage(Math.max(signUpStage - 1, 0));
   };
 
