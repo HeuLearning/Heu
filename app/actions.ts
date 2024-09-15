@@ -12,6 +12,11 @@ import { setCookie } from "nookies";
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
+  const phoneNumber = formData.get("phoneNumber") as string;
+  const firstName = formData.get("firstName") as string;
+  const lastName = formData.get("lastName") as string;
+  const role = formData.get("role") as string;
+
   const supabase = createClient();
   const origin = headers().get("origin");
 
@@ -43,6 +48,7 @@ export const signUpAction = async (formData: FormData) => {
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+
   const supabase = createClient();
 
   const { data, error } = await supabase.auth.signInWithPassword({

@@ -12,7 +12,7 @@ export default function SignUp({ searchParams }: { searchParams: Message }) {
   const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
-    async function checkSignedIn() {
+    const checkSignedIn = async () => {
       const supabase = createClient();
 
       const {
@@ -41,7 +41,7 @@ export default function SignUp({ searchParams }: { searchParams: Message }) {
         case "st":
           return router.push("/learner/dashboard");
       }
-    }
+    };
 
     checkSignedIn();
   }, []);
