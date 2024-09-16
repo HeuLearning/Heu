@@ -230,6 +230,14 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         } else if (session.canceled_instructors.includes(id)) {
           instructor_status = "canceled";
         }
+        
+        const organizationName = await fetchOrganizationName(
+          session.learning_organization_location_id,
+        );
+
+        const locationName = await fetchLocationName(
+          session.learning_organization_location_id,
+        );
 
         // Push the session data to the array
         sessions_data.push({
@@ -240,14 +248,17 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           num_enrolled: enrolled.length,
           num_waitlist: waitlisted.length,
           num_confirmed: confirmed.length,
-          learning_organization_name: session.learning_organization.name,
-          location_name: session.location.name,
+          learning_organization_name: organizationName,
+          location_name: locationName,
           other_instructors: other_instructor_ids,
           instructor_status: instructor_status,
         });
       });
 
-      sessions_data?.sort(
+      console.log("SESISON DATA:")
+      console.log(sessions_data);
+
+      const allSessions = sessions_data?.sort(
         (a, b) => new Date(a.start_time) - new Date(b.start_time),
       );
       setAllSessions(allSessions);
