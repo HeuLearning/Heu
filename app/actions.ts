@@ -32,6 +32,19 @@ export const signUpAction = async (formData: FormData) => {
     },
   });
 
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = await supabase.from("users").insert([
+    {
+      id: user?.id,
+      role: user?.user_metadata.role,
+      email: email,
+      phone_number: phoneNumber,
+      first_name: firstName,
+      last_name: lastName,
+    },
+  ]);
+
+
   if (error) {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
