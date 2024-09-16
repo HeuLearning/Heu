@@ -49,7 +49,7 @@ const InstructorDashboard = () => {
         router.push("/admin/dashboard");
       } else if (roleType?.role === "st") {
         router.push("/learner/dashboard");
-      } else if (roleType?.role !== "st") {
+      } else if (roleType?.role !== "in") {
         router.push("/sign-in");
       }
 
