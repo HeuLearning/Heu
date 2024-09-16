@@ -160,7 +160,7 @@ export default function MobileClassDetails({
         backgroundColor="bg-surface_bg_highlight"
         className="px-[16px] pt-[16px]"
         headerContent={
-          <div className="relative flex h-[44px] w-full items-center justify-center">
+          <div className="rits fine uelative flex h-[44px] w-full items-center justify-center">
             <h3 className="text-typeface_primary text-body-medium-mobile">
               Class details
             </h3>
