@@ -33,13 +33,18 @@ export default function SignUp({ searchParams }: { searchParams: Message }) {
         .eq("user_id", user.id)
         .single();
 
-      switch (rolesData?.role) {
-        case "ad":
-          return router.push("/admin/dashboard");
-        case "in":
-          return router.push("/instructor/dashboard");
-        case "st":
-          return router.push("/learner/dashboard");
+      if (rolesData) {
+        switch (rolesData?.role) {
+          case "ad":
+            return router.push("/admin/dashboard");
+          case "in":
+            return router.push("/instructor/dashboard");
+          case "st":
+            return router.push("/learner/dashboard");
+        }
+      } else {
+        setIsSignedIn(false);
+        setIsLoading(false);
       }
     };
 
