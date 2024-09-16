@@ -139,7 +139,7 @@ export default function ClassModeContainer({
   useEffect(() => {
     const findSession = () => {
       if (upcomingSessions && sessionId) {
-        const found = upcomingSessions.find((s) => s.id === sessionId);
+        const found = upcomingSessions.find((s) => String(s.id) === sessionId);
         setSession(found || null);
         setIsLoading(false);
       }
@@ -259,6 +259,9 @@ export default function ClassModeContainer({
       height: "auto",
     });
   };
+
+  console.log("LESSON PLAN!!!!!!!!!!!!!!!!!");
+  console.log(lessonPlan);
 
   const displayPhaseLineup = (phaseId: string) => {
     showPopUp({
