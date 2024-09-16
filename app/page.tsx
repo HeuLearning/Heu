@@ -13,15 +13,50 @@ export default function Index() {
 
   const supabase = createClient();
 
-
   useEffect(() => {
     const checkUserState = async () => {
-        router.push("/sign-in");
-        return;
-    }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+
+      if (!session) {
+        return router.push("/sign-in");
+      }
+
+      const user = session.user;
+      // Fetch user role
+      const { data: rolesData, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user?.id)
+        .single();
+
+      if (rolesError || !rolesData || !rolesData.role) {
+        console.error("Error fetching roles:", rolesError);
+        return router.push("/sign-up");
+      }
+
+      const validRoles = ["ad", "in", "st"];
+      if (!validRoles.includes(rolesData.role)) {
+        return router.push("/sign-in");
+      }
+
+      // Redirect based on the user's role
+      switch (rolesData.role) {
+        case "ad":
+          return router.push("/admin/dashboard");
+        case "in":
+          return router.push("/instructor/dashboard");
+        case "st":
+          return router.push("/learner/dashboard");
+        default:
+          return router.push("/sing-in"); // Redirect to an error page or handle appropriately
+      }
+    };
 
     checkUserState();
-  }, [router]);
+  }, [router, supabase]);
 
   return (
     <>

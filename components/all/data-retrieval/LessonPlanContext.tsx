@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useSessions } from "./SessionsContext";
 import { format } from "date-fns";
+import { createClient } from "@/utils/supabase/client";
 
 interface LessonPlan {
   session_id: string;
@@ -65,6 +66,9 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   const { upcomingSessions } = useSessions();
   const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
 
+  const supabase = createClient();
+
+
   useEffect(() => {
     const fetchPhases = async () => {
       if (!sessionId) {
@@ -76,39 +80,63 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const options = {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        };
+        // Fetch session data
+        let { data: session, error: sessionError } = await supabase
+          .from('heu_session')
+          .select('*, confirmed_instructors(id), lesson_plan(*)')
+          .eq('id', sessionId)
+          .single();
 
-        const response = await fetch(
-          `http://localhost:8000/api/instructor-sessions/${sessionId}/phases`,
-          options,
-        );
-
-        if (response.status === 404) {
-          setLessonPlan(null);
-          setError("lesson plan not found");
-          setIsLoading(false);
-          return;
-        } else if (!response.ok) {
-          setLessonPlan(null);
-          setIsLoading(false);
-          return;
+        if (sessionError) {
+          throw new Error('Session not found');
         }
 
-        const lessonPlan = await response.json();
+        // Check if the user is an instructor for this session
+        const user = await supabase.auth.getUser();
+        const userId = user.data?.user?.id;
+        if (!userId || !session.confirmed_instructors.some(instructor => instructor.id === userId)) {
+          throw new Error('User is not an instructor for this session');
+        }
 
-        setLessonPlan(lessonPlan);
+        // Fetch lesson plan and associated phases
+        let { data: phases, error: phasesError } = await supabase
+          .from('heu_lessonplan_phases')
+          .select('*, modules(*)')
+          .eq('lessonplan_id', session.lesson_plan_id)
+          .order('order', { ascending: true });
+
+        if (phasesError) {
+          throw new Error('No lesson plan associated with this session');
+        }
+
+        // Process the phases and modules data
+        const phasesData = await Promise.all(phases.map(async phase => {
+          const modulesData = phase.modules.map(module => ({
+            id: module.id,
+            name: module.name,
+            description: module.description,
+            suggested_duration_seconds: module.suggested_duration_seconds,
+          }));
+          const phaseDuration = modulesData.reduce((sum, module) => sum + module.suggested_duration_seconds, 0);
+          return {
+            id: phase.id,
+            name: phase.name,
+            modules: modulesData,
+            phase_duration_seconds: phaseDuration,
+            type: phase.type,
+            description: phase.description,
+          };
+        }));
+
+        setLessonPlan({
+          session_id: sessionId,
+          lesson_plan_id: session.lesson_plan_id,
+          lesson_plan_name: session.lesson_plan.name,
+          lesson_plan_description: session.lesson_plan.description,
+          phases: phasesData,
+        });
       } catch (e) {
-        setError(
-          `Failed to fetch phases: ${
-            e instanceof Error ? e.message : String(e)
-          }`,
-        );
+        setError(`Failed to fetch phases: ${e.message}`);
       } finally {
         setIsLoading(false);
       }
