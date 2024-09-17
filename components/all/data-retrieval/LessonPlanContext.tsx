@@ -70,80 +70,152 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
   useEffect(() => {
     const fetchPhases = async () => {
+      console.log("FETCHING PHASES:");
+
       if (!sessionId) {
         setLessonPlan(null);
         setIsLoading(false);
         setError("No session ID provided");
         return;
       }
+
       setIsLoading(true);
       setError(null);
       try {
         // Fetch session data
-        let { data: session, error: sessionError } = await supabase
-          .from("heu_session")
-          .select("*, confirmed_instructors(id), lesson_plan(*)")
-          .eq("id", sessionId)
-          .single();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+        
+      const user_id = session?.user.id;
+
+
+      const { data: sessions, error: sessionError } = await supabase
+      .from("heu_session")
+      .select("lesson_plan_id")
+      .eq("approved", true)
+      .eq("id", sessionId)
+      .or(
+        `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`
+      );
+
+      console.log("Lesson Plans here:")
+      console.log(sessions);
 
         if (sessionError) {
           throw new Error("Session not found");
         }
+        
+        const lessonPlanId = sessions[0].lesson_plan_id;
 
-        // Check if the user is an instructor for this session
-        const user = await supabase.auth.getUser();
-        const userId = user.data?.user?.id;
-        if (
-          !userId ||
-          !session.confirmed_instructors.some(
-            (instructor) => instructor.id === userId,
-          )
-        ) {
-          throw new Error("User is not an instructor for this session");
-        }
+        console.log(lessonPlanId)
 
-        // Fetch lesson plan and associated phases
-        let { data: phases, error: phasesError } = await supabase
-          .from("heu_lessonplan_phases")
-          .select("*, modules(*)")
-          .eq("lessonplan_id", session.lesson_plan_id)
-          .order("order", { ascending: true });
+        const { data: lessonPlan, error: lessonPlanError } = await supabase
+          .from("heu_lessonplan")
+          .select("*")
+          .eq("id", lessonPlanId)
+          .single();
 
-        if (phasesError) {
+        
+        console.log(lessonPlan);
+          
+        if (lessonPlanError) {
           throw new Error("No lesson plan associated with this session");
         }
 
+
+        const { data: phase_ids, error: phasesError } = await supabase
+        .from("heu_lessonplan_phases")
+        .select("*")
+        .eq("lessonplan_id", lessonPlanId)
+
+        console.log("PHASE IDS:")
+        console.log(phase_ids);
+        
+        const { data: phaseOrderData, error: phaseOrderError } = await supabase
+        .from("heu_phasecounter")
+        .select("*")
+        .in("phase_id", phase_ids.map((phase) => phase.phasecounter_id));
+
+
         // Process the phases and modules data
         const phasesData = await Promise.all(
-          phases.map(async (phase) => {
-            const modulesData = phase.modules.map((module) => ({
+          phase_ids.map(async (phase) => {
+            // Query heu_phase table based on phasecounter_id
+            const { data: phaseData, error: phaseError } = await supabase
+              .from("heu_phase")
+              .select("*")
+              .eq("id", phase.phasecounter_id)
+              .single(); 
+
+            if (phaseError) {
+              console.error(`Error fetching phase ${phase.phasecounter_id}:`, phaseError);
+              return null; // Skip this phase if error occurs
+            }
+      
+            // Query heu_module table to get the modules for the phase
+            const { data: modules, error: modulesError } = await supabase
+              .from("heu_module")
+              .select("*")
+              .eq("id", phase.phasecounter_id);
+            
+            if (modulesError) {
+              console.error(`Error fetching modules for phase ${phase.phasecounter_id}:`, modulesError);
+              return null; // Skip this phase if there's an error
+            }
+      
+            // Build modulesData with the required parameters
+            const modulesData = modules.map((module) => ({
               id: module.id,
               name: module.name,
               description: module.description,
               suggested_duration_seconds: module.suggested_duration_seconds,
             }));
+      
+            // Calculate total duration for the phase
             const phaseDuration = modulesData.reduce(
               (sum, module) => sum + module.suggested_duration_seconds,
-              0,
+              0
             );
+            
+
+
+
+            // Return the structured phase data
             return {
-              id: phase.id,
-              name: phase.name,
+              id: phaseData.id,
+              name: phaseData.name,
               modules: modulesData,
               phase_duration_seconds: phaseDuration,
-              type: phase.type,
-              description: phase.description,
+              type: phaseData.type,
+              description: phaseData.description,
+              order: phaseOrderData.find((order) => order.phase_id === phase.phasecounter_id)?.order,
             };
-          }),
+          })
         );
+
+        const validPhasesData = phasesData.filter((phase) => phase !== null);
+        validPhasesData.sort((a, b) => a.order - b.order);
+
+        
+
+        console.log("FINAL SESSION DATA:")
+        console.log({
+          session_id: sessionId,
+          lesson_plan_id: lessonPlan.id,
+          lesson_plan_name: lessonPlan.name,
+          lesson_plan_description: lessonPlan.description,
+          phases: phasesData,
+        });
 
         setLessonPlan({
           session_id: sessionId,
-          lesson_plan_id: session.lesson_plan_id,
-          lesson_plan_name: session.lesson_plan.name,
-          lesson_plan_description: session.lesson_plan.description,
-          phases: phasesData,
+          lesson_plan_id: lessonPlan.id,
+          lesson_plan_name: lessonPlan.name,
+          lesson_plan_description: lessonPlan.description,
+          phases: validPhasesData,
         });
+
       } catch (e) {
         setError(`Failed to fetch phases: ${e.message}`);
       } finally {

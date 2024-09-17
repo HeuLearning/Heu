@@ -54,8 +54,6 @@ export default function SessionDetailContent({
     endDate = new Date(session.end_time);
   }
 
-  console.log(lessonPlan);
-
   const differenceInDaysToStart = Math.round(
     differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000),
   );
