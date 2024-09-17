@@ -271,8 +271,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         return endTime > new Date();
       })
     : [];
-
-  console.log({ ...allSessions });
+    
 
   // instructor session statuses: Confirmed, Online, Attended, Canceled
   // learner session statuses: Available, Enrolled, Waitlisted, Confirmed

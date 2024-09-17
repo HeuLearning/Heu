@@ -260,9 +260,6 @@ export default function ClassModeContainer({
     });
   };
 
-  console.log("LESSON PLAN!!!!!!!!!!!!!!!!!");
-  console.log(lessonPlan);
-
   const displayPhaseLineup = (phaseId: string) => {
     showPopUp({
       id: "phase-lineup-popup",
