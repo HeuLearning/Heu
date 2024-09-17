@@ -83,32 +83,31 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
       setError(null);
       try {
         // Fetch session data
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-        
-      const user_id = session?.user.id;
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
+        const user_id = session?.user.id;
 
-      const { data: sessions, error: sessionError } = await supabase
-      .from("heu_session")
-      .select("lesson_plan_id")
-      .eq("approved", true)
-      .eq("id", sessionId)
-      .or(
-        `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`
-      );
+        const { data: sessions, error: sessionError } = await supabase
+          .from("heu_session")
+          .select("lesson_plan_id")
+          .eq("approved", true)
+          .eq("id", sessionId)
+          .or(
+            `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
+          );
 
-      console.log("Lesson Plans here:")
-      console.log(sessions);
+        console.log("Lesson Plans here:");
+        console.log(sessions);
 
         if (sessionError) {
           throw new Error("Session not found");
         }
-        
+
         const lessonPlanId = sessions[0].lesson_plan_id;
 
-        console.log(lessonPlanId)
+        console.log(lessonPlanId);
 
         const { data: lessonPlan, error: lessonPlanError } = await supabase
           .from("heu_lessonplan")
@@ -116,27 +115,27 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
           .eq("id", lessonPlanId)
           .single();
 
-        
         console.log(lessonPlan);
-          
+
         if (lessonPlanError) {
           throw new Error("No lesson plan associated with this session");
         }
 
-
         const { data: phase_ids, error: phasesError } = await supabase
-        .from("heu_lessonplan_phases")
-        .select("*")
-        .eq("lessonplan_id", lessonPlanId)
+          .from("heu_lessonplan_phases")
+          .select("*")
+          .eq("lessonplan_id", lessonPlanId);
 
-        console.log("PHASE IDS:")
+        console.log("PHASE IDS:");
         console.log(phase_ids);
-        
-        const { data: phaseOrderData, error: phaseOrderError } = await supabase
-        .from("heu_phasecounter")
-        .select("*")
-        .in("phase_id", phase_ids.map((phase) => phase.phasecounter_id));
 
+        const { data: phaseOrderData, error: phaseOrderError } = await supabase
+          .from("heu_phasecounter")
+          .select("*")
+          .in(
+            "phase_id",
+            phase_ids.map((phase) => phase.phasecounter_id),
+          );
 
         // Process the phases and modules data
         const phasesData = await Promise.all(
@@ -146,24 +145,30 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
               .from("heu_phase")
               .select("*")
               .eq("id", phase.phasecounter_id)
-              .single(); 
+              .single();
 
             if (phaseError) {
-              console.error(`Error fetching phase ${phase.phasecounter_id}:`, phaseError);
+              console.error(
+                `Error fetching phase ${phase.phasecounter_id}:`,
+                phaseError,
+              );
               return null; // Skip this phase if error occurs
             }
-      
+
             // Query heu_module table to get the modules for the phase
             const { data: modules, error: modulesError } = await supabase
               .from("heu_module")
               .select("*")
               .eq("id", phase.phasecounter_id);
-            
+
             if (modulesError) {
-              console.error(`Error fetching modules for phase ${phase.phasecounter_id}:`, modulesError);
+              console.error(
+                `Error fetching modules for phase ${phase.phasecounter_id}:`,
+                modulesError,
+              );
               return null; // Skip this phase if there's an error
             }
-      
+
             // Build modulesData with the required parameters
             const modulesData = modules.map((module) => ({
               id: module.id,
@@ -171,15 +176,12 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
               description: module.description,
               suggested_duration_seconds: module.suggested_duration_seconds,
             }));
-      
+
             // Calculate total duration for the phase
             const phaseDuration = modulesData.reduce(
               (sum, module) => sum + module.suggested_duration_seconds,
-              0
+              0,
             );
-            
-
-
 
             // Return the structured phase data
             return {
@@ -189,17 +191,17 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
               phase_duration_seconds: phaseDuration,
               type: phaseData.type,
               description: phaseData.description,
-              order: phaseOrderData.find((order) => order.phase_id === phase.phasecounter_id)?.order,
+              order: phaseOrderData.find(
+                (order) => order.phase_id === phase.phasecounter_id,
+              )?.order,
             };
-          })
+          }),
         );
 
         const validPhasesData = phasesData.filter((phase) => phase !== null);
         validPhasesData.sort((a, b) => a.order - b.order);
 
-        
-
-        console.log("FINAL SESSION DATA:")
+        console.log("FINAL SESSION DATA:");
         console.log({
           session_id: sessionId,
           lesson_plan_id: lessonPlan.id,
@@ -215,7 +217,6 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
           lesson_plan_description: lessonPlan.description,
           phases: validPhasesData,
         });
-
       } catch (e) {
         setError(`Failed to fetch phases: ${e.message}`);
       } finally {

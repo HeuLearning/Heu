@@ -105,11 +105,14 @@ export default function ClassModeContainer({
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
-  const { phases, getModules, lessonPlan, phaseTimes } = useLessonPlan();
+  const { phases, getModules, lessonPlan, phaseTimes, isLoading } =
+    useLessonPlan();
 
-  const [activePhaseId, setActivePhaseId] = useState<string>(
-    phases.length > 0 ? phases[0].id : "",
-  );
+  if (isLoading) {
+    return <div></div>; // or loading screen here
+  }
+
+  const [activePhaseId, setActivePhaseId] = useState<string>(phases[0].id);
   const [showInitialClassPage, setShowInitialClassPage] = useState(true);
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
   const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
@@ -117,7 +120,7 @@ export default function ClassModeContainer({
 
   const { upcomingSessions } = useSessions();
   const [session, setSession] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
 
   const { hidePopUp, showPopUp } = usePopUp();
 
@@ -141,7 +144,7 @@ export default function ClassModeContainer({
       if (upcomingSessions && sessionId) {
         const found = upcomingSessions.find((s) => String(s.id) === sessionId);
         setSession(found || null);
-        setIsLoading(false);
+        setIsSessionLoading(false);
       }
     };
 
@@ -387,7 +390,7 @@ export default function ClassModeContainer({
     learners,
   };
 
-  if (!isLoading) {
+  if (!isSessionLoading) {
     if (isMobile) return <MobileClassMode {...sharedProps} />;
     else
       return (
