@@ -21,7 +21,7 @@
     "geist": "^1.2.1",
     "lru-cache": "^11.0.1",
     "lucide-react": "^0.436.0",
-    "next": "^14.2.9",
+    "next": "^14.2.12",
     "next-themes": "^0.3.0",
     "nookies": "^2.5.2",
     "react": "18.2.0",
