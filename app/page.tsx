@@ -43,7 +43,7 @@ export default function Index() {
       }
 
       // Redirect based on the user's role
-      switch (rolesData.role) {
+      switch (rolesData?.role) {
         case "ad":
           return router.push("/admin/dashboard");
         case "in":
