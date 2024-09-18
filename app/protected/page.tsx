@@ -25,19 +25,42 @@ export default async function ProtectedPage() {
     .eq("user_id", user.id)
     .single();
 
+
   if (rolesError) {
     console.error("Error fetching roles:", rolesError);
-    return redirect("/role-sing-up"); // Redirect to an error page or handle it appropriately
+    console.log(user.id);
+
+    const { data: existingUser, error: fetchError } = await supabase
+    .from('user_roles')
+    .select('id')
+    .eq('email', user.email)
+    .single();
+
+    console.log("EXISTING USER")
+    console.log(user.email)
+
+    if (existingUser) {
+      const { data: updateData, error: updateError } = await supabase
+      .from('user_roles')
+      .update({ user_id: user.id })
+      .eq('email', user.email);
+
+      console.log(updateError)
+  
+    }
+
+
   }
+
+
 
   const validRoles = ["ad", "in", "st"]; // Replace with your valid roles
   if (rolesData?.role == null || !validRoles.includes(rolesData.role)) {
-    console.log("test");
-    return redirect("/role-sign-up"); // Redirect to the role sign-up page
+    console.log("PROBLEM 1");
   }
 
   // Redirect based on the user's role
-  switch (rolesData.role) {
+  switch (rolesData?.role) {
     case "ad":
       return redirect("/admin/dashboard");
     case "in":
@@ -45,7 +68,8 @@ export default async function ProtectedPage() {
     case "st":
       return redirect("/learner/dashboard");
     default:
-      return redirect("/role-sing-up"); // Redirect to an error page or handle it appropriately
+
+      return redirect("/sign-in"); // Redirect to an error page or handle it appropriately
   }
 
   // Fallback content (should not reach here due to redirects)

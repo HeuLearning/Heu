@@ -32,17 +32,17 @@ export const signUpAction = async (formData: FormData) => {
     },
   });
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = await supabase.from("users").insert([
-    {
-      id: user?.id,
-      role: user?.user_metadata.role,
-      email: email,
-      phone_number: phoneNumber,
-      first_name: firstName,
-      last_name: lastName,
-    },
-  ]);
+  const { data } = await supabase
+    .from('user_roles')
+    .insert([
+      {
+        email: email,
+        phone_number: phoneNumber,
+        first_name: firstName,
+        last_name: lastName,
+        role: role
+      }
+    ]);
 
 
   if (error) {
@@ -105,8 +105,7 @@ export const signInAction = async (formData: FormData) => {
     case "st":
       return redirect("/learner/dashboard");
     default:
-      console.log(rolesData?.role);
-      return redirect("/role-sign-up"); // Redirect to role sign up
+      console.log("PROBLEM2")
   }
 };
 

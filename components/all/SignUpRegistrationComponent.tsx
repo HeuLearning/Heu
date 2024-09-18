@@ -97,65 +97,6 @@ export default function SignUpRegistrationComponent({
     return true;
   };
 
-  // const checkFormDetails = () => {
-  //   console.log(localEmail);
-  //   if (
-  //     role === "" ||
-  //     localEmail === "" ||
-  //     localFirstName === "" ||
-  //     localLastName === "" ||
-  //     localPhoneNumber === ""
-  //   ) {
-  //     return false;
-  //   } else return true;
-  // };
-
-  // useEffect(() => {
-  //   const handleClickOutside = (event: PointerEvent) => {
-  //     console.log("IAOWEJAWEIOFJOAJIWEOJF");
-  //     console.log(localEmail);
-
-  //     if (
-  //       backgroundRef.current &&
-  //       backgroundRef.current.contains(event.target as Node)
-  //     ) {
-  //       const target = event.target as HTMLElement;
-
-  //       // Check if the clicked element is an action item
-  //       const isActionItem =
-  //         target.tagName === "BUTTON" ||
-  //         target.tagName === "INPUT" ||
-  //         target.tagName === "LABEL" ||
-  //         target.closest("button") ||
-  //         target.closest("input") ||
-  //         target.closest("label");
-
-  //       if (!isActionItem) {
-  //         console.log("clicked on background");
-  //         console.log(localEmail);
-  //         updateFormData();
-  //       }
-  //     }
-  //   };
-
-  //   document.addEventListener("pointerdown", handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener("pointerdown", handleClickOutside);
-  //   };
-  // }, []);
-
-  // const updateFormData = () => {
-  //   console.log("updating form data");
-  //   console.log(localEmail);
-  //   const updatedFormData = {
-  //     email: localEmail,
-  //     firstName: localFirstName,
-  //     lastName: localLastName,
-  //     phoneNumber: localPhoneNumber,
-  //   };
-  //   setFormData({ ...formData, ...updatedFormData });
-  // };
-
   const updateFormData = () => {
     formDataRef.current = {
       ...formDataRef.current,
@@ -479,6 +420,7 @@ export default function SignUpRegistrationComponent({
     Object.entries(finalFormData).forEach(([key, value]) => {
       formData.append(key, value as string);
     });
+
 
     signUpAction(formData);
 
