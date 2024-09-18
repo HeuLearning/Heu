@@ -21,10 +21,7 @@ import MobileClassMode from "../mobile/MobileClassMode";
 import Badge from "../Badge";
 import { createClient } from "@/utils/supabase/client";
 
-
-
-let learners: any[] = [
-];
+let learners: any[] = [];
 
 interface Learner {
   id: number;
@@ -37,11 +34,12 @@ interface ClassModeContainerProps {
 }
 
 const supabase = createClient();
-const { data: { user } } = await supabase.auth.getUser()
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
-console.log("USER HERE")
+console.log("USER HERE");
 console.log(user?.email);
-
 
 export default function ClassModeContainer({
   sessionId,
@@ -64,11 +62,10 @@ export default function ClassModeContainer({
   const [classStarted, setClassStarted] = useState(false);
   const [learners, setLearners] = useState<Learner[]>([]);
 
-  //WS 
+  //WS
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>("");
   const [connected, setConnected] = useState<boolean>(false);
-
 
   const { upcomingSessions } = useSessions();
   const [session, setSession] = useState<any>(null);
@@ -91,7 +88,6 @@ export default function ClassModeContainer({
     // Handle the case where the element is not found
   }
 
-
   useEffect(() => {
     const findSession = () => {
       if (upcomingSessions && sessionId) {
@@ -110,12 +106,11 @@ export default function ClassModeContainer({
 
   useEffect(() => {
     return () => {
-        if (ws) {
-            ws.close();
-        }
+      if (ws) {
+        ws.close();
+      }
     };
-}, [ws]);
-
+  }, [ws]);
 
   const controls = useStopwatchControls();
   const { stopTimer, startTimer, lapTimer, resetTimer, setElapsedTime } =
@@ -187,57 +182,60 @@ export default function ClassModeContainer({
     setTotalElapsedTime([0]);
     setClassStarted(false);
   };
-  
 
   const handleStartClass = () => {
     setShowInitialClassPage(false);
     if (!classStarted) {
-        startTimer();
+      startTimer();
     }
 
-    const websocket = new WebSocket('ws://localhost:8080');
+    const websocket = new WebSocket("ws://localhost:8080");
 
-    const learner = { id: Date.now(), name: user?.email || 'Unknown', status: 'In class' };
+    const learner = {
+      id: Date.now(),
+      name: user?.email || "Unknown",
+      status: "In class",
+    };
 
     websocket.onopen = () => {
-        console.log('Connected to the WebSocket server');
-        setConnected(true);
-        
-        // Notify server of new learner
-        websocket.send(JSON.stringify({ type: 'join', learner }));
+      console.log("Connected to the WebSocket server");
+      setConnected(true);
 
-        // Update local state
-        setLearners(prevLearners => [...prevLearners, learner]);
+      // Notify server of new learner
+      websocket.send(JSON.stringify({ type: "join", learner }));
+
+      // Update local state
+      setLearners((prevLearners) => [...prevLearners, learner]);
     };
 
     websocket.onmessage = (event) => {
-        console.log('Message from server:', event.data);
-        setMessage(event.data);
-        
-        // Optionally update learners based on server messages
-        // Example: If the server sends an update about learners
-        try {
-            const parsedData = JSON.parse(event.data);
-            if (parsedData.type === 'updateLearners') {
-                setLearners(parsedData.learners);
-            }
-        } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+      console.log("Message from server:", event.data);
+      setMessage(event.data);
+
+      // Optionally update learners based on server messages
+      // Example: If the server sends an update about learners
+      try {
+        const parsedData = JSON.parse(event.data);
+        if (parsedData.type === "updateLearners") {
+          setLearners(parsedData.learners);
         }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
     };
 
     websocket.onclose = () => {
-        console.log('Disconnected from the WebSocket server');
-        setConnected(false);
+      console.log("Disconnected from the WebSocket server");
+      setConnected(false);
     };
 
     websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      console.error("WebSocket error:", error);
     };
 
     setWs(websocket);
     setClassStarted(true);
-};
+  };
 
   const handleShowLearners = () => {
     showPopUp({
@@ -267,8 +265,6 @@ export default function ClassModeContainer({
       height: "auto",
     });
   };
-
-
 
   const displayPhaseLineup = (phaseId: string) => {
     showPopUp({
@@ -465,6 +461,9 @@ export default function ClassModeContainer({
                     phases={phases}
                     phaseTimes={phaseTimes}
                     activePhase={activePhase}
+                    activeModule={activeModule}
+                    activeModuleIndex={activeModuleIndex}
+                    totalElapsedTime={totalElapsedTime}
                   />
                 </div>
                 <ClassDetailsContainer lessonPlan={lessonPlan} />
