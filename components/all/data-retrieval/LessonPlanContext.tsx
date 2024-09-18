@@ -84,7 +84,9 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
       try {
         // Fetch session data
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         const user_id = session?.user.id;
 
         // GET SESSIONS ASSOCIATED WITH INSTRUCTOR
@@ -94,7 +96,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
           .eq("approved", true)
           .eq("id", sessionId)
           .or(
-            `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`
+            `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
           );
 
         if (sessionError || !sessions || sessions.length === 0) {
@@ -140,7 +142,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
           if (phaseError || !phaseData) {
             console.error(`Error fetching phase ${phaseId}:`, phaseError);
-            continue;  // Skip this phase if there's an error
+            continue; // Skip this phase if there's an error
           }
 
           // Fetch modules for each phase based on module_ids
@@ -154,7 +156,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
             if (moduleError || !moduleData) {
               console.error(`Error fetching module ${moduleId}:`, moduleError);
-              continue;  // Skip this module if there's an error
+              continue; // Skip this module if there's an error
             }
 
             // Push module into array
@@ -169,7 +171,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
           // Calculate total phase duration
           const phaseDuration = modulesData.reduce(
             (total, module) => total + module.suggested_duration_seconds,
-            0
+            0,
           );
 
           // Structure the phase object
@@ -188,7 +190,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
         }
 
         // Filter and sort the phases by their order
-        const validPhasesData = phasesData.filter(phase => phase !== null);
+        const validPhasesData = phasesData.filter((phase) => phase !== null);
         validPhasesData.sort((a, b) => a.order - b.order);
 
         console.log("FINAL SESSION DATA:");
@@ -217,7 +219,6 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
     fetchPhases();
   }, [accessToken, sessionId]);
-  
 
   useEffect(() => {
     if (upcomingSessions && upcomingSessions.length > 0 && sessionId) {

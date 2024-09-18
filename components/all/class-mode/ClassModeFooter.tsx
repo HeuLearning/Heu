@@ -50,8 +50,8 @@ export default function ClassModeFooter({
               activeModuleIndex === index
                 ? elapsedLapTime / module.suggested_duration_seconds
                 : activeModuleIndex > index
-                ? 1
-                : 0
+                  ? 1
+                  : 0
             }
           />
         ))}
