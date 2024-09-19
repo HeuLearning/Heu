@@ -21,10 +21,7 @@ import MobileClassMode from "../mobile/MobileClassMode";
 import Badge from "../Badge";
 import { createClient } from "@/utils/supabase/client";
 
-
-
-let learners: any[] = [
-];
+let learners: any[] = [];
 
 interface Learner {
   id: number;
@@ -37,8 +34,12 @@ interface ClassModeContainerProps {
 }
 
 const supabase = createClient();
-const { data: { user } } = await supabase.auth.getUser()
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
+console.log("USER HERE");
+console.log(user?.email);
 
 export default function ClassModeContainer({
   sessionId,
@@ -61,11 +62,10 @@ export default function ClassModeContainer({
   const [classStarted, setClassStarted] = useState(false);
   const [learners, setLearners] = useState<Learner[]>([]);
 
-  //WS 
+  //WS
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>("");
   const [connected, setConnected] = useState<boolean>(false);
-
 
   const { upcomingSessions } = useSessions();
   const [session, setSession] = useState<any>(null);
@@ -88,7 +88,6 @@ export default function ClassModeContainer({
     // Handle the case where the element is not found
   }
 
-
   useEffect(() => {
     const findSession = () => {
       if (upcomingSessions && sessionId) {
@@ -107,12 +106,11 @@ export default function ClassModeContainer({
 
   useEffect(() => {
     return () => {
-        if (ws) {
-            ws.close();
-        }
+      if (ws) {
+        ws.close();
+      }
     };
-}, [ws]);
-
+  }, [ws]);
 
   const controls = useStopwatchControls();
   const { stopTimer, startTimer, lapTimer, resetTimer, setElapsedTime } =
@@ -184,7 +182,6 @@ export default function ClassModeContainer({
     setTotalElapsedTime([0]);
     setClassStarted(false);
   };
-  
 
   const handleStartClass = () => {
     setShowInitialClassPage(false);
@@ -251,37 +248,34 @@ export default function ClassModeContainer({
     setClassStarted(true);
 };
 
-
-
-  const handleShowLearners = () => {
-    showPopUp({
-      id: "learners-popup",
-      content: (
-        <SidePopUp
-          headerContent={
-            <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-              Learners
-              <XButton onClick={() => hidePopUp("learners-popup")} />
-            </div>
-          }
-          className="absolute right-0 top-0 flex flex-col"
-          height={containerHeight}
-        >
-          <div className="flex flex-col gap-[16px]">
-            {learners.map((learner) => (
-              <LearnerItem name={learner.name} status={learner.status} />
-            ))}
+const handleShowLearners = () => {
+  showPopUp({
+    id: "learners-popup",
+    content: (
+      <SidePopUp
+        headerContent={
+          <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
+            Learners
+            <XButton onClick={() => hidePopUp("learners-popup")} />
           </div>
-        </SidePopUp>
-      ),
-      container: "#class-mode-container", // Ensure this ID exists in your DOM
-      style: {
-        overlay: "overlay-low rounded-[20px]",
-      },
-      height: "auto",
-    });
-  };
-
+        }
+        className="absolute right-0 top-0 flex flex-col"
+        height={containerHeight}
+      >
+        <div className="flex flex-col gap-[16px]">
+          {learners.map((learner) => (
+            <LearnerItem name={learner.name} status={learner.status} />
+          ))}
+        </div>
+      </SidePopUp>
+    ),
+    container: "#class-mode-container", // Ensure this ID exists in your DOM
+    style: {
+      overlay: "overlay-low rounded-[20px]",
+    },
+    height: "auto",
+  });
+};
 
 
   const displayPhaseLineup = (phaseId: string) => {
@@ -479,6 +473,9 @@ export default function ClassModeContainer({
                     phases={phases}
                     phaseTimes={phaseTimes}
                     activePhase={activePhase}
+                    activeModule={activeModule}
+                    activeModuleIndex={activeModuleIndex}
+                    totalElapsedTime={totalElapsedTime}
                   />
                 </div>
                 <ClassDetailsContainer lessonPlan={lessonPlan} />
