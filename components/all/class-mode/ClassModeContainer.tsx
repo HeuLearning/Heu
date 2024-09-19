@@ -39,9 +39,6 @@ interface ClassModeContainerProps {
 const supabase = createClient();
 const { data: { user } } = await supabase.auth.getUser()
 
-console.log("USER HERE")
-console.log(user?.email);
-
 
 export default function ClassModeContainer({
   sessionId,
@@ -191,35 +188,45 @@ export default function ClassModeContainer({
 
   const handleStartClass = () => {
     setShowInitialClassPage(false);
+
+    // Start the class timer if it hasn't started yet
     if (!classStarted) {
         startTimer();
     }
 
+    // Check if WebSocket is already open or being created
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('WebSocket is already open.');
+        return; // Do nothing if WebSocket is already open
+    }
+
+    // Create a new WebSocket connection to the server
     const websocket = new WebSocket('ws://localhost:8080');
 
+    // Create a new learner object for the current user
     const learner = { id: Date.now(), name: user?.email || 'Unknown', status: 'In class' };
 
     websocket.onopen = () => {
         console.log('Connected to the WebSocket server');
         setConnected(true);
-        
-        // Notify server of new learner
+
+        // Notify the server that a learner has joined the class
+        console.log('Sending learner data:', learner);
         websocket.send(JSON.stringify({ type: 'join', learner }));
 
-        // Update local state
+        // Add the new learner to the local learners state
         setLearners(prevLearners => [...prevLearners, learner]);
     };
 
     websocket.onmessage = (event) => {
         console.log('Message from server:', event.data);
-        setMessage(event.data);
-        
-        // Optionally update learners based on server messages
-        // Example: If the server sends an update about learners
+
         try {
             const parsedData = JSON.parse(event.data);
-            if (parsedData.type === 'updateLearners') {
-                setLearners(parsedData.learners);
+
+            // Handle the message type: updating the list of learners
+            if (parsedData.type === 'UPDATE_LEARNERS') {
+                setLearners(parsedData.learners); // Update the local learners state with the list from the server
             }
         } catch (error) {
             console.error('Error parsing WebSocket message:', error);
@@ -229,15 +236,22 @@ export default function ClassModeContainer({
     websocket.onclose = () => {
         console.log('Disconnected from the WebSocket server');
         setConnected(false);
+
+        // Notify the server that this learner is disconnecting
+        console.log('Sending disconnect data:', learner);
+        websocket.send(JSON.stringify({ type: 'disconnect', learnerId: learner.id }));
     };
 
     websocket.onerror = (error) => {
         console.error('WebSocket error:', error);
     };
 
+    // Store the WebSocket instance in the state (if needed later)
     setWs(websocket);
     setClassStarted(true);
 };
+
+
 
   const handleShowLearners = () => {
     showPopUp({
