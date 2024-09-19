@@ -34,6 +34,7 @@ interface ClassModeContainerProps {
 }
 
 const supabase = createClient();
+
 const {
   data: { user },
 } = await supabase.auth.getUser();
@@ -106,6 +107,9 @@ export default function ClassModeContainer({
 
   useEffect(() => {
     return () => {
+      if (ws) {
+        ws.close();
+      }
       if (ws) {
         ws.close();
       }
@@ -185,86 +189,99 @@ export default function ClassModeContainer({
 
   const handleStartClass = () => {
     setShowInitialClassPage(false);
+
+    // Start the class timer if it hasn't started yet
     if (!classStarted) {
       startTimer();
     }
 
-    const websocket = new WebSocket("ws://localhost:8080");
+    // Check if WebSocket is already open or being created
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log('WebSocket is already open.');
+        return; // Do nothing if WebSocket is already open
+    }
 
-    const learner = {
-      id: Date.now(),
-      name: user?.email || "Unknown",
-      status: "In class",
-    };
+    // Create a new WebSocket connection to the server
+    const websocket = new WebSocket('ws://localhost:8080');
+
+    // Create a new learner object for the current user
+    const learner = { id: Date.now(), name: user?.email || 'Unknown', status: 'In class' };
 
     websocket.onopen = () => {
-      console.log("Connected to the WebSocket server");
-      setConnected(true);
+        console.log('Connected to the WebSocket server');
+        setConnected(true);
 
-      // Notify server of new learner
-      websocket.send(JSON.stringify({ type: "join", learner }));
+        // Notify the server that a learner has joined the class
+        console.log('Sending learner data:', learner);
+        websocket.send(JSON.stringify({ type: 'join', learner }));
 
-      // Update local state
-      setLearners((prevLearners) => [...prevLearners, learner]);
+        // Add the new learner to the local learners state
+        setLearners(prevLearners => [...prevLearners, learner]);
     };
 
     websocket.onmessage = (event) => {
-      console.log("Message from server:", event.data);
-      setMessage(event.data);
+        console.log('Message from server:', event.data);
 
-      // Optionally update learners based on server messages
-      // Example: If the server sends an update about learners
-      try {
-        const parsedData = JSON.parse(event.data);
-        if (parsedData.type === "updateLearners") {
-          setLearners(parsedData.learners);
+        try {
+            const parsedData = JSON.parse(event.data);
+
+            // Handle the message type: updating the list of learners
+            if (parsedData.type === 'UPDATE_LEARNERS') {
+                setLearners(parsedData.learners); // Update the local learners state with the list from the server
+            }
+        } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
         }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
     };
 
     websocket.onclose = () => {
-      console.log("Disconnected from the WebSocket server");
-      setConnected(false);
+        console.log('Disconnected from the WebSocket server');
+        setConnected(false);
+
+        // Notify the server that this learner is disconnecting
+        console.log('Sending disconnect data:', learner);
+        websocket.send(JSON.stringify({ type: 'disconnect', learnerId: learner.id }));
     };
 
     websocket.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
 
+    // Store the WebSocket instance in the state (if needed later)
     setWs(websocket);
     setClassStarted(true);
   };
 
-  const handleShowLearners = () => {
-    showPopUp({
-      id: "learners-popup",
-      content: (
-        <SidePopUp
-          headerContent={
-            <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-              Learners
-              <XButton onClick={() => hidePopUp("learners-popup")} />
-            </div>
-          }
-          className="absolute right-0 top-0 flex flex-col"
-          height={containerHeight}
-        >
-          <div className="flex flex-col gap-[16px]">
-            {learners.map((learner) => (
-              <LearnerItem name={learner.name} status={learner.status} />
-            ))}
+const handleShowLearners = () => {
+  showPopUp({
+    id: "learners-popup",
+    content: (
+      <SidePopUp
+        headerContent={
+          <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
+            Learners
+            <XButton onClick={() => hidePopUp("learners-popup")} />
           </div>
-        </SidePopUp>
-      ),
-      container: "#class-mode-container", // Ensure this ID exists in your DOM
-      style: {
-        overlay: "overlay-low rounded-[20px]",
-      },
-      height: "auto",
-    });
-  };
+        }
+        className="absolute right-0 top-0 flex flex-col"
+        height={containerHeight}
+      >
+        <div className="flex flex-col gap-[16px]">
+          {learners.map((learner) => (
+            <LearnerItem name={learner.name} status={learner.status} />
+          ))}
+        </div>
+      </SidePopUp>
+    ),
+    container: "#class-mode-container", // Ensure this ID exists in your DOM
+    style: {
+      overlay: "overlay-low rounded-[20px]",
+    },
+    height: "auto",
+  });
+};
+
+
 
   const displayPhaseLineup = (phaseId: string) => {
     showPopUp({

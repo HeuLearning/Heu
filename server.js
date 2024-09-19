@@ -1,65 +1,64 @@
-require('dotenv').config(); // Load environment variables from .env file
 const WebSocket = require('ws');
-const { createClient } = require('@supabase/supabase-js');
-
-// Initialize Supabase client
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const wss = new WebSocket.Server({ port: 8080 });
 
-let onlineUsers = new Map(); // Map to keep track of online users with username as key
+let learners = []; // Array to keep track of learners
+let wsConnections = new Map(); // Map to track WebSocket connections by ID
 
 wss.on('connection', (ws) => {
     console.log('Client connected');
 
+    // Generate a unique ID for this WebSocket connection
+    const wsId = generateUniqueId();
+    wsConnections.set(wsId, ws);
+
+    // Send the updated list of learners to the new client
+    ws.send(JSON.stringify({ type: 'UPDATE_LEARNERS', learners }));
+
     // Handle messages from clients
-    ws.on('message', async (message) => {
+    ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
-            if (data.type === 'SET_USERNAME') {
-                // Handle setting username
-                if (data.username) {
-                    onlineUsers.set(ws, data.username); // Associate WebSocket connection with username
 
-                    // Send updated list of online users to all clients
-                    const onlineUsersList = Array.from(onlineUsers.values());
-                    const updateMessage = JSON.stringify({ type: 'UPDATE_ONLINE_USERS', onlineUsers: onlineUsersList });
-                    wss.clients.forEach(client => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(updateMessage);
-                        }
-                    });
+            if (data.type === 'join') {
+                const newLearner = data.learner;
+
+                // Check if the learner is already in the list
+                const existingLearnerIndex = learners.findIndex(learner => learner.id === newLearner.id);
+                
+                if (existingLearnerIndex === -1) {
+                    // Add the learner to the list with the WebSocket ID
+                    learners.push({ ...newLearner, wsId });
+                    console.log(`Learner joined: ${newLearner.name}`);
                 } else {
-                    console.error('Invalid username data received:', data.username);
+                    // Update the existing learner's status and WebSocket ID
+                    learners[existingLearnerIndex] = { ...newLearner, wsId };
+                    console.log(`Learner updated: ${newLearner.name}`);
                 }
-            } else if (data.type === 'ADD_LEARNER') {
-                // Handle adding learner (for demonstration)
-                if (data.learner && data.learner.id && data.learner.name && data.learner.status) {
-                    const { data: userData, error } = await supabase.auth.getUser();
 
-                    if (error) {
-                        console.error('Error fetching user from Supabase:', error);
-                        return;
-                    }
+                // Log the updated list of learners
+                console.log('Updated learners in session:');
+                learners.forEach(learner => console.log(`- ${learner.name} (ID: ${learner.id})`));
 
-                    // Example static push for demonstration purposes
-                    if (userData.user) {
-                        console.log('User data:', userData.user);
-                    }
-
-                    // Handle broadcasting learners (static example)
-                    const updatedLearnersMessage = JSON.stringify({ type: 'UPDATE_LEARNERS', learners: ["Example Learner"] });
-                    wss.clients.forEach(client => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(updatedLearnersMessage);
-                        }
-                    });
-                } else {
-                    console.error('Invalid learner data received:', data.learner);
-                }
+                // Broadcast updated learners list to all clients
+                broadcastLearners();
             }
+
+            if (data.type === 'disconnect') {
+                const learnerId = data.learnerId;
+
+                // Remove the learner from the list
+                learners = learners.filter(learner => learner.id !== learnerId);
+                console.log(`Learner disconnected: ${learnerId}`);
+
+                // Log the updated list of learners
+                console.log('Updated learners in session after disconnection:');
+                learners.forEach(learner => console.log(`- ${learner.name} (ID: ${learner.id})`));
+
+                // Broadcast updated learners list to all clients
+                broadcastLearners();
+            }
+
         } catch (error) {
             console.error('Error parsing WebSocket message:', error);
         }
@@ -67,22 +66,38 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => {
         console.log('Client disconnected');
-        // Remove user from online users map
-        onlineUsers.delete(ws);
+        const wsId = Array.from(wsConnections.entries()).find(([_, value]) => value === ws)?.[0];
+        if (wsId) {
+            wsConnections.delete(wsId);
 
-        // Send updated list of online users to all clients
-        const onlineUsersList = Array.from(onlineUsers.values());
-        const updateMessage = JSON.stringify({ type: 'UPDATE_ONLINE_USERS', onlineUsers: onlineUsersList });
-        wss.clients.forEach(client => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(updateMessage);
-            }
-        });
+            // Remove the learner associated with this WebSocket ID
+            learners = learners.filter(learner => learner.wsId !== wsId);
+
+            // Broadcast updated learners list to all clients
+            broadcastLearners();
+        }
     });
 
     ws.on('error', (error) => {
         console.error('WebSocket error:', error);
     });
 });
+
+
+// Function to generate a unique ID for WebSocket connections
+function generateUniqueId() {
+    return Math.random().toString(36).substring(2, 15);
+}
+
+// Function to broadcast the list of learners
+function broadcastLearners() {
+    const updateMessage = JSON.stringify({ type: 'UPDATE_LEARNERS', learners });
+
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(updateMessage);
+        }
+    });
+}
 
 console.log('WebSocket server is listening on port 8080');
