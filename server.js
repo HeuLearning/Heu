@@ -83,6 +83,7 @@ wss.on('connection', (ws) => {
     });
 });
 
+
 // Function to generate a unique ID for WebSocket connections
 function generateUniqueId() {
     return Math.random().toString(36).substring(2, 15);
