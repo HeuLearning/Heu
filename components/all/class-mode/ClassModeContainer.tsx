@@ -34,6 +34,7 @@ interface ClassModeContainerProps {
 }
 
 const supabase = createClient();
+
 const {
   data: { user },
 } = await supabase.auth.getUser();
@@ -106,6 +107,9 @@ export default function ClassModeContainer({
 
   useEffect(() => {
     return () => {
+      if (ws) {
+        ws.close();
+      }
       if (ws) {
         ws.close();
       }
@@ -188,7 +192,7 @@ export default function ClassModeContainer({
 
     // Start the class timer if it hasn't started yet
     if (!classStarted) {
-        startTimer();
+      startTimer();
     }
 
     // Check if WebSocket is already open or being created
@@ -240,13 +244,13 @@ export default function ClassModeContainer({
     };
 
     websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
+      console.error("WebSocket error:", error);
     };
 
     // Store the WebSocket instance in the state (if needed later)
     setWs(websocket);
     setClassStarted(true);
-};
+  };
 
 const handleShowLearners = () => {
   showPopUp({
