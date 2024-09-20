@@ -1,8 +1,11 @@
+
+const { json } = require('stream/consumers');
 const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({ port: 8080 });
 
 let learners = []; // Array to keep track of learners
+let student_data = {};
 let wsConnections = new Map(); // Map to track WebSocket connections by ID
 
 wss.on('connection', (ws) => {
@@ -19,6 +22,7 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
+            console.log("Data from client:" + data);
 
             if (data.type === 'join') {
                 const newLearner = data.learner;
@@ -57,6 +61,17 @@ wss.on('connection', (ws) => {
 
                 // Broadcast updated learners list to all clients
                 broadcastLearners();
+            }
+
+            if (data.type === 'NEXT_MODULE') {
+                console.log("Received NEXT_MODULE data:");
+                console.log(data);
+
+
+                student_data = data;
+
+                // Broadcast the updated student data to all clients
+                broadcastData();
             }
 
         } catch (error) {
@@ -100,4 +115,21 @@ function broadcastLearners() {
     });
 }
 
+
+function broadcastData() {
+    const relevantData = {
+        moduleId: student_data.moduleId,
+        moduleName: student_data.moduleName.name,
+        elapsedTime: student_data.elapsedTime
+    };
+
+    const updateMessage = JSON.stringify({ type: 'UPDATE_DATA', student_data: relevantData });
+
+    // Broadcast to all clients
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(updateMessage);
+        }
+    });
+}
 console.log('WebSocket server is listening on port 8080');

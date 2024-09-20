@@ -57,7 +57,7 @@ export default function ClassModeContainer({
     return <div></div>; // or loading screen here
   }
 
-  const [activePhaseId, setActivePhaseId] = useState<string>(phases[0].id);
+  const [activePhaseId, setActivePhaseId] = useState<string>(phases.length > 0 ? phases[0].id : "");
   const [showInitialClassPage, setShowInitialClassPage] = useState(true);
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
   const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
@@ -136,6 +136,21 @@ export default function ClassModeContainer({
     startTimer();
     lapTimer();
     setActiveModuleIndex(index + 1);
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      const data = {
+        type: 'NEXT_MODULE',
+        moduleId: module.id,
+        moduleName: module,
+        elapsedTime: totalElapsedTime[index + 1],
+      };
+  
+      ws.send(JSON.stringify(data));
+      console.log('Sent over WebSocket: ', data);
+    } else {
+      console.error('WebSocket is not open or does not exist');
+    }
+
   };
 
   const handleNextPhase = () => {
@@ -236,6 +251,11 @@ export default function ClassModeContainer({
         if (parsedData.type === "UPDATE_LEARNERS") {
           setLearners(parsedData.learners); // Update the local learners state with the list from the server
         }
+
+        if (parsedData.type === 'UPDATE_DATA') {
+          console.log("Update data recognized") // Update the local learners state with the list from the server
+        }
+
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
       }
@@ -426,7 +446,14 @@ export default function ClassModeContainer({
           style={{ height: dashboardHeight }}
           className="relative mb-4 ml-4 mr-4 flex flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
         >
-          {/* matt you can type here */}
+          <h1>This is where a student will be sent data on how to view the class.</h1>
+          <Button
+                      className="button-primary"
+                      onClick={handleStartClass}
+                      disabled={!session?.start_time}
+                    >
+                      {!classStarted ? "Join class" : "Continue class"}
+                    </Button>
         </div>
       );
     } else if (userRole == "in")
