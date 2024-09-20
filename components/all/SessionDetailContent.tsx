@@ -135,6 +135,12 @@ export default function SessionDetailContent({
                 Enroll
               </Button>
             );
+          } else if (getSessionStatus(session) === "Online") {
+            return (
+              <Button className="button-primary" onClick={handleEnter}>
+                Enter class
+              </Button>
+            );
           } else if (getSessionStatus(session) === "Class full") {
             return (
               <Button className="button-primary" onClick={showWaitingListPopUp}>
@@ -150,7 +156,12 @@ export default function SessionDetailContent({
             return <RSVPSelector session={session} />;
           } else if (getSessionStatus(session) === "Waitlisted") {
             // no action if waitilisted, but info pill different
-            return null;
+            // doesn't do anything for now, fix later
+            return (
+              <Button className="button-primary" onClick={() => {}}>
+                Leave waiting list
+              </Button>
+            );
           }
         }
       }

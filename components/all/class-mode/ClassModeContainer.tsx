@@ -20,6 +20,7 @@ import { useResponsive } from "../ResponsiveContext";
 import MobileClassMode from "../mobile/MobileClassMode";
 import Badge from "../Badge";
 import { createClient } from "@/utils/supabase/client";
+import { useUserRole } from "../data-retrieval/UserRoleContext";
 
 let learners: any[] = [];
 
@@ -62,6 +63,8 @@ export default function ClassModeContainer({
   const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
   const [classStarted, setClassStarted] = useState(false);
   const [learners, setLearners] = useState<Learner[]>([]);
+
+  const { userRole } = useUserRole();
 
   //WS
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -197,50 +200,56 @@ export default function ClassModeContainer({
 
     // Check if WebSocket is already open or being created
     if (ws && ws.readyState === WebSocket.OPEN) {
-        console.log('WebSocket is already open.');
-        return; // Do nothing if WebSocket is already open
+      console.log("WebSocket is already open.");
+      return; // Do nothing if WebSocket is already open
     }
 
     // Create a new WebSocket connection to the server
-    const websocket = new WebSocket('ws://localhost:8080');
+    const websocket = new WebSocket("ws://localhost:8080");
 
     // Create a new learner object for the current user
-    const learner = { id: Date.now(), name: user?.email || 'Unknown', status: 'In class' };
+    const learner = {
+      id: Date.now(),
+      name: user?.email || "Unknown",
+      status: "In class",
+    };
 
     websocket.onopen = () => {
-        console.log('Connected to the WebSocket server');
-        setConnected(true);
+      console.log("Connected to the WebSocket server");
+      setConnected(true);
 
-        // Notify the server that a learner has joined the class
-        console.log('Sending learner data:', learner);
-        websocket.send(JSON.stringify({ type: 'join', learner }));
+      // Notify the server that a learner has joined the class
+      console.log("Sending learner data:", learner);
+      websocket.send(JSON.stringify({ type: "join", learner }));
 
-        // Add the new learner to the local learners state
-        setLearners(prevLearners => [...prevLearners, learner]);
+      // Add the new learner to the local learners state
+      setLearners((prevLearners) => [...prevLearners, learner]);
     };
 
     websocket.onmessage = (event) => {
-        console.log('Message from server:', event.data);
+      console.log("Message from server:", event.data);
 
-        try {
-            const parsedData = JSON.parse(event.data);
+      try {
+        const parsedData = JSON.parse(event.data);
 
-            // Handle the message type: updating the list of learners
-            if (parsedData.type === 'UPDATE_LEARNERS') {
-                setLearners(parsedData.learners); // Update the local learners state with the list from the server
-            }
-        } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+        // Handle the message type: updating the list of learners
+        if (parsedData.type === "UPDATE_LEARNERS") {
+          setLearners(parsedData.learners); // Update the local learners state with the list from the server
         }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
     };
 
     websocket.onclose = () => {
-        console.log('Disconnected from the WebSocket server');
-        setConnected(false);
+      console.log("Disconnected from the WebSocket server");
+      setConnected(false);
 
-        // Notify the server that this learner is disconnecting
-        console.log('Sending disconnect data:', learner);
-        websocket.send(JSON.stringify({ type: 'disconnect', learnerId: learner.id }));
+      // Notify the server that this learner is disconnecting
+      console.log("Sending disconnect data:", learner);
+      websocket.send(
+        JSON.stringify({ type: "disconnect", learnerId: learner.id }),
+      );
     };
 
     websocket.onerror = (error) => {
@@ -252,36 +261,34 @@ export default function ClassModeContainer({
     setClassStarted(true);
   };
 
-const handleShowLearners = () => {
-  showPopUp({
-    id: "learners-popup",
-    content: (
-      <SidePopUp
-        headerContent={
-          <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-            Learners
-            <XButton onClick={() => hidePopUp("learners-popup")} />
+  const handleShowLearners = () => {
+    showPopUp({
+      id: "learners-popup",
+      content: (
+        <SidePopUp
+          headerContent={
+            <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
+              Learners
+              <XButton onClick={() => hidePopUp("learners-popup")} />
+            </div>
+          }
+          className="absolute right-0 top-0 flex flex-col"
+          height={containerHeight}
+        >
+          <div className="flex flex-col gap-[16px]">
+            {learners.map((learner) => (
+              <LearnerItem name={learner.name} status={learner.status} />
+            ))}
           </div>
-        }
-        className="absolute right-0 top-0 flex flex-col"
-        height={containerHeight}
-      >
-        <div className="flex flex-col gap-[16px]">
-          {learners.map((learner) => (
-            <LearnerItem name={learner.name} status={learner.status} />
-          ))}
-        </div>
-      </SidePopUp>
-    ),
-    container: "#class-mode-container", // Ensure this ID exists in your DOM
-    style: {
-      overlay: "overlay-low rounded-[20px]",
-    },
-    height: "auto",
-  });
-};
-
-
+        </SidePopUp>
+      ),
+      container: "#class-mode-container", // Ensure this ID exists in your DOM
+      style: {
+        overlay: "overlay-low rounded-[20px]",
+      },
+      height: "auto",
+    });
+  };
 
   const displayPhaseLineup = (phaseId: string) => {
     showPopUp({
@@ -412,7 +419,17 @@ const handleShowLearners = () => {
 
   if (!isSessionLoading) {
     if (isMobile) return <MobileClassMode {...sharedProps} />;
-    else
+    else if (userRole == "st") {
+      return (
+        <div
+          id="class-mode-container"
+          style={{ height: dashboardHeight }}
+          className="relative mb-4 ml-4 mr-4 flex flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
+        >
+          {/* matt you can type here */}
+        </div>
+      );
+    } else if (userRole == "in")
       return (
         <div
           id="class-mode-container"

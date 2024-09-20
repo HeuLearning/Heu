@@ -2,21 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, useRouter, useParams } from "next/navigation";
 import Head from "next/head";
-import DashboardContainer from "../../../../components/all/DashboardContainer";
-import { SessionsProvider } from "../../../../components/all/data-retrieval/SessionsContext";
-import { UserRoleProvider } from "../../../../components/all/data-retrieval/UserRoleContext";
-import { PopUpProvider } from "../../../../components/all/popups/PopUpContext";
-import Navbar from "../../../../components/all/Navbar";
-import EnhancedPopUp from "../../../../components/all/popups/EnhancedPopUp";
-import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
-import ClassModeContent from "@/components/all/class-mode/ClassModeContent";
-import ClassModeContainer from "@/components/all/class-mode/ClassModeContainer";
+import DashboardContainer from "../../../components/all/DashboardContainer";
+import { SessionsProvider } from "../../../components/all/data-retrieval/SessionsContext";
+import { UserRoleProvider } from "../../../components/all/data-retrieval/UserRoleContext";
+import { PopUpProvider } from "../../../components/all/popups/PopUpContext";
+import Navbar from "../../../components/all/Navbar";
+import EnhancedPopUp from "../../../components/all/popups/EnhancedPopUp";
+import {
+  ResponsiveProvider,
+  useResponsive,
+} from "@/components/all/ResponsiveContext";
 import { LessonPlanProvider } from "@/components/all/data-retrieval/LessonPlanContext";
 import { StopwatchProvider } from "@/components/all/class-mode/StopwatchContext";
+import ClassModeContainer from "@/components/all/class-mode/ClassModeContainer";
 
-const Test = () => {
+const ClassModeDashboard = () => {
+  const params = useParams();
+  const sessionId = Array.isArray(params?.sessionId)
+    ? params.sessionId[0]
+    : params?.sessionId;
   const [userData, setUserData] = useState(null);
   const router = useRouter();
 
@@ -69,6 +75,8 @@ const Test = () => {
 
   if (!userData) return null; // or a loading state
 
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+
   return (
     <>
       <Head>
@@ -86,16 +94,13 @@ const Test = () => {
       </Head>
       <div>
         <ResponsiveProvider>
-          <UserRoleProvider accessToken={userData.accessToken}>
-            <SessionsProvider accessToken={userData.accessToken} userRole="st">
-              <LessonPlanProvider
-                sessionId={0}
-                accessToken={userData.accessToken}
-              >
+          <UserRoleProvider accessToken={""}>
+            <SessionsProvider accessToken={""} userRole="st">
+              <LessonPlanProvider sessionId={sessionId} accessToken={""}>
                 <PopUpProvider>
-                  <Navbar activeTab="Dashboard" />
+                  {isDesktop && <Navbar activeTab={""} />}
                   <StopwatchProvider>
-                    <div>{/* insert here i guess */}</div>
+                    <ClassModeContainer sessionId={sessionId} />
                   </StopwatchProvider>
                   <EnhancedPopUp />
                 </PopUpProvider>
@@ -108,4 +113,12 @@ const Test = () => {
   );
 };
 
-export default Test;
+const ResponsiveClassModeDashboard = () => {
+  return (
+    <ResponsiveProvider>
+      <ClassModeDashboard />
+    </ResponsiveProvider>
+  );
+};
+
+export default ResponsiveClassModeDashboard;
