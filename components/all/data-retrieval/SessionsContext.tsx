@@ -184,45 +184,45 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
     const fetchInstructorSessions = async () => {
       console.log("FETCH INSTRUCTOR CALLED");
-    
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const user_id = session?.user.id;
-    
+
       // Fetch sessions where the instructor is involved (confirmed, pending, or canceled)
       const { data: sessions, error: sessionError } = await supabase
         .from("heu_session")
         .select("*")
         .eq("approved", true)
         .or(
-          `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`
+          `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
         );
-    
+
       if (sessionError) {
         console.error("Error fetching instructor sessions:", sessionError);
         return;
       }
-    
+
       // Process all sessions and fetch corresponding organization and location names
       const allSessions = await Promise.all(
         sessions.map(async (session) => {
           const organizationName = await fetchOrganizationName(
-            session.learning_organization_location_id
+            session.learning_organization_location_id,
           );
           const locationName = await fetchLocationName(
-            session.learning_organization_location_id
+            session.learning_organization_location_id,
           );
-    
+
           const enrolled = session.enrolled || [];
           const waitlisted = session.waitlisted || [];
           const confirmed = session.confirmed_instructors || [];
-    
+
           // Get other instructor IDs by filtering out the current instructor ID
           const other_instructors = confirmed.filter(
-            (instructor: any) => instructor !== user_id
+            (instructor: any) => instructor !== user_id,
           );
-    
+
           // Determine the instructor status
           let instructor_status;
           if (session.confirmed_instructors.includes(user_id)) {
@@ -232,7 +232,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           } else if (session.canceled_instructors.includes(user_id)) {
             instructor_status = "canceled";
           }
-    
+
           return {
             id: session.id,
             start_time: session.start_time,
@@ -246,18 +246,20 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
             other_instructors: [...other_instructors],
             instructor_status: instructor_status,
           };
-        })
+        }),
       );
-    
+
       // Sort sessions by start_time
       const sortedSessions = allSessions.sort((a, b) => {
-        return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+        return (
+          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+        );
       });
-    
+
       setAllSessions(sortedSessions);
       console.log("Final instructor sessions:", sortedSessions);
     };
-    
+
     // Call this function if the user is an instructor
     if (userRole === "in") fetchInstructorSessions();
     else if (userRole === "st") fetchLearnerSessions();
@@ -271,10 +273,9 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         return endTime > new Date();
       })
     : [];
-    
 
   // instructor session statuses: Confirmed, Online, Attended, Canceled
-  // learner session statuses: Available, Enrolled, Waitlisted, Confirmed
+  // learner session statuses: Available, Class full, Enrolled, Waitlisted, Confirmed, Online
   const getSessionStatus = (session: any) => {
     if (userRole === "in") {
       const startDateWithBuffer = new Date(
@@ -297,12 +298,23 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       }
       return status;
     } else if (userRole === "st") {
+      const startDateWithBuffer = new Date(
+        new Date(session.start_time).getTime() - 5 * 60000,
+      );
       const endDate = new Date(session.end_time);
-      if (endDate < new Date() && session.isConfirmed === "Confirmed") {
+      if (endDate < new Date() && session.isConfirmed) {
         return "Attended";
       } else if (session.isEnrolled) return "Enrolled";
       else if (session.isWaitlisted) return "Waitlisted";
-      else if (session.isConfirmed) return "Confirmed";
+      else if (
+        session.isConfirmed &&
+        isWithinInterval(new Date(), {
+          start: startDateWithBuffer,
+          end: endDate,
+        })
+      ) {
+        return "Online";
+      } else if (session.isConfirmed) return "Confirmed";
       else if (session.num_enrolled < session.total_max_capacity)
         return "Available";
       else return "Class full";
