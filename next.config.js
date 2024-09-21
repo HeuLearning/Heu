@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const { initGT } = require("gt-next/config");
 
-module.exports = nextConfig;
+const withGT = initGT();
+
+module.exports = withGT({});

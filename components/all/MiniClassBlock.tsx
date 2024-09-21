@@ -122,8 +122,12 @@ export default function MiniClassBlock({
             }
           >
             {dateCard || arrow
-              ? format(startDate, "eee")
-              : `${format(startDate, "MMM do, eee")}`}
+              ? startDate.toLocaleDateString("default", { weekday: "short" })
+              : `${startDate.toLocaleDateString("default", {
+                  month: "long",
+                  day: "numeric",
+                  weekday: "long",
+                })}`}
           </h1>
           <h2
             className={
@@ -220,8 +224,8 @@ export default function MiniClassBlock({
       {dateCard ? (
         <div className="flex items-center">
           <DateCard
-            month={format(startDate, "MMM")}
-            day={format(startDate, "d")}
+            month={startDate.toLocaleDateString("default", { month: "short" })}
+            day={startDate.toLocaleDateString("default", { day: "numeric" })}
           />
           <div
             className={`flex items-center justify-between ${

@@ -35,14 +35,14 @@ export default function CalendarContainer({
   const handlePrevMonth = () => {
     setVisibleMonth(
       (prevMonth) =>
-        new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1)
+        new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1),
     );
   };
 
   const handleNextMonth = () => {
     setVisibleMonth(
       (prevMonth) =>
-        new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1)
+        new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1),
     );
   };
 
@@ -103,7 +103,7 @@ export default function CalendarContainer({
     if (
       upcomingSessions.filter(
         (session) =>
-          new Date(session.start_time).getMonth() === visibleMonth.getMonth()
+          new Date(session.start_time).getMonth() === visibleMonth.getMonth(),
       ).length === 0
     ) {
       return (
@@ -115,12 +115,12 @@ export default function CalendarContainer({
       let firstActiveSession = upcomingSessions.find(
         (session) =>
           getSessionStatus(session) === "Online" ||
-          getSessionStatus(session) === "Confirmed"
+          getSessionStatus(session) === "Confirmed",
       );
       return upcomingSessions
         .filter(
           (session) =>
-            new Date(session.start_time).getMonth() === visibleMonth.getMonth()
+            new Date(session.start_time).getMonth() === visibleMonth.getMonth(),
         )
         .map((session, index, filteredSessions) => {
           const currentDate = new Date(session.start_time);
@@ -177,11 +177,11 @@ export default function CalendarContainer({
       let firstActiveSession = upcomingSessions.find(
         (session) =>
           getSessionStatus(session) === "Online" ||
-          getSessionStatus(session) === "Confirmed"
+          getSessionStatus(session) === "Confirmed",
       );
       const next3Sessions = upcomingSessions.slice(
         0,
-        Math.min(upcomingSessions.length, 3)
+        Math.min(upcomingSessions.length, 3),
       );
       return next3Sessions.map((session, index) => {
         const currentDate = new Date(session.start_time);
