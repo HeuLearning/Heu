@@ -17,6 +17,7 @@ interface WordBankItemProps {
   x?: boolean;
   handleReset?: (id: string) => void;
   placeholder?: boolean;
+  disabled?: boolean;
 }
 
 export default function WordBankItem({
@@ -30,6 +31,7 @@ export default function WordBankItem({
   x = false,
   handleReset = () => {},
   placeholder = false,
+  disabled,
 }: WordBankItemProps) {
   if ((!x && !children && !droppable) || (placeholder && droppable))
     return (
@@ -49,7 +51,9 @@ export default function WordBankItem({
   }
 
   const content = (
-    <div className="z-2 rounded-[10px] bg-surface_bg_highlight px-[10px] py-[4px]">
+    <div
+      className={`z-2 flex h-[32px] items-center rounded-[10px] ${disabled ? "" : "bg-surface_bg_highlight shadow-25"} px-[10px]`}
+    >
       <div className="flex items-center justify-between gap-[8px]">
         <div className="flex items-center gap-[8px]">
           {draggable ? (
@@ -80,7 +84,9 @@ export default function WordBankItem({
               </Badge>
             </div>
           ) : null}
-          <div className="text-typeface_primary text-body-semibold">
+          <div
+            className={`text-body-semibold-cap-height ${disabled ? "text-typeface_tertiary" : "text-typeface_primary"}`}
+          >
             {children}
           </div>
         </div>

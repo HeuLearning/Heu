@@ -1,29 +1,32 @@
 import React from "react";
 import MatchingExercise from "../../../components/exercises/MatchingExercise";
-import FillInTheBlankExercise from "../../../components/exercises/FillInTheBlankExercise";
+import ConvoFillInTheBlankExercise from "../../exercises/ConvoFillInTheBlankExercise";
 import QAFillInBlankExercise from "../../../components/exercises/QAFillInTheBlankExercise";
-import AudioSelectionExercise from "../../../components/exercises/AudioSelectionExercise";
-import AudioWritingExercise from "../../../components/exercises/AudioWriting";
+import MultipleSelectionExercise from "../../exercises/MultipleSelectionExercise";
+import WritingTypingExercise from "../../exercises/WritingTypingExercise";
 import { useStopwatchState } from "./StopwatchContext";
+import TypingLongExercise from "@/components/exercises/TypingLongExercise";
 
 interface ClassModeContentProps {
   activeModuleIndex: number;
   activeModule: any;
-  testFillInTheBlank?: boolean;
+  testConvoFillInTheBlank?: boolean;
   testMatchingExercise?: boolean;
   testQAFillInTheBlank?: boolean;
-  testAudioSelection?: boolean;
-  testAudioWriting?: boolean;
+  testMultipleSelection?: boolean;
+  testWritingTyping?: boolean;
+  testTypingLong?: boolean;
 }
 
 function ClassModeContent({
   activeModuleIndex,
   activeModule,
-  testFillInTheBlank = false,
+  testConvoFillInTheBlank = false,
   testMatchingExercise = false,
   testQAFillInTheBlank = false,
-  testAudioSelection = false,
-  testAudioWriting = false,
+  testMultipleSelection = false,
+  testWritingTyping = false,
+  testTypingLong = true,
 }: ClassModeContentProps) {
   const state = useStopwatchState();
   const { elapsedTime, elapsedLapTime } = state;
@@ -33,31 +36,31 @@ function ClassModeContent({
       questions: [
         {
           id: "q1",
-          text: "[blank] is your birthday?",
+          text: "[__] is your birthday?",
           answer: "",
           correctAnswer: "when",
         },
         {
           id: "q2",
-          text: "What [blank] is it?",
+          text: "What [__] is it?",
           answer: "",
           correctAnswer: "day",
         },
         {
           id: "q3",
-          text: "What [blank] is it?",
+          text: "What [__] is it?",
           answer: "",
           correctAnswer: "month",
         },
         {
           id: "q4",
-          text: "What [blank] is English class?",
+          text: "What [__] is English class?",
           answer: "",
           correctAnswer: "day",
         },
         {
           id: "q5",
-          text: "What [blank] is September 9th?",
+          text: "What [__] is September 9th?",
           answer: "",
           correctAnswer: "day",
         },
@@ -77,43 +80,41 @@ function ClassModeContent({
     };
 
     return <QAFillInBlankExercise {...qaFillInBlankData} />;
-  }
-
-  if (testFillInTheBlank) {
-    const fillInTheBlankData = {
+  } else if (testConvoFillInTheBlank) {
+    const convoFillInTheBlankData = {
       questions: [
         {
           id: "q1",
           speakerIndex: 0,
-          text: "Hi, Jon! How's the [blank] today?",
+          text: "Hi, Jon! How's the [__] today?",
           answer: "",
           correctAnswer: "weather",
         },
         {
           id: "q2",
           speakerIndex: 1,
-          text: "It's bad. It's snowy and [blank].",
+          text: "It's bad. It's snowy and [__].",
           answer: "",
           correctAnswer: "rainy",
         },
         {
           id: "q3",
           speakerIndex: 0,
-          text: "Oh no. What's the [blank] today?",
+          text: "Oh no. What's the [__] today?",
           answer: "",
           correctAnswer: "temperature",
         },
         {
           id: "q4",
           speakerIndex: 1,
-          text: "It's about 30 [blank]. It's cold in the winter!",
+          text: "It's about 30 [__]. It's cold in the winter!",
           answer: "",
           correctAnswer: "degrees",
         },
         {
           id: "q5",
           speakerIndex: 0,
-          text: "In Haiti, it's [blank] sometimes. But it's always hot.",
+          text: "In Haiti, it's [__] sometimes. But it's always hot.",
           answer: "",
           correctAnswer: "windy",
         },
@@ -128,15 +129,13 @@ function ClassModeContent({
       speakers: ["Paula", "Jon"],
     };
 
-    return <FillInTheBlankExercise {...fillInTheBlankData} />;
-  }
-
-  if (testMatchingExercise) {
+    return <ConvoFillInTheBlankExercise {...convoFillInTheBlankData} />;
+  } else if (testMatchingExercise) {
     return <MatchingExercise />;
   }
 
-  if (testAudioSelection) {
-    const audioSelectionData = {
+  if (testMultipleSelection) {
+    const selectionData = {
       audioTitle: "Coffee Shop",
       audioSrc:
         "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
@@ -144,11 +143,9 @@ function ClassModeContent({
       correctAnswers: ["Hey", "Nice to meet you"],
     };
 
-    return <AudioSelectionExercise {...audioSelectionData} />;
-  }
-
-  if (testAudioWriting) {
-    const audioWritingData = {
+    return <MultipleSelectionExercise {...selectionData} />;
+  } else if (testWritingTyping) {
+    const writingTypingData = {
       audioSrc:
         "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
       questions: [
@@ -156,48 +153,55 @@ function ClassModeContent({
           id: "1",
           text: "What does Jorge do?",
           answer: "",
-          highlightedWord: "Driver",
+          requiredWord: "Driver",
           correctAnswer: "He drives a car.",
         },
         {
           id: "2",
           text: "Where does he work?",
           answer: "",
-          highlightedWord: "Truckers Plus",
+          requiredWord: "Truckers Plus",
           correctAnswer: "He works at Truckers Plus.",
         },
         {
           id: "3",
           text: "Does he like it?",
           answer: "",
-          highlightedWord: "No",
+          requiredWord: "No",
           correctAnswer: "No, he doesn't like it.",
         },
         {
           id: "4",
           text: "What does Miyen do?",
           answer: "",
-          highlightedWord: "Housekeeper",
+          requiredWord: "Housekeeper",
           correctAnswer: "She is a housekeeper.",
         },
         {
           id: "5",
           text: "Where does she work?",
           answer: "",
-          highlightedWord: "a hotel",
+          requiredWord: "a hotel",
           correctAnswer: "She works at a hotel.",
         },
         {
           id: "6",
           text: "Does she like it?",
           answer: "",
-          highlightedWord: "okay",
+          requiredWord: "okay",
           correctAnswer: "She thinks it's okay.",
         },
       ],
     };
 
-    return <AudioWritingExercise {...audioWritingData} />;
+    return <WritingTypingExercise {...writingTypingData} />;
+  } else if (testTypingLong) {
+    const typingLongData = {
+      audioSrc:
+        "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
+    };
+
+    return <TypingLongExercise />;
   }
 
   return (

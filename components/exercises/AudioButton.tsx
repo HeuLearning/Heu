@@ -2,9 +2,15 @@ interface AudioButtonProps {
   size: number;
   togglePlay: () => void;
   isPlaying: boolean;
+  color: string;
 }
 
-export default function AudioButton({ size, togglePlay, isPlaying }: AudioButtonProps) {
+export default function AudioButton({
+  size,
+  togglePlay,
+  isPlaying,
+  color,
+}: AudioButtonProps) {
   return (
     <button onClick={togglePlay} className="relative">
       <svg
@@ -15,12 +21,7 @@ export default function AudioButton({ size, togglePlay, isPlaying }: AudioButton
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={size / 2}
-          fill="var(--surface_bg_highlight)"
-        />
+        <circle cx={size / 2} cy={size / 2} r={size / 2} fill={color} />
       </svg>
       {isPlaying ? (
         <svg

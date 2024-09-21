@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import Textbox from "./Textbox";
 import Badge from "../all/Badge";
 import InfoPill from "../all/InfoPill";
+import WordBankItem from "./WordBankItem";
 
 interface Question {
   id: string;
@@ -35,27 +36,27 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   const largestWordWidth = useMemo(() => {
     const largestWord = words.reduce(
       (max, word) => (word.content.length > max.length ? word.content : max),
-      ""
+      "",
     );
-    return `calc(${Math.max(largestWord.length, "Type here".length)}ch + 20px)`;
+    return `${Math.max(largestWord.length, "Type here".length) * 8 + 20}`;
   }, [words]);
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-white p-6">
-      <div className="flex items-start gap-32">
+    <div className="flex h-full w-full items-center justify-center bg-white p-[24px]">
+      <div className="flex items-start gap-[128px]">
         {/* Questions Container */}
         <div className="flex flex-col">
           <h2 className="mb-4 pl-3 text-typeface_primary text-body-regular">
             Questions:
           </h2>
           {questions.map((question, index) => {
-            const parts = question.text.split("[blank]");
+            const parts = question.text.split("[__]");
             return (
               <div
                 key={question.id}
-                className="mb-4 flex h-8 w-fit items-center"
+                className="mb-[16px] flex h-[32px] w-fit items-center"
               >
-                <div className="flex items-center px-2.5">
+                <div className="flex items-center px-[10px]">
                   <Badge
                     bgColor="var(--surface_bg_secondary)"
                     textColor="text-typeface_primary"
@@ -65,7 +66,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                 </div>
                 <div className="flex items-center">
                   {parts[0] && (
-                    <span className="px-2.5 text-typeface_primary text-body-semibold">
+                    <span className="px-[10px] text-typeface_primary text-body-semibold">
                       {parts[0]}
                     </span>
                   )}
@@ -77,7 +78,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                     onChange={(value) => handleAnswerChange(question.id, value)}
                   />
                   {parts[1] && (
-                    <span className="px-2.5 text-typeface_primary text-body-semibold">
+                    <span className="px-[10px] text-typeface_primary text-body-semibold">
                       {parts[1]}
                     </span>
                   )}
@@ -89,12 +90,15 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
         {/* Answers Container */}
         <div className="flex flex-col">
-          <h2 className="mb-4 pl-2.5 text-typeface_primary text-body-regular">
+          <h2 className="mb-[16px] pl-[10px] text-typeface_primary text-body-regular">
             Answers:
           </h2>
           <div className="flex flex-col">
             {answers.map((answer, index) => (
-              <div key={index} className="mb-4 flex h-8 items-center pl-1">
+              <div
+                key={index}
+                className="mb-[16px] flex h-[32px] items-center pl-[4px]"
+              >
                 <InfoPill text={answer} />
               </div>
             ))}
@@ -103,23 +107,12 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
         {/* Word Bank Container */}
         <div
-          className="self-center rounded-[14px] bg-surface_bg_secondary p-1"
+          className="self-center rounded-[14px] bg-surface_bg_secondary p-[4px]"
           style={{ display: "inline-block" }}
         >
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-[4px]">
             {words.map((word, index) => (
-              <div
-                key={index}
-                className="flex h-8 items-center rounded-[10px] bg-white text-typeface_primary shadow-25"
-                style={{
-                  width: largestWordWidth,
-                  padding: "11px 10px",
-                }}
-              >
-                <span className="text-body-semibold-cap-height">
-                  {word.content}
-                </span>
-              </div>
+              <WordBankItem id={String(index)}>{word.content}</WordBankItem>
             ))}
           </div>
         </div>
