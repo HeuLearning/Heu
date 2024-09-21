@@ -8,16 +8,16 @@ interface Question {
   id: string;
   text: string;
   answer: string;
-  highlightedWord: string;
+  requiredWord: string;
   correctAnswer: string;
 }
 
-interface AudioWritingExerciseProps {
-  audioSrc: string;
+interface WritingTypingExerciseProps {
+  audioSrc?: string;
   questions: Question[];
 }
 
-const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
+const WritingTypingExercise: React.FC<WritingTypingExerciseProps> = ({
   audioSrc,
   questions: initialQuestions,
 }) => {
@@ -28,12 +28,14 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
   };
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-white p-6">
-      <div className="flex items-center gap-32">
+    <div className="flex h-full w-full items-center justify-center bg-white p-[24px]">
+      <div className="flex items-center gap-[128px]">
         {/* Audio Player */}
-        <div className="flex-shrink-0">
-          <AudioPlayer audioSrc={audioSrc} title="Listen to the audio" />
-        </div>
+        {audioSrc && (
+          <div className="flex-shrink-0">
+            <AudioPlayer audioSrc={audioSrc} title="Listen to the audio" />
+          </div>
+        )}
 
         {/* Questions, Answers, and Textboxes Container */}
         <div className="flex gap-[16px]">
@@ -42,7 +44,7 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
             {questions.map((question, index) => (
               <div
                 key={question.id}
-                className="flex h-8 items-center gap-[8px] py-1"
+                className="flex h-[32px] items-center gap-[8px] py-[4px]"
               >
                 <Badge
                   bgColor="var(--surface_bg_secondary)"
@@ -60,8 +62,8 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
           {/* Answers (InfoPills) Container */}
           <div className="flex flex-col gap-[12px]">
             {questions.map((question) => (
-              <div key={question.id} className="flex h-8 items-center">
-                <InfoPill text={question.highlightedWord} />
+              <div key={question.id} className="flex h-[32px] items-center">
+                <InfoPill text={question.requiredWord} />
               </div>
             ))}
           </div>
@@ -69,11 +71,11 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
           {/* Textboxes Container */}
           <div className="flex flex-col gap-[12px]">
             {questions.map((question) => (
-              <div key={question.id} className="flex h-8 items-center">
+              <div key={question.id} className="flex h-[32px] items-center">
                 <Textbox
                   size="small"
                   placeholder="Answer here"
-                  width="320px"
+                  width="320"
                   value={question.answer}
                   onChange={(value) => handleAnswerChange(question.id, value)}
                 />
@@ -86,4 +88,4 @@ const AudioWritingExercise: React.FC<AudioWritingExerciseProps> = ({
   );
 };
 
-export default AudioWritingExercise;
+export default WritingTypingExercise;

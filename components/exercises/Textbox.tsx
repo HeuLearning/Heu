@@ -8,6 +8,7 @@ interface TextboxProps {
   size: "small" | "big";
   placeholder: string;
   width: string;
+  height?: string;
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
@@ -17,7 +18,17 @@ interface TextboxProps {
 
 const Textbox = forwardRef<HTMLDivElement, TextboxProps>(
   (
-    { name, size, placeholder, width, value, onChange, required, password },
+    {
+      name,
+      size,
+      placeholder,
+      width,
+      height,
+      value,
+      onChange,
+      required,
+      password,
+    },
     ref,
   ) => {
     const [inputValue, setInputValue] = useState(value);
@@ -122,14 +133,13 @@ const Textbox = forwardRef<HTMLDivElement, TextboxProps>(
       );
     } else if (size === "big") {
       return (
-        <div style={{ width }}>
-          <textarea
-            value={inputValue}
-            onChange={handleInputChange}
-            placeholder={placeholder}
-            className={`${styles.big} text-typeface_primary text-body-medium`}
-          ></textarea>
-        </div>
+        <textarea
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder={placeholder}
+          className={`${styles.big} text-typeface_primary text-body-medium`}
+          style={{ width: `${width}px`, height: `${height}px` }}
+        ></textarea>
       );
     }
 

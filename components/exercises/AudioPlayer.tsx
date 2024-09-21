@@ -55,7 +55,7 @@ export default function AudioPlayer({ audioSrc, title }: AudioPlayerProps) {
   };
 
   return (
-    <div className="relative h-32 w-32">
+    <div className="relative h-[128px] w-[128px]">
       {/* Outer progress bar */}
       <svg
         className="absolute inset-0"
@@ -84,12 +84,12 @@ export default function AudioPlayer({ audioSrc, title }: AudioPlayerProps) {
       </svg>
 
       {/* Inner circle */}
-      <div className="absolute inset-0.5 rounded-full bg-white"></div>
+      <div className="absolute inset-[2px] rounded-full bg-white"></div>
 
       {/* Button with SVG */}
       <button
         onClick={togglePlay}
-        className="absolute inset-0 m-auto flex h-11 w-11 items-center justify-center rounded-full bg-action_bg_primary text-action_bg_secondary shadow-[0_4px_20px_rgba(0,0,0,0.05)]"
+        className="absolute inset-0 m-auto flex h-[44px] w-[44px] items-center justify-center rounded-full bg-action_bg_primary text-action_bg_secondary shadow-75"
       >
         {isPlaying ? (
           <svg
@@ -121,9 +121,9 @@ export default function AudioPlayer({ audioSrc, title }: AudioPlayerProps) {
       </button>
 
       {/* Time display */}
-      <div className="absolute inset-x-0 bottom-4 text-center">
+      <div className="absolute inset-x-0 bottom-[16px] text-center">
         <p
-          className={`font-medium tracking-[-2%] text-sm leading-[17px] ${
+          className={`text-body-medium ${
             isPlaying ? "text-typeface_primary" : "text-typeface_tertiary"
           }`}
         >
