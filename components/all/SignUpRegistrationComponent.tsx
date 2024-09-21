@@ -9,35 +9,6 @@ interface SignUpRegistrationComponent {
   className?: string;
 }
 
-// <>
-//     <form className="flex flex-col min-w-64 max-w-64 mx-auto">
-//       <h1 className="text-2xl font-medium">Sign up</h1>
-//       <p className="text-sm text text-foreground">
-//         Already have an account?{" "}
-//         <Link className="text-primary font-medium underline" href="/sign-in">
-//           Sign in
-//         </Link>
-//       </p>
-//       <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-//         <Label htmlFor="email">Email</Label>
-//         <Input name="email" placeholder="you@example.com" required />
-//         <Label htmlFor="password">Password</Label>
-//         <Input
-//           type="password"
-//           name="password"
-//           placeholder="Your password"
-//           minLength={6}
-//           required
-//         />
-//         <SubmitButton formAction={signUpAction} pendingText="Signing up...">
-//           Sign up
-//         </SubmitButton>
-//         <FormMessage message={searchParams} />
-//       </div>
-//     </form>
-//     <SmtpMessage />
-//   </>
-
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -58,12 +29,10 @@ export default function SignUpRegistrationComponent({
 
   const [isFormValid, setIsFormValid] = useState(false);
 
-  // const [formData, setFormData] = useState({
-  //   firstName: "",
-  //   lastName: "",
-  //   phoneNumber: "",
-  //   email: "",
-  // });
+  const [emailErrorMessage, setEmailErrorMessage] = useState("");
+  const [newPasswordErrorMessage, setNewPasswordErrorMessage] = useState("");
+  const [confirmPasswordErrorMessage, setConfirmPasswordErrorMessage] =
+    useState("");
 
   const formDataRef = useRef({
     firstName: "",
@@ -71,7 +40,6 @@ export default function SignUpRegistrationComponent({
     phoneNumber: "",
     email: "",
     role: "",
-    passwordConfirmed: false,
   });
 
   let localEmail = formDataRef.current.email;
@@ -89,6 +57,7 @@ export default function SignUpRegistrationComponent({
   const instructorRef = useRef<HTMLDivElement>(null);
 
   const passwordRef = useRef<{ value: string }>({ value: "" });
+  const confirmPasswordRef = useRef<{ value: string }>({ value: "" });
 
   const backgroundRef = useRef<HTMLDivElement>(null);
 
@@ -100,10 +69,10 @@ export default function SignUpRegistrationComponent({
   const updateFormData = () => {
     formDataRef.current = {
       ...formDataRef.current,
-      email: localEmail,
-      firstName: localFirstName,
-      lastName: localLastName,
-      phoneNumber: localPhoneNumber,
+      email: localEmail.trim(),
+      firstName: localFirstName.trim(),
+      lastName: localLastName.trim(),
+      phoneNumber: localPhoneNumber.trim(),
       role,
     };
     debouncedCheckFormValidity();
@@ -111,31 +80,69 @@ export default function SignUpRegistrationComponent({
 
   const debouncedCheckFormValidity = useCallback(
     debounce(() => {
-      console.log(isFormValid);
-      const {
-        email,
-        firstName,
-        lastName,
-        phoneNumber,
-        role,
-        passwordConfirmed,
-      } = formDataRef.current;
+      const { email, firstName, lastName, phoneNumber, role } =
+        formDataRef.current;
+
+      let newEmailErrorMessage = "";
+      if (email !== "" && !isValidEmail(email)) {
+        newEmailErrorMessage = "Please enter a valid email address";
+      }
+
+      setEmailErrorMessage(newEmailErrorMessage);
+
+      let newPasswordErrorMessage = "";
+      if (
+        passwordRef.current.value.length > 0 &&
+        passwordRef.current.value.length < 6
+      ) {
+        newPasswordErrorMessage = "Password must be at least 6 characters";
+      }
+
+      setNewPasswordErrorMessage(newPasswordErrorMessage);
+
+      let confirmPasswordErrorMessage = "";
+
+      if (
+        passwordRef.current.value !== "" &&
+        confirmPasswordRef.current.value !== "" &&
+        passwordRef.current.value !== confirmPasswordRef.current.value
+      ) {
+        confirmPasswordErrorMessage = "Passwords do not match";
+      }
+
+      setConfirmPasswordErrorMessage(confirmPasswordErrorMessage);
+
       const newValidity = Boolean(
         email &&
           firstName &&
           lastName &&
           phoneNumber &&
           role &&
-          passwordConfirmed &&
-          passwordRef.current.value,
+          passwordRef.current.value &&
+          confirmPasswordRef.current.value &&
+          newEmailErrorMessage === "" &&
+          newPasswordErrorMessage === "" &&
+          confirmPasswordErrorMessage === "",
       );
+      console.log(newValidity);
+
       if (newValidity !== isFormValid) {
         console.log(formDataRef.current);
+        console.log(newValidity);
         setIsFormValid(newValidity);
       }
-    }, 300),
+    }, 400),
     [isFormValid],
   );
+
+  const isValidEmail = (email: string) => {
+    if (email === "") return false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  console.log(localEmail);
+  console.log(isValidEmail(localEmail));
 
   const InitialSignUpPage = () => {
     return (
@@ -173,19 +180,6 @@ export default function SignUpRegistrationComponent({
           <div className="pb-[4px] pt-[8px]">
             <Divider spacing={0} />
           </div>
-          {/* <Textbox
-              name="email"
-              size="small"
-              width="324"
-              value={localEmail}
-              onChange={(value: string) => {
-                localEmail = value;
-                console.log(localEmail);
-              }}
-              ref={emailRef}
-              placeholder="Email address"
-              required={true}
-            /> */}
           <div className="self-start">
             <Button
               className={"button-primary"}
@@ -314,6 +308,7 @@ export default function SignUpRegistrationComponent({
                 ref={emailRef}
                 placeholder="Email address*"
                 required={true}
+                errorMessage={emailErrorMessage}
               />
               <Textbox
                 name="phoneNumber"
@@ -347,20 +342,21 @@ export default function SignUpRegistrationComponent({
                 placeholder="New Password*"
                 password={true}
                 required={true}
+                errorMessage={newPasswordErrorMessage}
               />
               <Textbox
                 name="confirmPassword"
                 size="small"
                 width="204"
-                value={passwordRef.current.value}
+                value={confirmPasswordRef.current.value}
                 onChange={(value: string) => {
-                  formDataRef.current.passwordConfirmed =
-                    value === passwordRef.current.value;
+                  confirmPasswordRef.current.value = value;
                   updateFormData();
                 }}
                 placeholder="Retype Password*"
                 password={true}
                 required={true}
+                errorMessage={confirmPasswordErrorMessage}
               />
             </div>
           </div>
@@ -402,13 +398,27 @@ export default function SignUpRegistrationComponent({
     );
   };
 
+  const CheckEmail = () => {
+    return (
+      <div className="flex flex-col gap-[24px]">
+        <div className="flex flex-col gap-[16px]">
+          <h3 className="py-[3px] text-h3">Verify your email</h3>
+          <p className="text-typeface_primary text-body-regular">
+            Check your email for a verification link to complete your account.
+            You can close this tab.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const handleContinueSignUp = () => {
     updateFormData();
-    setSignUpStage(Math.min(signUpStage + 1, 2));
+    setSignUpStage(Math.min(signUpStage + 1, 3));
   };
 
   const handleFinishSignUp = () => {
-    const { passwordConfirmed, ...restOfFormData } = formDataRef.current;
+    const { ...restOfFormData } = formDataRef.current;
     const finalFormData = {
       ...restOfFormData,
       password: passwordRef.current.value,
@@ -421,19 +431,19 @@ export default function SignUpRegistrationComponent({
       formData.append(key, value as string);
     });
 
-
     signUpAction(formData);
 
     console.log("final form data");
     console.log(finalFormData);
     passwordRef.current.value = "";
-    formDataRef.current.passwordConfirmed = false;
+    confirmPasswordRef.current.value = "";
+    setSignUpStage(Math.min(signUpStage + 1, 3));
   };
 
   const handleBack = () => {
     updateFormData();
     passwordRef.current.value = "";
-    formDataRef.current.passwordConfirmed = false;
+    confirmPasswordRef.current.value = "";
     setSignUpStage(Math.max(signUpStage - 1, 0));
   };
 
@@ -444,6 +454,8 @@ export default function SignUpRegistrationComponent({
       return <SignUpDetails />;
     } else if (signUpStage === 2) {
       return <PickLearningCenter />;
+    } else if (signUpStage === 3) {
+      return <CheckEmail />;
     }
   };
 

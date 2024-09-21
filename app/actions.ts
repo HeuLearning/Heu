@@ -32,18 +32,15 @@ export const signUpAction = async (formData: FormData) => {
     },
   });
 
-  const { data } = await supabase
-    .from('user_roles')
-    .insert([
-      {
-        email: email,
-        phone_number: phoneNumber,
-        first_name: firstName,
-        last_name: lastName,
-        role: role
-      }
-    ]);
-
+  const { data } = await supabase.from("user_roles").insert([
+    {
+      email: email,
+      phone_number: phoneNumber,
+      first_name: firstName,
+      last_name: lastName,
+      role: role,
+    },
+  ]);
 
   if (error) {
     console.error(error.code + " " + error.message);
@@ -105,7 +102,7 @@ export const signInAction = async (formData: FormData) => {
     case "st":
       return redirect("/learner/dashboard");
     default:
-      console.log("PROBLEM2")
+      console.log("PROBLEM2");
   }
 };
 
@@ -121,7 +118,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?redirect_to=/protected/reset-password`,
+    redirectTo: `${origin}/auth/callback?redirect_to=/reset-password`,
   });
 
   if (error) {
@@ -154,7 +151,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (!password || !confirmPassword) {
     return encodedRedirect(
       "error",
-      "/protected/reset-password",
+      "/reset-password",
       "Password and confirm password are required",
     );
   }
@@ -162,7 +159,7 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (password !== confirmPassword) {
     return encodedRedirect(
       "error",
-      "/protected/reset-password",
+      "/reset-password",
       "Passwords do not match",
     );
   }
@@ -174,16 +171,12 @@ export const resetPasswordAction = async (formData: FormData) => {
   if (error) {
     return encodedRedirect(
       "error",
-      "/protected/reset-password",
+      "/reset-password",
       "Password update failed",
     );
   }
 
-  return encodedRedirect(
-    "success",
-    "/protected/reset-password",
-    "Password updated",
-  );
+  return encodedRedirect("success", "/reset-password", "Password updated");
 };
 
 // Sign-Out Action
