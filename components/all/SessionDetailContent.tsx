@@ -16,6 +16,8 @@ import IconButton from "./buttons/IconButton";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 import AttendancePopUp from "./popups/AttendancePopUp";
 import { usePopUp } from "./popups/PopUpContext";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 
 interface SessionDetailContentProps {
   activeSessionId: string | null;
@@ -42,6 +44,7 @@ export default function SessionDetailContent({
     const learnerHooks = useLearnerSessions();
     enrollSession = learnerHooks.enrollSession;
   }
+  const t = getGT();
   const { phases, getModules, phaseTimes, lessonPlan } = lessonPlanData;
 
   let session: any;
@@ -185,11 +188,19 @@ export default function SessionDetailContent({
             {activeSessionId ? (
               isMobile ? (
                 <h1 className="text-typeface_primary leading-cap-height text-h1">
-                  {format(startDate, "MMM d, eeee")}
+                  {startDate.toLocaleDateString("default", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </h1>
               ) : (
                 <h1 className="text-typeface_primary leading-cap-height text-h1">
-                  {format(startDate, "eeee, MMMM do")}
+                  {startDate.toLocaleDateString("default", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </h1>
               )
             ) : (
@@ -313,7 +324,7 @@ export default function SessionDetailContent({
                     isMobile ? "text-body-semibold" : "text-h3"
                   }`}
                 >
-                  Overview
+                  {t("session_detail_content.overview")}
                 </h1>
                 <p
                   className={`${

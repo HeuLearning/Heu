@@ -5,6 +5,7 @@ import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { GeistSans } from "geist/font/sans";
 import Link from "next/link";
 import "./styles/globals.css";
+import { GTProvider } from "gt-next";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -23,7 +24,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={GeistSans.className} suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <GTProvider>{children}</GTProvider>
+      </body>
     </html>
   );
 }
