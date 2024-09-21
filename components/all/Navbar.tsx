@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 import { signOutAction } from "@/app/actions";
 import { usePathname } from "next/navigation";
+import Dot from "./Dot";
 
 interface NavbarProps {
   activeTab: string;
@@ -24,7 +25,7 @@ interface NavbarProps {
 
 export default function Navbar({ activeTab }: NavbarProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { userRole } = useUserRole();
+  const { userRole, firstName, lastName, email } = useUserRole();
   const [selectedButton, setSelectedButton] = useState(activeTab);
   const [isMobileNavMenuShown, setIsMobileNavMenuShown] = useState(false);
   const [activeNotifTab, setActiveNotifTab] = useState("New");
@@ -277,8 +278,31 @@ export default function Navbar({ activeTab }: NavbarProps) {
           {isSettingsShown && (
             <div
               ref={dropdownRef}
-              className="absolute right-[16px] top-[52px] z-50 flex min-w-[200px] flex-col gap-[8px] rounded-[20px] bg-white p-[16px] shadow-200 outline-surface_border_tertiary"
+              className="absolute right-[16px] top-[52px] z-50 flex min-w-[300px] flex-col gap-[8px] rounded-[20px] bg-white p-[16px] shadow-200 outline-surface_border_tertiary"
             >
+              <div className="flex flex-col justify-center gap-[12px] pb-[16px]">
+                <div className="flex items-center gap-[4px]">
+                  <ProfilePic size={48} />
+                  <div>
+                    <div className="flex">
+                      <p className="text-typeface_primary text-body-semibold">
+                        {firstName + " " + lastName}
+                      </p>
+                      <Dot color="var(--typeface_primary)" />
+                      <p className="text-typeface_primary text-body-medium">
+                        {userRole === "st"
+                          ? "Learner"
+                          : userRole === "in"
+                            ? "Instructor"
+                            : "Admin"}
+                      </p>
+                    </div>
+                    <p className="text-typeface_primary text-body-medium">
+                      {email}
+                    </p>
+                  </div>
+                </div>
+              </div>
               <Button className="button-secondary">Settings</Button>
               <div className="px-[4px]">
                 <Divider spacing={4} />
