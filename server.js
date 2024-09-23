@@ -119,11 +119,16 @@ function broadcastLearners() {
 function broadcastData() {
     const relevantData = {
         moduleId: student_data.moduleId,
-        moduleName: student_data.moduleName.name,
+        moduleName: student_data.moduleName,
         elapsedTime: student_data.elapsedTime
     };
+    console.log("THIS IS THE STUDENT DATA")
+    console.log(student_data);
+
+
 
     const updateMessage = JSON.stringify({ type: 'UPDATE_DATA', student_data: relevantData });
+
 
     // Broadcast to all clients
     wss.clients.forEach(client => {
