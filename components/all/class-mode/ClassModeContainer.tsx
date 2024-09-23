@@ -142,6 +142,7 @@ export default function ClassModeContainer({
       }
       setModuleToSend(null);
     }
+    console.log("HANDLE UPDATE HERE!!!")
   }, [moduleToSend, activeModuleIndex]);
 
 
@@ -158,30 +159,36 @@ export default function ClassModeContainer({
 
   const handleNextModule = (module: any, index: number) => {
     // Update the elapsed time for the next module
-    const newElapsedTime = [
-      ...totalElapsedTime,
-      totalElapsedTime[index] + module.suggested_duration_seconds,
-    ];
+    const newElapsedTime = [...totalElapsedTime];
+    newElapsedTime[index] = totalElapsedTime[index] + module.suggested_duration_seconds;
     setTotalElapsedTime(newElapsedTime);
-    
+  
+    // Find the index of the active phase by its ID
+    const currentPhaseIndex = phases.findIndex(phase => phase.id === activePhaseId);
+  
     // Set the module data to be sent over WebSocket
     const nextModuleIndex = index + 1;
-    if (nextModuleIndex < phases[activePhaseId].modules.length) {
+  
+    if (nextModuleIndex < phases[currentPhaseIndex]?.modules.length) {
+      setElapsedTime(newElapsedTime[nextModuleIndex]);
+  
+      // Increment the active module index
+      setActiveModuleIndex(nextModuleIndex);
+  
+      // Set the module data to be sent over WebSocket
       setModuleToSend({
-        id: phases[activePhaseId].modules[nextModuleIndex].id,
-        name: phases[activePhaseId].modules[nextModuleIndex].name,
+        id: activePhaseId, // Still using activePhaseId here
+        name: phases[currentPhaseIndex].modules[nextModuleIndex].name,
         elapsedTime: newElapsedTime[nextModuleIndex],
       });
+  
+      startTimer();
+      lapTimer();
+    } else {
+      console.log("No more modules in the current phase.");
     }
-    
-    setElapsedTime(newElapsedTime[nextModuleIndex]);
-    
-    // Increment the active module index
-    setActiveModuleIndex(nextModuleIndex);
-    
-    startTimer();
-    lapTimer();
   };
+  
   
 
 
@@ -205,6 +212,7 @@ export default function ClassModeContainer({
         name: firstModule.name,
         elapsedTime: 0,
       });
+
     } else {
       console.log("No more phases available.");
     }
@@ -295,6 +303,8 @@ export default function ClassModeContainer({
             moduleName: activeModule.name,
             elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
         };
+
+        console.log("PHASE ID: " + activePhaseId);
 
         websocket.send(JSON.stringify(moduleData));
         console.log('Sent over WebSocket: ', moduleData);
