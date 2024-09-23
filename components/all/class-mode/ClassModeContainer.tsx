@@ -22,6 +22,7 @@ import Badge from "../Badge";
 import { createClient } from "@/utils/supabase/client";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
 
+
 let learners: any[] = [];
 
 interface Learner {
