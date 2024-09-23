@@ -509,13 +509,14 @@ export default function ClassModeContainer({
         >
           <h1>This is where a student will be sent data on how to view the class.</h1>
           <pre>{JSON.stringify(jsonData, null, 2)}</pre>
+    
           <Button
-                      className="button-primary"
-                      onClick={handleStartClass}
-                      disabled={!session?.start_time}
-                    >
-                      {!classStarted ? "Join class" : "Continue class"}
-                    </Button>
+            className="button-primary"
+            onClick={!classStarted ? handleStartClass : handleBack}
+            disabled={!session?.start_time}
+          >
+            {!classStarted ? "Join class" : "Leave class"}
+          </Button>
         </div>
       );
     } else if (userRole == "in")
