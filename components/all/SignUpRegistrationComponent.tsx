@@ -95,7 +95,7 @@ export default function SignUpRegistrationComponent({
         passwordRef.current.value.length > 0 &&
         passwordRef.current.value.length < 6
       ) {
-        newPasswordErrorMessage = "Password must be at least 6 characters";
+        newPasswordErrorMessage = "Password must be 6-20 characters";
       }
 
       setNewPasswordErrorMessage(newPasswordErrorMessage);

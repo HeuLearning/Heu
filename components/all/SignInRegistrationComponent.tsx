@@ -1,14 +1,9 @@
-import RadioButton from "../exercises/RadioButton";
 import Divider from "./Divider";
 import Textbox from "../exercises/Textbox";
 import Button from "./buttons/Button";
-import { useState } from "react";
+import { useTransition, useEffect, useState } from "react";
 import { signInAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface SignInRegistrationComponentProps {
   className?: string;
@@ -17,40 +12,18 @@ interface SignInRegistrationComponentProps {
 export default function SignInRegistrationComponent({
   className = "",
 }: SignInRegistrationComponentProps) {
-  const [signUpStage, setSignUpStage] = useState(0);
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string>("");
 
-  // <form className="flex-1 flex flex-col min-w-64">
-  //     <h1 className="text-2xl font-medium">Sign in</h1>
-  //     <p className="text-sm text-foreground">
-  //       Don't have an account?{" "}
-  //       <Link className="text-foreground font-medium underline" href="/sign-up">
-  //         Sign up
-  //       </Link>
-  //     </p>
-  //     <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-  //       <Label htmlFor="email">Email</Label>
-  //       <Input name="email" placeholder="you@example.com" required />
-  //       <div className="flex justify-between items-center">
-  //         <Label htmlFor="password">Password</Label>
-  //         <Link
-  //           className="text-xs text-foreground underline"
-  //           href="/forgot-password"
-  //         >
-  //           Forgot Password?
-  //         </Link>
-  //       </div>
-  //       <Input
-  //         type="password"
-  //         name="password"
-  //         placeholder="Your password"
-  //         required
-  //       />
-  //       <SubmitButton pendingText="Signing In..." formAction={signInAction}>
-  //         Sign in
-  //       </SubmitButton>
-  //       <FormMessage message={searchParams} />
-  //     </div>
-  //   </form>
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const errorMessage = searchParams.get("error");
+    if (errorMessage) {
+      // Decode the error message
+      setError(decodeURIComponent(errorMessage));
+    }
+  }, [searchParams]);
 
   const renderContent = () => {
     return (
@@ -61,7 +34,9 @@ export default function SignInRegistrationComponent({
           onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
-            signInAction(formData);
+            startTransition(() => {
+              signInAction(formData);
+            });
           }}
         >
           <div className="flex flex-col gap-[12px]">
@@ -83,9 +58,14 @@ export default function SignInRegistrationComponent({
               onChange={() => {}}
               required={true}
               password={true}
+              errorMessage={error}
             />
           </div>
-          <Button className="button-primary self-start">Sign In</Button>
+          <div className="self-start">
+            <Button className="button-primary" disabled={isPending}>
+              Sign In
+            </Button>
+          </div>
           <div className="relative">
             <Divider spacing={8} />
             <span className="absolute left-[28px] top-[-4px] bg-white px-[6px] text-typeface_secondary text-body-regular">
@@ -142,11 +122,7 @@ export default function SignInRegistrationComponent({
   return (
     <div className="fixed inset-0 flex items-center justify-center">
       <div
-        className={`inset-0 z-[50] ${className} flex ${
-          signUpStage === 0 ? "w-[372px]" : ""
-        } ${
-          signUpStage === 1 ? "w-[468px]" : ""
-        } flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
+        className={`inset-0 z-[50] ${className} flex w-[372px] flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
       >
         {renderContent()}
       </div>
