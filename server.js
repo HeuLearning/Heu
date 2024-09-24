@@ -1,4 +1,3 @@
-
 const { json } = require('stream/consumers');
 const WebSocket = require('ws');
 
@@ -120,12 +119,11 @@ function broadcastData() {
     const relevantData = {
         moduleId: student_data.moduleId,
         moduleName: student_data.moduleName,
-        elapsedTime: student_data.elapsedTime
+        elapsedTime: student_data.elapsedTime,
+        exercises: student_data.exercises
     };
     console.log("THIS IS THE STUDENT DATA")
     console.log(student_data);
-
-
 
     const updateMessage = JSON.stringify({ type: 'UPDATE_DATA', student_data: relevantData });
 
