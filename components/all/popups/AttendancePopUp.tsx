@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import DateCard from "../DateCard";
-import PopUp from "./PopUpContainer";
+import PopUpContainer from "./PopUpContainer";
 import { usePopUp } from "./PopUpContext";
 import {
   useLearnerSessions,
@@ -25,7 +25,7 @@ export default function AttendancePopUp({ session, action, popUpId }) {
     showPopUp({
       id: "cancel-class-confirmation-popup",
       content: (
-        <PopUp
+        <PopUpContainer
           header="Class canceled"
           primaryButtonText="Continue"
           primaryButtonOnClick={handleCancelSession}
@@ -34,7 +34,7 @@ export default function AttendancePopUp({ session, action, popUpId }) {
           <p className="text-typeface_primary text-body-regular">
             This class has been canceled and removed from your schedule.
           </p>
-        </PopUp>
+        </PopUpContainer>
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
@@ -57,7 +57,7 @@ export default function AttendancePopUp({ session, action, popUpId }) {
       window.location.reload();
     };
     return (
-      <PopUp
+      <PopUpContainer
         header={
           action === "enroll" ? "Enroll in this class" : "Join waiting list"
         }
@@ -108,12 +108,12 @@ export default function AttendancePopUp({ session, action, popUpId }) {
             </div>
           </div>
         </div>
-      </PopUp>
+      </PopUpContainer>
     );
   }
 
   return (
-    <PopUp
+    <PopUpContainer
       header={action === "confirm" ? "Confirm attendance" : "I can't attend"}
       primaryButtonText={action === "confirm" ? "Confirm" : "I can't attend"}
       secondaryButtonText={action === "confirm" ? "Cancel" : "Swap class"}
@@ -162,6 +162,6 @@ export default function AttendancePopUp({ session, action, popUpId }) {
           </div>
         </div>
       </div>
-    </PopUp>
+    </PopUpContainer>
   );
 }
