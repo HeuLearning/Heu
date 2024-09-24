@@ -2,16 +2,29 @@ import Button from "../buttons/Button";
 import IconButton from "../buttons/IconButton";
 import { usePopUp } from "./PopUpContext";
 
-export default function PopUp({
+interface PopUpContainerProps {
+  header: string;
+  className?: string;
+  children: React.ReactNode;
+  primaryButtonText: string;
+  primaryButtonDisabled?: boolean;
+  secondaryButtonText?: string;
+  primaryButtonOnClick?: () => void;
+  secondaryButtonOnClick?: () => void;
+  popUpId: string;
+}
+
+export default function PopUpContainer({
   header,
-  className = "",
+  className,
   children,
   primaryButtonText,
-  secondaryButtonText = "",
+  primaryButtonDisabled,
   primaryButtonOnClick,
-  secondaryButtonOnClick = () => {},
+  secondaryButtonText,
+  secondaryButtonOnClick,
   popUpId,
-}) {
+}: PopUpContainerProps) {
   const { hidePopUp } = usePopUp();
   return (
     <div>
@@ -43,7 +56,7 @@ export default function PopUp({
         </div>
         <div className="pt-[16px]">{children}</div>
         <div className="flex justify-end gap-[12px] pt-[32px]">
-          {secondaryButtonText !== "" && (
+          {secondaryButtonText && (
             <Button
               className="button-secondary"
               onClick={secondaryButtonOnClick}
@@ -51,7 +64,11 @@ export default function PopUp({
               {secondaryButtonText}
             </Button>
           )}
-          <Button className="button-primary" onClick={primaryButtonOnClick}>
+          <Button
+            className="button-primary"
+            disabled={primaryButtonDisabled}
+            onClick={primaryButtonOnClick}
+          >
             {primaryButtonText}
           </Button>
         </div>

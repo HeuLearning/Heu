@@ -11,7 +11,7 @@ import SidePopUp from "../popups/SidePopUp";
 import XButton from "../buttons/XButton";
 import PhaseLineup from "./PhaseLineup";
 import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
-import PopUp from "../popups/PopUpContainer";
+import PopUpContainer from "../popups/PopUpContainer";
 import ClassModePhases from "./ClassModePhases";
 import ClassModeContent from "./ClassModeContent";
 import { StopwatchProvider, useStopwatchControls } from "./StopwatchContext";
@@ -139,7 +139,7 @@ export default function ClassModeContainer({
           moduleId: moduleToSend.id,
           moduleName: moduleToSend.name,
           elapsedTime: moduleToSend.elapsedTime,
-          exercises: moduleToSend.exercises
+          exercises: moduleToSend.exercises,
         };
 
         ws.send(JSON.stringify(data));
@@ -188,7 +188,7 @@ export default function ClassModeContainer({
         id: activePhaseId, // Still using activePhaseId here
         name: nextModule.name,
         elapsedTime: newElapsedTime[nextModuleIndex],
-        exercises: nextModule.exercises
+        exercises: nextModule.exercises,
       });
 
       startTimer();
@@ -234,7 +234,7 @@ export default function ClassModeContainer({
             moduleId: activeModule.id,
             moduleName: activeModule.name,
             elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
-            exercises: activeModule.exercises
+            exercises: activeModule.exercises,
           };
 
           console.log("PHASE ID: " + activePhaseId);
@@ -307,7 +307,7 @@ export default function ClassModeContainer({
         id: firstModule.id,
         name: firstModule.name,
         elapsedTime: 0,
-        exercises: firstModule.exercises
+        exercises: firstModule.exercises,
       });
     } else {
       console.log("No more phases available.");
@@ -325,7 +325,7 @@ export default function ClassModeContainer({
     showPopUp({
       id: "end-class-popup",
       content: (
-        <PopUp
+        <PopUpContainer
           header="End class"
           primaryButtonText="End class"
           secondaryButtonText="Cancel"
@@ -336,7 +336,7 @@ export default function ClassModeContainer({
           <p className="text-typeface_primary text-body-regular">
             Are you sure you'd like to proceed and end the current class?
           </p>
-        </PopUp>
+        </PopUpContainer>
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
@@ -399,7 +399,7 @@ export default function ClassModeContainer({
           moduleId: activeModule.id,
           moduleName: activeModule.name,
           elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
-          exercises: activeModule.exercises
+          exercises: activeModule.exercises,
         };
 
         console.log("PHASE ID: " + activePhaseId);

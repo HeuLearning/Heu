@@ -47,50 +47,6 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           "It's Thursday.",
         ],
         correct_answer: ["when", "day", "month", "day", "day"],
-        // questions: [
-        //   {
-        //     id: "q1",
-        //     text: "[__] is your birthday?",
-        //     answer: "",
-        //     correctAnswer: "when",
-        //   },
-        //   {
-        //     id: "q2",
-        //     text: "What [__] is it?",
-        //     answer: "",
-        //     correctAnswer: "day",
-        //   },
-        //   {
-        //     id: "q3",
-        //     text: "What [__] is it?",
-        //     answer: "",
-        //     correctAnswer: "month",
-        //   },
-        //   {
-        //     id: "q4",
-        //     text: "What [__] is English class?",
-        //     answer: "",
-        //     correctAnswer: "day",
-        //   },
-        //   {
-        //     id: "q5",
-        //     text: "What [__] is September 9th?",
-        //     answer: "",
-        //     correctAnswer: "day",
-        //   },
-        // ],
-        // answers: [
-        //   "It's March 13th.",
-        //   "It's Tuesday.",
-        //   "It's June.",
-        //   "It's Monday.",
-        //   "It's Thursday.",
-        // ],
-        // words: [
-        //   { id: "word1", content: "when" },
-        //   { id: "word2", content: "day" },
-        //   { id: "word3", content: "month" },
-        // ],
       };
 
       return <QAFillInBlankExercise {...qaFillInBlankData} />;
@@ -226,9 +182,6 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         <p>elapsed time: {elapsedTime}</p>
         <p>elapsed time in module: {elapsedLapTime}</p>
         {renderContent()}
-        {userRole === "st" && !isMobile && (
-          <Button className="button-primary">Submit</Button>
-        )}
       </div>
     </div>
   );
