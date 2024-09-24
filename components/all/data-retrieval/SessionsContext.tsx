@@ -34,6 +34,7 @@ interface InstructorSessionContextType {
   upcomingSessions: Session[];
   confirmSession: (sessionId: string) => void;
   cancelSession: (sessionId: string) => void;
+  isLoading: boolean;
 }
 
 interface LearnerSessionContextType {
@@ -47,6 +48,7 @@ interface LearnerSessionContextType {
   unwaitlistSession: (sessionId: string) => void;
   confirmSession: (sessionId: string) => void;
   cancelSession: (sessionId: string) => void;
+  isLoading: boolean;
 }
 
 const supabase = createClient();
@@ -74,6 +76,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 }) => {
   // State to hold the sessions
   const [allSessions, setAllSessions] = useState<Session[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const refreshData = () => {
@@ -130,6 +133,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
       if (sessionError) {
         console.error("Error fetching sessions:", sessionError);
+        setIsLoading(false);
         return;
       }
       const {
@@ -179,6 +183,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       });
 
       setAllSessions(sortedSessions);
+      setIsLoading(false);
       console.log("Final sessions:", sortedSessions);
     };
 
@@ -201,6 +206,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
 
       if (sessionError) {
         console.error("Error fetching instructor sessions:", sessionError);
+        setIsLoading(false);
         return;
       }
 
@@ -257,6 +263,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
       });
 
       setAllSessions(sortedSessions);
+      setIsLoading(false);
       console.log("Final instructor sessions:", sortedSessions);
     };
 
@@ -509,6 +516,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         upcomingSessions,
         cancelSession,
         confirmSession,
+        isLoading,
       };
     } else {
       return {
@@ -522,6 +530,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
         unwaitlistSession,
         confirmSession,
         cancelSession,
+        isLoading,
       };
     }
   };

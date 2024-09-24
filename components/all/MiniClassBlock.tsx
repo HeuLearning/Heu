@@ -34,33 +34,42 @@ export default function MiniClassBlock({
   const { getSessionStatus, upcomingSessions, allSessions, confirmSession } =
     useSessions();
   const t = getGT();
-  const session: any = allSessions.find((session) => session.id === sessionId);
-  const startDate = new Date(session.start_time);
+  let session: any;
+  let startDate: Date | null;
+  if (sessionId === "") {
+    session = null;
+    startDate = null;
+  } else {
+    session = allSessions.find((session) => session.id === sessionId);
+    startDate = new Date(session.start_time);
+  }
   const router = useRouter();
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   let color = "";
   let fillColor = "";
-  const status = getSessionStatus(session);
-  if (status === "Confirmed") {
-    color = "text-status_fg_positive";
-    fillColor = "var(--status_fg_positive)";
-  } else if (
-    status === "Pending" ||
-    status === "Enrolled" ||
-    status === "Waitlisted" ||
-    status === "Available" ||
-    status === "Class full"
-  ) {
-    color = "text-typeface_primary";
-    fillColor = "#292929";
-  } else if (status === "Online") {
-    color = "text-status_fg_positive";
-    fillColor = "var(--status_fg_positive)";
-  } else if (status === "Canceled") {
-    color = "text-typeface_tertiary";
-    fillColor = "var(--typeface_tertiary)";
+  if (session) {
+    const status = getSessionStatus(session);
+    if (status === "Confirmed") {
+      color = "text-status_fg_positive";
+      fillColor = "var(--status_fg_positive)";
+    } else if (
+      status === "Pending" ||
+      status === "Enrolled" ||
+      status === "Waitlisted" ||
+      status === "Available" ||
+      status === "Class full"
+    ) {
+      color = "text-typeface_primary";
+      fillColor = "#292929";
+    } else if (status === "Online") {
+      color = "text-status_fg_positive";
+      fillColor = "var(--status_fg_positive)";
+    } else if (status === "Canceled") {
+      color = "text-typeface_tertiary";
+      fillColor = "var(--typeface_tertiary)";
+    }
   }
 
   const { showPopUp, hidePopUp } = usePopUp();
@@ -114,7 +123,7 @@ export default function MiniClassBlock({
 
   const renderContent = () => (
     <div className={`${isMobile ? "" : "space-y-[3px]"}`}>
-      {sessionId ? (
+      {sessionId && startDate ? (
         <div className="flex gap-[4px] pl-[4px]">
           <h1
             className={
@@ -140,14 +149,18 @@ export default function MiniClassBlock({
                 : "whitespace-nowrap text-typeface_secondary text-body-medium"
             }
           >
-            {format(startDate, "h:mm a")}
+            {startDate.toLocaleTimeString("default", {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: undefined,
+            })}
           </h2>
         </div>
       ) : (
         <Placeholder width={104} height={10} />
       )}
       <div className="flex items-center">
-        {getSessionStatus(session) === "Attended" ? (
+        {session && getSessionStatus(session) === "Attended" ? (
           <div className="pr-[4px]">
             <svg
               width="16"
@@ -229,7 +242,7 @@ export default function MiniClassBlock({
       }`}
       onClick={() => handleClick(sessionId)}
     >
-      {dateCard ? (
+      {dateCard && startDate ? (
         <div className="flex items-center">
           <DateCard
             month={startDate.toLocaleDateString("default", { month: "short" })}

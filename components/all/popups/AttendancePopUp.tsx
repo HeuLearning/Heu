@@ -81,18 +81,28 @@ export default function AttendancePopUp({ session, action, popUpId }) {
             className={`${styles.confirm_class_block} flex w-full items-center rounded-[14px]`}
           >
             <DateCard
-              month={format(startDate, "MMM")}
-              day={format(startDate, "d")}
+              month={startDate.toLocaleDateString("default", {
+                month: "short",
+              })}
+              day={startDate.toLocaleDateString("default", { day: "numeric" })}
             />
             <div className={`flex items-center justify-between px-[8px]`}>
               <div className="flex gap-[4px] pl-[4px]">
                 <h1 className="text-typeface_primary text-body-semibold">
-                  {format(startDate, "eeee")}
+                  {startDate.toLocaleDateString("default", { weekday: "long" })}
                 </h1>
                 <h1 className="text-typeface_secondary text-body-medium">
-                  {format(startDate, "h:mm a") +
+                  {startDate.toLocaleTimeString("default", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: undefined,
+                  }) +
                     " - " +
-                    format(session.end_time, "h:mm a")}
+                    new Date(session.end_time).toLocaleTimeString("default", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: undefined,
+                    })}
                 </h1>
               </div>
             </div>
@@ -127,18 +137,26 @@ export default function AttendancePopUp({ session, action, popUpId }) {
           className={`${styles.confirm_class_block} flex w-full items-center rounded-[14px]`}
         >
           <DateCard
-            month={format(startDate, "MMM")}
-            day={format(startDate, "d")}
+            month={startDate.toLocaleDateString("default", { month: "short" })}
+            day={startDate.toLocaleDateString("default", { day: "numeric" })}
           />
           <div className={`flex items-center justify-between px-[8px]`}>
             <div className="flex gap-[4px] pl-[4px]">
               <h1 className="text-typeface_primary text-body-semibold">
-                {format(startDate, "eeee")}
+                {startDate.toLocaleDateString("default", { weekday: "long" })}
               </h1>
               <h1 className="text-typeface_secondary text-body-medium">
-                {format(startDate, "h:mm a") +
+                {startDate.toLocaleTimeString("default", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: undefined,
+                }) +
                   " - " +
-                  format(session.end_time, "h:mm a")}
+                  new Date(session.end_time).toLocaleTimeString("default", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: undefined,
+                  })}
               </h1>
             </div>
           </div>

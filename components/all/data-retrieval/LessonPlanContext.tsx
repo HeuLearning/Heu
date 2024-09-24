@@ -223,13 +223,12 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   useEffect(() => {
     if (upcomingSessions && upcomingSessions.length > 0 && sessionId) {
       const session = upcomingSessions.find(
-        (session) => session.id === sessionId,
+        (session) => String(session.id) === sessionId,
       );
 
       if (session && session.start_time) {
         try {
-          const startTime = session.start_time;
-          setSessionStartTime(startTime);
+          setSessionStartTime(session.start_time);
         } catch (error) {
           setSessionStartTime(null);
         }
@@ -254,7 +253,17 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
       new Date(prevStartTime).getTime() + phaseDuration * 1000,
     );
     const timeString =
-      format(prevStartTime, "h:mm") + " - " + format(phaseEndTime, "h:mm");
+      new Date(prevStartTime).toLocaleTimeString("default", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: undefined,
+      }) +
+      " - " +
+      phaseEndTime.toLocaleTimeString("default", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: undefined,
+      });
     phaseTimes.set(phase.id, timeString);
     prevStartTime = phaseEndTime;
   }

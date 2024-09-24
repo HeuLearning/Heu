@@ -26,7 +26,8 @@ export default function CalendarContainer({
   const { userRole } = useUserRole();
   const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState(t("button_content.monthly"));
-  const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
+  const { upcomingSessions, allSessions, getSessionStatus, isLoading } =
+    useSessions();
 
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -84,7 +85,7 @@ export default function CalendarContainer({
       } else if (userRole === "st") {
         if (status === "Enrolled") {
           color = "var(--typeface_primary)";
-        } else if (status === "Confirmed") {
+        } else if (status === "Confirmed" || status === "Online") {
           color = "var(--status_fg_positive)";
         } else if (status === "Waitlisted") {
           color = "var(--typeface_primary)";
@@ -171,6 +172,16 @@ export default function CalendarContainer({
 
   const renderUpcomingSessions = () => {
     /* assumes that past sessions have been removed from array */
+    if (isLoading) {
+      return (
+        <MiniClassBlock
+          dateCard={true}
+          sessionId={""}
+          activeSessionId={activeSessionId}
+          setActiveSessionId={setActiveSessionId}
+        />
+      );
+    }
     if (upcomingSessions.length === 0) {
       return (
         <div className="text-typeface_secondary text-body-medium">
