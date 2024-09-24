@@ -28,7 +28,7 @@ export default function ClassModePhases({
 
   useEffect(() => {
     console.log(elapsedTime);
-    
+
     // Check if activePhase is defined
     if (activePhase) {
       console.log(activePhase.phase_duration_seconds);
@@ -43,7 +43,7 @@ export default function ClassModePhases({
       totalElapsedTime.length - 1 === activeModuleIndex &&
       elapsedTime >=
         totalElapsedTime[activeModuleIndex] +
-        activeModule.suggested_duration_seconds
+          activeModule.suggested_duration_seconds
     ) {
       stopTimer();
     }
@@ -52,22 +52,22 @@ export default function ClassModePhases({
   return phases.map((phase, index) => (
     <PhaseCard
       key={phase.id} // Ensure a unique key for each PhaseCard
-      type={phase.type}
+      type="practice"
       title={phase.name}
       time={phaseTimes.get(phase.id)}
       percentage={
         activePhase === phase
           ? elapsedTime / (activePhase ? activePhase.phase_duration_seconds : 1) // Use a fallback value to avoid division by zero
           : phases.indexOf(activePhase) > index
-          ? 1
-          : 0
+            ? 1
+            : 0
       }
       status={
         phases.indexOf(activePhase) > index
           ? "done"
           : activePhase === phase
-          ? "active"
-          : ""
+            ? "active"
+            : ""
       }
     />
   ));
