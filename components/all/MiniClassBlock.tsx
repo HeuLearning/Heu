@@ -49,27 +49,26 @@ export default function MiniClassBlock({
 
   let color = "";
   let fillColor = "";
-  if (session) {
-    const status = getSessionStatus(session);
-    if (status === "Confirmed") {
-      color = "text-status_fg_positive";
-      fillColor = "var(--status_fg_positive)";
-    } else if (
-      status === "Pending" ||
-      status === "Enrolled" ||
-      status === "Waitlisted" ||
-      status === "Available" ||
-      status === "Class full"
-    ) {
-      color = "text-typeface_primary";
-      fillColor = "#292929";
-    } else if (status === "Online") {
-      color = "text-status_fg_positive";
-      fillColor = "var(--status_fg_positive)";
-    } else if (status === "Canceled") {
-      color = "text-typeface_tertiary";
-      fillColor = "var(--typeface_tertiary)";
-    }
+  const status = session ? getSessionStatus(session) : null;
+
+  if (status === "Confirmed") {
+    color = "text-status_fg_positive";
+    fillColor = "var(--status_fg_positive)";
+  } else if (
+    status === "Pending" ||
+    status === "Enrolled" ||
+    status === "Waitlisted" ||
+    status === "Available" ||
+    status === "Class full"
+  ) {
+    color = "text-typeface_primary";
+    fillColor = "#292929";
+  } else if (status === "Online") {
+    color = "text-status_fg_positive";
+    fillColor = "var(--status_fg_positive)";
+  } else if (status === "Canceled") {
+    color = "text-typeface_tertiary";
+    fillColor = "var(--typeface_tertiary)";
   }
 
   const { showPopUp, hidePopUp } = usePopUp();
@@ -235,18 +234,26 @@ export default function MiniClassBlock({
 
   return (
     <div
-      className={`min-w-[282px] cursor-pointer ${
+      className={`min-w-[282px] ${
         dateCard || arrow ? styles.dateCard : styles.noDateCard
-      } ${isMobile ? "-mr-[8px]" : ""} ${styles.mini_class_block} ${
+      } ${isMobile ? "-mr-[8px]" : ""} ${session ? styles.mini_class_block : "cursor-auto"} ${
         activeSessionId === sessionId && isDaily ? styles.selected : ""
       }`}
-      onClick={() => handleClick(sessionId)}
+      onClick={session ? () => handleClick(sessionId) : () => {}}
     >
-      {dateCard && startDate ? (
+      {dateCard ? (
         <div className="flex items-center">
           <DateCard
-            month={startDate.toLocaleDateString("default", { month: "short" })}
-            day={startDate.toLocaleDateString("default", { day: "numeric" })}
+            month={
+              startDate
+                ? startDate.toLocaleDateString("default", { month: "short" })
+                : new Date().toLocaleDateString("default", { month: "short" })
+            }
+            day={
+              startDate
+                ? startDate.toLocaleDateString("default", { day: "numeric" })
+                : new Date().toLocaleDateString("default", { day: "numeric" })
+            }
           />
           <div
             className={`flex items-center justify-between ${
