@@ -208,17 +208,9 @@ export default function SessionDetailContent({
             )}
             {activeSessionId ? (
               <h1 className="text-typeface_secondary leading-tight text-h1">
-                {startDate.toLocaleTimeString("default", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: undefined,
-                }) +
+                {format(startDate, "h:mm a") +
                   " - " +
-                  endDate.toLocaleTimeString("default", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: undefined,
-                  })}
+                  format(endDate, "h:mm a")}
               </h1>
             ) : (
               <Placeholder width={208} height={16} />
