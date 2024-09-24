@@ -3,7 +3,7 @@ import XButton from "../buttons/XButton";
 import SessionDetailContent from "../SessionDetailContent";
 import { useState, useEffect, useMemo } from "react";
 import { useResponsive } from "../ResponsiveContext";
-import { useInstructorSessions, useLearnerSessions } from "../data-retrieval/SessionsContext";
+import { useSessions } from "../data-retrieval/SessionsContext";
 import ClassSchedulePopUpContainer from "../popups/ClassSchedulePopUpContent";
 import BackButton from "../buttons/BackButton";
 import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
@@ -11,6 +11,8 @@ import ButtonBar from "./ButtonBar";
 import MenuItem from "../buttons/MenuItem";
 import { usePopUp } from "../popups/PopUpContext";
 import { useRouter } from "next/navigation";
+import dictionary from "@/dictionary";
+import { getGT } from "gt-next";
 
 interface MobileClassDetailsProps {
   activeSessionId: string | null;
@@ -28,9 +30,11 @@ export default function MobileClassDetails({
     confirmSession,
     cancelSession,
     getSessionStatus,
-  } = useLearnerSessions();
+  } = useSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
   const [isClassSchedShown, setIsClassSchedShown] = useState(false);
+
+  const t = getGT();
 
   const router = useRouter();
 
@@ -195,7 +199,7 @@ export default function MobileClassDetails({
             ) : getSessionStatus(session) === "Online" ? (
               <div>
                 <ButtonBar
-                  primaryButtonText="Enter class"
+                  primaryButtonText={t("button_content.enter_class")}
                   primaryButtonOnClick={handleEnterClass}
                 />
               </div>

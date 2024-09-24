@@ -13,6 +13,8 @@ import {
   startOfMonth,
 } from "date-fns";
 import BackButton from "../buttons/BackButton";
+import dictionary from "@/dictionary";
+import { getGT } from "gt-next";
 
 interface HorizontalDatePickerProps {
   endDate?: number;
@@ -27,6 +29,8 @@ export default function HorizontalDatePicker({
   selectedDate,
   setSelectedDate,
 }: HorizontalDatePickerProps) {
+  const t = getGT();
+
   const today = new Date();
   const startDate = subDays(today, 120);
   const lastDate = addDays(today, endDate || 120);
@@ -58,7 +62,9 @@ export default function HorizontalDatePicker({
     }
 
     const dateString = date.toISOString().split("T")[0];
-    const dateElement : HTMLElement | null = container.querySelector(`[data-date^="${dateString}"]`);
+    const dateElement: HTMLElement | null = container.querySelector(
+      `[data-date^="${dateString}"]`,
+    );
 
     if (!dateElement) {
       return 0;
@@ -80,7 +86,7 @@ export default function HorizontalDatePicker({
     return Math.max(0, scrollPosition);
   };
 
-  const scrollToDate = (date: Date, behavior : ScrollBehavior = "auto") => {
+  const scrollToDate = (date: Date, behavior: ScrollBehavior = "auto") => {
     const container = scrollContainerRef.current;
     if (container) {
       const scrollPosition = calculateScrollPositionForDate(date);
@@ -111,12 +117,16 @@ export default function HorizontalDatePicker({
 
         const visibleDayElement = document.elementFromPoint(middleX, middleY);
 
-        if (visibleDayElement && visibleDayElement instanceof HTMLElement && visibleDayElement.hasAttribute("data-date")) {
+        if (
+          visibleDayElement &&
+          visibleDayElement instanceof HTMLElement &&
+          visibleDayElement.hasAttribute("data-date")
+        ) {
           const dateAttr = visibleDayElement.getAttribute("data-date");
           if (dateAttr) {
             const day = new Date(dateAttr);
             const monthStart = startOfMonth(day);
-  
+
             if (!isSameMonth(monthStart, currentMonth)) {
               setCurrentMonth(monthStart);
             }
@@ -148,7 +158,10 @@ export default function HorizontalDatePicker({
         days.push(
           <div className="ml-[8px]" key={format(day, "yyyy-MM-dd")}>
             <div className={styles.dayLabel}>
-              {format(day, dayFormat).charAt(0)}
+              {day
+                .toLocaleDateString("default", { weekday: "long" })
+                .charAt(0)
+                .toUpperCase()}
             </div>
             <div
               id={`${getId(day)}`}
@@ -183,7 +196,7 @@ export default function HorizontalDatePicker({
                 </div>
               )}
             </div>
-          </div>
+          </div>,
         );
       }
       months.push(
@@ -192,7 +205,7 @@ export default function HorizontalDatePicker({
           data-month={format(month, "yyyy-MM")}
         >
           <div className={styles.daysContainer}>{days}</div>
-        </div>
+        </div>,
       );
       days = [];
     }
@@ -226,7 +239,7 @@ export default function HorizontalDatePicker({
     setIsScrolling(true);
 
     const monthElement = container.querySelector(
-      `[data-month="${format(date, "yyyy-MM")}"]`
+      `[data-month="${format(date, "yyyy-MM")}"]`,
     );
     if (monthElement) {
       const containerRect = container.getBoundingClientRect();
@@ -257,7 +270,10 @@ export default function HorizontalDatePicker({
           onClick={prevMonth}
         />
         <span className="text-typeface_primary leading-tight text-h3">
-          {format(currentMonth, "MMMM yyyy")}
+          {currentMonth.toLocaleDateString("default", {
+            month: "long",
+            year: "numeric",
+          })}
         </span>
         <BackButton
           variation="button-secondary"

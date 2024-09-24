@@ -383,7 +383,8 @@ export default function SignUpRegistrationComponent({
         <div className="flex flex-col gap-[16px]">
           <h3 className="py-[3px] text-h3">Pick your learning center</h3>
           <p className="text-typeface_primary text-body-regular">
-            For Fall 2024, we are only offering sessions at _____.
+            For Fall 2024, we are only offering sessions at Defenders of the
+            Christian Faith, 221 W 109th St, New York, NY 10025.
           </p>
         </div>
         <div className="space-x-[12px] self-end">

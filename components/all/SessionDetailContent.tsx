@@ -118,7 +118,7 @@ export default function SessionDetailContent({
           } else if (getSessionStatus(session) === "Online") {
             return (
               <Button className="button-primary" onClick={handleEnter}>
-                Enter class
+                {t("button_content.enter_class")}
               </Button>
             );
           } else if (
@@ -135,19 +135,19 @@ export default function SessionDetailContent({
           if (getSessionStatus(session) === "Available") {
             return (
               <Button className="button-primary" onClick={showEnrollPopUp}>
-                Enroll
+                {t("button_content.enroll")}
               </Button>
             );
           } else if (getSessionStatus(session) === "Online") {
             return (
               <Button className="button-primary" onClick={handleEnter}>
-                Enter class
+                {t("button_content.enter_class")}
               </Button>
             );
           } else if (getSessionStatus(session) === "Class full") {
             return (
               <Button className="button-primary" onClick={showWaitingListPopUp}>
-                Join waiting list
+                {t("button_content.join_waiting_list")}
               </Button>
             );
           } else if (
@@ -162,7 +162,7 @@ export default function SessionDetailContent({
             // doesn't do anything for now, fix later
             return (
               <Button className="button-primary" onClick={() => {}}>
-                Leave waiting list
+                {t("button_content.leave_waiting_list")}
               </Button>
             );
           }
@@ -253,15 +253,18 @@ export default function SessionDetailContent({
             </p>
             {isMobile ? null : (
               <Button className="button-secondary" disabled={!activeSessionId}>
-                Get directions
+                {t("button_content.get_directions")}
               </Button>
             )}
           </div>
         </div>
         <div className="session-buttons flex items-center gap-[16px] pr-[14px]">
           {activeSessionId &&
-            (userRole === "in" && getSessionStatus(session) === "Online" ? (
-              <InfoPill icon={true} text="Your class has started" />
+            (getSessionStatus(session) === "Online" ? (
+              <InfoPill
+                icon={true}
+                text={t("info_pill_content.class_started")}
+              />
             ) : userRole === "in" &&
               getSessionStatus(session) !== "Canceled" &&
               isUpcoming ? (
@@ -277,10 +280,7 @@ export default function SessionDetailContent({
               />
             ) : userRole === "st" &&
               getSessionStatus(session) === "Waitlisted" ? (
-              <InfoPill
-                icon={true}
-                text="You will be notified if a spot becomes available"
-              />
+              <InfoPill icon={true} text={t("info_pill_content.waitlisted")} />
             ) : null)}
           {getActionItem()}
         </div>
@@ -383,7 +383,7 @@ export default function SessionDetailContent({
                       isMobile ? "text-body-semibold" : "text-h3"
                     }`}
                   >
-                    Class Schedule
+                    {t("session_detail_content.class_schedule")}
                   </h1>
                   <IconButton
                     className={`${
