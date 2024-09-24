@@ -23,6 +23,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
 import dictionary from "@/dictionary";
 import { getGT } from "gt-next";
+import ButtonBar from "../mobile/ButtonBar";
 
 let learners: any[] = [];
 
@@ -68,6 +69,7 @@ export default function ClassModeContainer({
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
   const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
   const [classStarted, setClassStarted] = useState(false);
+  const [learnerJoined, setLearnerJoined] = useState(false);
   const [learners, setLearners] = useState<Learner[]>([]);
   const [jsonData, setJsonData] = useState([]);
 
@@ -193,6 +195,95 @@ export default function ClassModeContainer({
     }
   };
 
+  useEffect(() => {
+    const joinLearner = () => {
+      // Check if WebSocket is already open or being created
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        console.log("WebSocket is already open.");
+        return; // Do nothing if WebSocket is already open
+      }
+
+      // Create a new WebSocket connection to the server
+      const websocket = new WebSocket("ws://localhost:8080");
+
+      // Create a new learner object for the current user
+      const learner = {
+        id: Date.now(),
+        name: user?.email || "Unknown",
+        status: "In class",
+      };
+
+      websocket.onopen = () => {
+        console.log("Connected to the WebSocket server");
+        setConnected(true);
+
+        // Notify the server that a learner has joined the class
+        console.log("Sending learner data:", learner);
+        websocket.send(JSON.stringify({ type: "join", learner }));
+
+        // Add the new learner to the local learners state
+        setLearners((prevLearners) => [...prevLearners, learner]);
+
+        // Now that the WebSocket is open, send the current module data
+        if (activeModule) {
+          const moduleData = {
+            type: "NEXT_MODULE",
+            moduleId: activeModule.id,
+            moduleName: activeModule.name,
+            elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
+          };
+
+          console.log("PHASE ID: " + activePhaseId);
+
+          websocket.send(JSON.stringify(moduleData));
+          console.log("Sent over WebSocket: ", moduleData);
+        }
+      };
+
+      websocket.onmessage = (event) => {
+        console.log("Message from server:", event.data);
+
+        try {
+          const parsedData = JSON.parse(event.data);
+
+          // Handle the message type: updating the list of learners
+          if (parsedData.type === "UPDATE_LEARNERS") {
+            setLearners(parsedData.learners); // Update the local learners state with the list from the server
+          }
+
+          if (parsedData.type === "UPDATE_DATA") {
+            setJsonData(parsedData);
+            console.log("Update data recognized"); // Update the local learners state with the list from the server
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
+      };
+
+      websocket.onclose = () => {
+        console.log("Disconnected from the WebSocket server");
+        setConnected(false);
+
+        // Notify the server that this learner is disconnecting
+        console.log("Sending disconnect data:", learner);
+        websocket.send(
+          JSON.stringify({ type: "disconnect", learnerId: learner.id }),
+        );
+      };
+
+      websocket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+
+      // Store the WebSocket instance in the state (if needed later)
+      setWs(websocket);
+    };
+    if (userRole === "st") {
+      joinLearner();
+      setLearnerJoined(true);
+    }
+  }, []);
+
   const handleNextPhase = () => {
     // Reset the elapsed time for the modules in the current phase
     const resetElapsedTime = new Array(activePhase.modules.length).fill(0);
@@ -262,8 +353,11 @@ export default function ClassModeContainer({
     setShowInitialClassPage(false);
 
     // Start the class timer if it hasn't started yet
-    if (!classStarted) {
+    if (userRole === "in" && !classStarted) {
+      setClassStarted(true);
       startTimer();
+    } else if (userRole === "st" && !classStarted) {
+      setLearnerJoined(true);
     }
 
     // Check if WebSocket is already open or being created
@@ -346,7 +440,6 @@ export default function ClassModeContainer({
 
     // Store the WebSocket instance in the state (if needed later)
     setWs(websocket);
-    setClassStarted(true);
   };
 
   const handleShowLearners = () => {
@@ -472,10 +565,7 @@ export default function ClassModeContainer({
             {activeModule.name}
           </p>
         </div>
-        <ClassModeContent
-          activeModule={activeModule}
-          activeModuleIndex={activeModuleIndex}
-        />
+        <ClassModeContent jsonData={jsonData} />
       </div>
       <ClassModeFooter
         totalElapsedTime={totalElapsedTime}
@@ -510,17 +600,47 @@ export default function ClassModeContainer({
     if (userRole == "st") {
       if (isMobile) {
         return (
-          <MobileClassModeContainer {...sharedProps}>
+          <MobileClassModeContainer
+            {...sharedProps}
+            buttonBarContent={
+              <ButtonBar
+                primaryButtonText="Continue"
+                primaryButtonClassName="button-primary"
+                primaryButtonOnClick={() => {}}
+                secondaryContent={
+                  <div className="flex items-center gap-[4px] pl-[8px]">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM7.25 4V8V8.31066L7.46967 8.53033L9.96967 11.0303L11.0303 9.96967L8.75 7.68934V4H7.25Z"
+                        fill="var(--typeface_primary)"
+                      />
+                    </svg>
+                    <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
+                      x mins left
+                    </p>
+                  </div>
+                }
+              />
+            }
+          >
             {/* later this will be ClassModeContent component with json data fed in */}
-            <div>
-              <div>{JSON.stringify(jsonData, null, 2)}</div>
-              <Button
+            <div className="items-center">
+              {/* <Button
                 className="button-primary"
                 onClick={!classStarted ? handleStartClass : handleBack}
                 disabled={!session?.start_time}
               >
                 {!classStarted ? "Join class" : "Leave class"}
-              </Button>
+              </Button> */}
+              <ClassModeContent jsonData={jsonData} />
             </div>
           </MobileClassModeContainer>
         );
@@ -531,27 +651,29 @@ export default function ClassModeContainer({
           style={{ height: dashboardHeight }}
           className="relative mb-4 ml-4 mr-4 flex flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
         >
-          <h1>
-            This is where a student will be sent data on how to view the class.
-          </h1>
-          <pre>{JSON.stringify(jsonData, null, 2)}</pre>
-          <Button
-            className="button-primary"
-            onClick={!classStarted ? handleStartClass : handleBack}
-            disabled={!session?.start_time}
-          >
-            {!classStarted ? "Join class" : "Leave class"}
-          </Button>
+          <ClassModeHeaderBar
+            onBack={handleBack}
+            title="Classroom"
+            rightSide={
+              <div className="flex gap-[12px]">
+                {/* <Button
+                  className={`${!learnerJoined ? "button-primary" : "button-secondary"} self-start`}
+                  onClick={!learnerJoined ? handleStartClass : handleBack}
+                  disabled={!session?.start_time}
+                >
+                  {!learnerJoined ? "Join class" : "Leave class"}
+                </Button> */}
+              </div>
+            }
+          />
+          <ClassModeContent jsonData={jsonData} />
         </div>
       );
     } else if (userRole == "in")
       if (isMobile)
         return (
           <MobileClassModeContainer {...sharedProps}>
-            <ClassModeContent
-              activeModule={activeModule}
-              activeModuleIndex={activeModuleIndex}
-            />
+            <ClassModeContent jsonData={jsonData} />
           </MobileClassModeContainer>
         );
     return (

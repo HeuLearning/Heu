@@ -30,6 +30,7 @@ interface MobileClassModeContainerProps {
   totalElapsedTime: number[];
   learners: any;
   children: JSX.Element;
+  buttonBarContent?: JSX.Element;
 }
 
 export default function MobileClassModeContainer(
@@ -56,6 +57,7 @@ export default function MobileClassModeContainer(
     totalElapsedTime,
     learners,
     children,
+    buttonBarContent,
   } = props;
 
   const router = useRouter();
@@ -137,32 +139,7 @@ export default function MobileClassModeContainer(
             >
               {children}
             </MobileDetailView>
-            <ButtonBar
-              primaryButtonText="Continue"
-              primaryButtonClassName="button-primary"
-              primaryButtonOnClick={() => {}}
-              secondaryContent={
-                <div className="flex items-center gap-[4px] pl-[8px]">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
-                      d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM7.25 4V8V8.31066L7.46967 8.53033L9.96967 11.0303L11.0303 9.96967L8.75 7.68934V4H7.25Z"
-                      fill="var(--typeface_primary)"
-                    />
-                  </svg>
-                  <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
-                    x mins left
-                  </p>
-                </div>
-              }
-            />
+            {buttonBarContent}
           </div>
         )}
       </div>
