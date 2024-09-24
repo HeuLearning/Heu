@@ -174,12 +174,26 @@ export default function CalendarContainer({
     /* assumes that past sessions have been removed from array */
     if (isLoading) {
       return (
-        <MiniClassBlock
-          dateCard={true}
-          sessionId={""}
-          activeSessionId={activeSessionId}
-          setActiveSessionId={setActiveSessionId}
-        />
+        <div>
+          <MiniClassBlock
+            dateCard={true}
+            sessionId={""}
+            activeSessionId={activeSessionId}
+            setActiveSessionId={setActiveSessionId}
+          />
+          <Divider spacing={12} />
+          <MiniClassBlock
+            sessionId={""}
+            activeSessionId={activeSessionId}
+            setActiveSessionId={setActiveSessionId}
+          />
+          <Divider spacing={12} />
+          <MiniClassBlock
+            sessionId={""}
+            activeSessionId={activeSessionId}
+            setActiveSessionId={setActiveSessionId}
+          />
+        </div>
       );
     }
     if (upcomingSessions.length === 0) {
