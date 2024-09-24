@@ -139,6 +139,7 @@ export default function ClassModeContainer({
           moduleId: moduleToSend.id,
           moduleName: moduleToSend.name,
           elapsedTime: moduleToSend.elapsedTime,
+          exercises: moduleToSend.exercises
         };
 
         ws.send(JSON.stringify(data));
@@ -181,11 +182,13 @@ export default function ClassModeContainer({
       // Increment the active module index
       setActiveModuleIndex(nextModuleIndex);
 
+      const nextModule = phases[currentPhaseIndex].modules[nextModuleIndex];
       // Set the module data to be sent over WebSocket
       setModuleToSend({
         id: activePhaseId, // Still using activePhaseId here
-        name: phases[currentPhaseIndex].modules[nextModuleIndex].name,
+        name: nextModule.name,
         elapsedTime: newElapsedTime[nextModuleIndex],
+        exercises: nextModule.exercises
       });
 
       startTimer();
@@ -231,6 +234,7 @@ export default function ClassModeContainer({
             moduleId: activeModule.id,
             moduleName: activeModule.name,
             elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
+            exercises: activeModule.exercises
           };
 
           console.log("PHASE ID: " + activePhaseId);
@@ -303,6 +307,7 @@ export default function ClassModeContainer({
         id: firstModule.id,
         name: firstModule.name,
         elapsedTime: 0,
+        exercises: firstModule.exercises
       });
     } else {
       console.log("No more phases available.");
@@ -394,6 +399,7 @@ export default function ClassModeContainer({
           moduleId: activeModule.id,
           moduleName: activeModule.name,
           elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
+          exercises: activeModule.exercises
         };
 
         console.log("PHASE ID: " + activePhaseId);
