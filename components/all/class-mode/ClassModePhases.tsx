@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import PhaseCard from "./PhaseCard";
 import { useResponsive } from "../ResponsiveContext";
 import { useStopwatchControls, useStopwatchState } from "./StopwatchContext";
-import Module from "module";
 
 interface ClassModePhasesProps {
   phases: any[];
@@ -29,16 +28,22 @@ export default function ClassModePhases({
 
   useEffect(() => {
     console.log(elapsedTime);
-    console.log(activePhase.phase_duration_seconds);
-    if (activePhase && elapsedTime >= activePhase.phase_duration_seconds) {
-      stopTimer();
+    
+    // Check if activePhase is defined
+    if (activePhase) {
+      console.log(activePhase.phase_duration_seconds);
+      if (elapsedTime >= activePhase.phase_duration_seconds) {
+        stopTimer();
+      }
     }
+
+    // Check for activeModule and its timing
     if (
       activeModule &&
       totalElapsedTime.length - 1 === activeModuleIndex &&
       elapsedTime >=
         totalElapsedTime[activeModuleIndex] +
-          activeModule.suggested_duration_seconds
+        activeModule.suggested_duration_seconds
     ) {
       stopTimer();
     }
@@ -46,22 +51,23 @@ export default function ClassModePhases({
 
   return phases.map((phase, index) => (
     <PhaseCard
+      key={phase.id} // Ensure a unique key for each PhaseCard
       type={phase.type}
       title={phase.name}
       time={phaseTimes.get(phase.id)}
       percentage={
         activePhase === phase
-          ? elapsedTime / phase.phase_duration_seconds
+          ? elapsedTime / (activePhase ? activePhase.phase_duration_seconds : 1) // Use a fallback value to avoid division by zero
           : phases.indexOf(activePhase) > index
-            ? 1
-            : 0
+          ? 1
+          : 0
       }
       status={
         phases.indexOf(activePhase) > index
           ? "done"
           : activePhase === phase
-            ? "active"
-            : ""
+          ? "active"
+          : ""
       }
     />
   ));
