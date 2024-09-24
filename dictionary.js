@@ -26,6 +26,7 @@ const dictionary = {
     get_directions: "Get directions",
     settings: "Settings",
     log_out: "Log out",
+    start_class: "Start class",
   },
   info_pill_content: {
     class_started: "Your class has started",

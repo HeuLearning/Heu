@@ -21,6 +21,8 @@ import MobileClassModeContainer from "../mobile/MobileClassModeContainer";
 import Badge from "../Badge";
 import { createClient } from "@/utils/supabase/client";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
+import dictionary from "@/dictionary";
+import { getGT } from "gt-next";
 
 let learners: any[] = [];
 
@@ -49,6 +51,8 @@ export default function ClassModeContainer({
   // website navbar = 64, bottom margin = 16
   const dashboardHeight = window.innerHeight - 64 - 16;
   const { isMobile, isTablet, isDesktop } = useResponsive();
+
+  const t = getGT();
 
   const { phases, getModules, lessonPlan, phaseTimes, isLoading } =
     useLessonPlan();
@@ -562,14 +566,26 @@ export default function ClassModeContainer({
               onBack={handleBack}
               title={
                 session?.start_time
-                  ? format(new Date(session.start_time), "eeee, MMMM do")
+                  ? new Date(session.start_time).toLocaleDateString("default", {
+                      month: "long",
+                      day: "numeric",
+                      weekday: "long",
+                    })
                   : "Loading..."
               }
               subtitle={
                 session?.start_time && session?.end_time
-                  ? format(new Date(session.start_time), "h:mm a") +
+                  ? new Date(session.start_time).toLocaleTimeString("default", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: undefined,
+                    }) +
                     " - " +
-                    format(new Date(session.end_time), "h:mm a")
+                    new Date(session.end_time).toLocaleTimeString("default", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      hour12: undefined,
+                    })
                   : "Loading..."
               }
               rightSide={
