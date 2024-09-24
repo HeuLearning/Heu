@@ -18,6 +18,8 @@ import { useUserRole } from "./data-retrieval/UserRoleContext";
 import { signOutAction } from "@/app/actions";
 import { usePathname } from "next/navigation";
 import Dot from "./Dot";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 
 interface NavbarProps {
   activeTab: string;
@@ -31,6 +33,8 @@ export default function Navbar({ activeTab }: NavbarProps) {
   const [activeNotifTab, setActiveNotifTab] = useState("New");
   const [isNotifsOpen, setIsNotifsOpen] = useState(false);
   const [isSettingsShown, setIsSettingsShown] = useState(false);
+
+  const t = getGT();
 
   const pathname = usePathname();
 
@@ -90,7 +94,7 @@ export default function Navbar({ activeTab }: NavbarProps) {
 
   const handleButtonClick = (buttonText: string) => {
     setSelectedButton(buttonText);
-    if (buttonText === "Dashboard") {
+    if (buttonText === t("button_content.dashboard")) {
       router.push("dashboard");
     } else if (userRole === "in" && buttonText === "Training") {
       router.push("training");
@@ -240,11 +244,11 @@ export default function Navbar({ activeTab }: NavbarProps) {
           <Logo />
           <div className="flex items-center gap-[16px]">
             <NavButton
-              buttonText="Dashboard"
-              selected={selectedButton === "Dashboard"}
-              onClick={() => handleButtonClick("Dashboard")}
+              buttonText={t("button_content.dashboard")}
+              selected={selectedButton === t("button_content.dashboard")}
+              onClick={() => handleButtonClick(t("button_content.dashboard"))}
             />
-            {userRole === "in" ? (
+            {/* {userRole === "in" ? (
               <NavButton
                 buttonText="Training"
                 selected={selectedButton === "Training"}
@@ -255,7 +259,7 @@ export default function Navbar({ activeTab }: NavbarProps) {
                 buttonText="Diagnostic"
                 selected={selectedButton === "Diagnostic"}
               />
-            )}
+            )} */}
           </div>
         </div>
         <div className="flex items-center gap-[16px]">
@@ -291,10 +295,10 @@ export default function Navbar({ activeTab }: NavbarProps) {
                       <Dot color="var(--typeface_primary)" />
                       <p className="text-typeface_primary text-body-medium">
                         {userRole === "st"
-                          ? "Learner"
+                          ? t("roles.learner")
                           : userRole === "in"
-                            ? "Instructor"
-                            : "Admin"}
+                            ? t("roles.instructor")
+                            : t("roles.admin")}
                       </p>
                     </div>
                     <p className="text-typeface_primary text-body-medium">
@@ -303,7 +307,9 @@ export default function Navbar({ activeTab }: NavbarProps) {
                   </div>
                 </div>
               </div>
-              <Button className="button-secondary">Settings</Button>
+              <Button className="button-secondary">
+                {t("button_content.settings")}
+              </Button>
               <div className="px-[4px]">
                 <Divider spacing={4} />
               </div>
@@ -311,7 +317,7 @@ export default function Navbar({ activeTab }: NavbarProps) {
                 className="button-primary justify-end"
                 onClick={() => signOutAction()}
               >
-                Log out
+                {t("button_content.log_out")}
               </Button>
             </div>
           )}

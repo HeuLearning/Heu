@@ -9,6 +9,8 @@ import { format } from "date-fns";
 import Dot from "./Dot";
 import AttendancePopUp from "./popups/AttendancePopUp";
 import Placeholder from "./Placeholder";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 
 interface MiniClassBlockProps {
   dateCard?: boolean;
@@ -31,6 +33,7 @@ export default function MiniClassBlock({
 }: MiniClassBlockProps) {
   const { getSessionStatus, upcomingSessions, allSessions, confirmSession } =
     useSessions();
+  const t = getGT();
   const session: any = allSessions.find((session) => session.id === sessionId);
   const startDate = new Date(session.start_time);
   const router = useRouter();
@@ -47,7 +50,8 @@ export default function MiniClassBlock({
     status === "Pending" ||
     status === "Enrolled" ||
     status === "Waitlisted" ||
-    status === "Available"
+    status === "Available" ||
+    status === "Class full"
   ) {
     color = "text-typeface_primary";
     fillColor = "#292929";
@@ -165,7 +169,11 @@ export default function MiniClassBlock({
         )}
         {sessionId ? (
           <h2 className={`text-body-semibold ${color}`}>
-            {status === "Enrolled" ? "Pending" : status}
+            {status === "Enrolled"
+              ? t("status.pending")
+              : status === "Class full"
+                ? t("status.class_full")
+                : t(`status.${status}`)}
           </h2>
         ) : (
           <Placeholder width={60} height={10} />
@@ -182,7 +190,7 @@ export default function MiniClassBlock({
             className="bg-white text-typeface_primary text-body-semibold-cap-height"
             onClick={handleConfirmPopUp}
           >
-            Confirm
+            {t("button_content.confirm")}
           </Button>
         </div>
       );
@@ -193,7 +201,7 @@ export default function MiniClassBlock({
             className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
             onClick={handleEnter}
           >
-            Enter class
+            {t("button_content.enter_class")}
           </Button>
         </div>
       );
@@ -204,7 +212,7 @@ export default function MiniClassBlock({
             className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
             onClick={handleEnroll}
           >
-            Enroll
+            {t("button_content.enroll")}
           </Button>
         </div>
       );

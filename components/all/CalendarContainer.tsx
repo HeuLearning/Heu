@@ -8,6 +8,8 @@ import IconButton from "./buttons/IconButton";
 import Scrollbar from "./Scrollbar";
 import styles from "./popups/SidePopUp.module.css";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 
 interface CalendarContainerProps {
   activeSessionId: string | null;
@@ -19,9 +21,11 @@ export default function CalendarContainer({
   setActiveSessionId,
 }: CalendarContainerProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const t = getGT();
+
   const { userRole } = useUserRole();
   const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
-  const [activeTab, setActiveTab] = useState("Monthly");
+  const [activeTab, setActiveTab] = useState(t("button_content.monthly"));
   const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -310,23 +314,23 @@ export default function CalendarContainer({
           setActiveSessionId={setActiveSessionId}
           sessionMap={sessionMap}
         />
-        {activeTab === "Monthly" && (
+        {activeTab === t("button_content.monthly") && (
           <div className="px-[16px]">
             <div className="mx-[-16px] border-t-[1px] border-surface_border_tertiary"></div>
             <p className="px-[8px] pb-[28px] pt-[24px] text-typeface_secondary text-body-semibold-cap-height">
-              Coming up
+              {t("session_detail_content.coming_up")}
             </p>
             <div className="upcoming-events flex flex-col items-center pb-[16px]">
               {renderUpcomingSessions()}
             </div>
           </div>
         )}
-        {activeTab === "Daily" && (
+        {activeTab === t("button_content.daily") && (
           <div>
             <div
               className={`${isScrolled ? styles.stickyHeaderWithBorder : ""}`}
             ></div>
-            <div className={`h-[570px] overflow-y-auto`}>
+            <div className={`h-full overflow-y-auto`}>
               {/* scrollbar halfway into padding, 8px */}
               <Scrollbar
                 className="absolute right-[8px] z-50"

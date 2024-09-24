@@ -8,17 +8,20 @@ import Dot from "../Dot";
 import { usePopUp } from "../popups/PopUpContext";
 import AttendancePopUp from "../popups/AttendancePopUp";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 
 interface RSVPSelectorProps {
   session: any;
 }
 
 export default function RSVPSelector({ session }: RSVPSelectorProps) {
-
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownWidth, setDropdownWidth] = useState(0);
   const { confirmSession, getSessionStatus } = useSessions();
   const { userRole } = useUserRole();
+
+  const t = getGT();
 
   const status = getSessionStatus(session);
 
@@ -27,7 +30,11 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
 
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
-      if (dropdownRef.current && event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        event.target instanceof Node &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -90,7 +97,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
               : "var(--typeface_tertiary)"
           }
         />
-        {status}
+        {t("status." + status)}
       </div>
     );
   } else if (status === "Attended") {
@@ -110,7 +117,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
             strokeLinecap="round"
           />
         </svg>
-        {status}
+        {t("status." + status)}
       </div>
     );
   } else if (

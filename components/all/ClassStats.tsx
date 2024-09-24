@@ -1,5 +1,7 @@
 import React from "react";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 import { useResponsive } from "./ResponsiveContext";
 
 interface StatComponentProps {
@@ -9,12 +11,17 @@ interface StatComponentProps {
   children: React.ReactNode;
 }
 
-function StatComponent({ heading, subheading, bgColor, children }: StatComponentProps) {
+function StatComponent({
+  heading,
+  subheading,
+  bgColor,
+  children,
+}: StatComponentProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   return (
     <div className="flex gap-[16px]">
       <div
-        className={`relative  ${
+        className={`relative ${
           isMobile ? "h-[44px] w-[44px]" : "h-[40px] w-[40px]"
         }`}
       >
@@ -76,8 +83,15 @@ export default function ClassStats({
   isMobile = false,
 }: ClassStatsProps) {
   const { userRole } = useUserRole();
+  const t = getGT();
 
-  const ConditionalWrapper = ({ condition, children }: {condition: boolean, children: React.ReactNode}) => {
+  const ConditionalWrapper = ({
+    condition,
+    children,
+  }: {
+    condition: boolean;
+    children: React.ReactNode;
+  }) => {
     return condition ? (
       <div
         className={`${
@@ -103,7 +117,7 @@ export default function ClassStats({
       <ConditionalWrapper condition={isMobile && direction === ""}>
         <StatComponent
           heading={attending}
-          subheading="Attending"
+          subheading={t("session_detail_content.attending")}
           bgColor="surface_bg_secondary"
         >
           {isMobile ? (
@@ -136,7 +150,7 @@ export default function ClassStats({
         </StatComponent>
         <StatComponent
           heading={level}
-          subheading="Level"
+          subheading={t("session_detail_content.level")}
           bgColor="surface_bg_secondary"
         >
           {isMobile ? (
@@ -173,7 +187,7 @@ export default function ClassStats({
       <ConditionalWrapper condition={isMobile && direction === ""}>
         <StatComponent
           heading={agenda}
-          subheading="Agenda"
+          subheading={t("session_detail_content.agenda")}
           bgColor="surface_bg_secondary"
         >
           {isMobile ? (
@@ -207,7 +221,7 @@ export default function ClassStats({
         {userRole === "in" && (
           <StatComponent
             heading={classCode}
-            subheading="Class Code"
+            subheading={t("session_detail_content.class_code")}
             bgColor="surface_bg_secondary"
           >
             {isMobile ? (

@@ -8,6 +8,8 @@ import Dot from "./Dot";
 import MenuItem from "./buttons/MenuItem";
 import { format } from "date-fns";
 import Divider from "./Divider";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 
 interface CalendarProps {
   visibleMonth: Date;
@@ -33,6 +35,8 @@ export default function Calendar({
   const [pressedDate, setPressedDate] = useState<Date | null>(null);
   const [multipleDates, setMultipleDates] = useState<any>([]);
   const [popUpPosition, setPopUpPosition] = useState({ bottom: 0, left: 0 });
+
+  const t = getGT();
 
   const calendarWrapperRef = useRef(null);
 
@@ -200,16 +204,21 @@ export default function Calendar({
       <div className="flex flex-col items-center">
         <div
           className={`w-full px-[16px] ${
-            activeTab === "Monthly" ? "pb-[22px]" : "pb-[20px]"
+            activeTab === t("button_content.monthly")
+              ? "pb-[22px]"
+              : "pb-[20px]"
           }`}
         >
           <ToggleButton
-            buttonOptions={["Monthly", "Daily"]}
+            buttonOptions={[
+              t("button_content.monthly"),
+              t("button_content.daily"),
+            ]}
             selected={activeTab}
             onToggle={onToggle}
           />
         </div>
-        {activeTab === "Monthly" && (
+        {activeTab === t("button_content.monthly") && (
           <div className="relative" ref={calendarContainerRef}>
             <div
               className="absolute z-10"

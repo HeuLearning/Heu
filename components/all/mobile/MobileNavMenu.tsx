@@ -4,14 +4,18 @@ import BackButton from "../buttons/BackButton";
 import { useState } from "react";
 import NavButton from "../buttons/NavButton";
 
-export default function MobileNavMenu({ closeMenu }) {
+interface MobileNavMenuProps {
+  closeMenu: () => void;
+}
+
+export default function MobileNavMenu({ closeMenu }: MobileNavMenuProps) {
   const [selectedNavButton, setSelectedNavButton] = useState("Dashboard");
   const [selectedLanguage, setSelectedLanguage] = useState("English");
 
-  const navButtons = ["Dashboard", "Training", "Language", "Profile"];
+  const navButtons = ["Dashboard", "Language", "Profile"];
   const languages = ["English", "Spanish", "French"];
 
-  const handleNavButtonClick = (buttonText) => {
+  const handleNavButtonClick = (buttonText: string) => {
     setSelectedNavButton(buttonText);
   };
 

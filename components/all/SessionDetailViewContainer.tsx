@@ -7,6 +7,8 @@ import SessionDetailContent from "./SessionDetailContent";
 import { useSessions } from "./data-retrieval/SessionsContext";
 import ClassSchedulePopUpContainer from "./popups/ClassSchedulePopUpContent";
 import { useLessonPlan } from "./data-retrieval/LessonPlanContext";
+import dictionary from "../../dictionary.js";
+import { getGT } from "gt-next";
 
 interface SessionDetailViewContainerProps {
   activeSessionId: string | null;
@@ -17,6 +19,8 @@ export default function SessionDetailViewContainer({
 }: SessionDetailViewContainerProps) {
   const { allSessions, getSessionStatus } = useSessions();
   const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
+
+  const t = getGT();
 
   let lessonPlanData = useLessonPlan();
   const session = useMemo(() => {
@@ -69,7 +73,7 @@ export default function SessionDetailViewContainer({
         <SidePopUp
           headerContent={
             <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-              Class Schedule
+              {t("session_detail_content.class_schedule")}
               <XButton onClick={() => hidePopUp("class-schedule-popup")} />
             </div>
           }
