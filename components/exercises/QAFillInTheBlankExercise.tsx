@@ -204,7 +204,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                       )}
                       <Textbox
                         size="small"
-                        placeholder="Type here"
+                        placeholder={correct_answer[index]}
                         width={largestWordWidth}
                         value={clearedAnswers[index]}
                         onChange={(value) => {
@@ -234,7 +234,10 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   const handleSubmit = () => {
     console.log(userAnswers);
-    if (userAnswers.join("") === correct_answer.join("")) {
+    if (
+      userAnswers.join("").toLowerCase() ===
+      correct_answer.join("").toLowerCase()
+    ) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
@@ -277,7 +280,9 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   };
 
   const checkAnswers = (clearedAnswers: string[]) => {
-    const isCorrect = clearedAnswers.join("") === correct_answer.join("");
+    const isCorrect =
+      clearedAnswers.join("").toLowerCase() ===
+      correct_answer.join("").toLowerCase();
     if (isCorrect && isMobile) {
       updatePopUp(
         "incorrect-answer-popup",

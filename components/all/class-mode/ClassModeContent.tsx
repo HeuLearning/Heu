@@ -11,6 +11,7 @@ import Button from "../buttons/Button";
 import { useResponsive } from "../ResponsiveContext";
 import Instruction from "@/components/exercises/Instruction";
 import InLineMultipleChoice from "@/components/exercises/InLineMultipleChoice";
+import MultipleChoiceExercise from "@/components/exercises/MultipleChoiceExercise";
 
 interface ClassModeContentProps {
   jsonData: any;
@@ -27,6 +28,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const testQAFillInTheBlank = false;
   const testInstruction = false;
   const testInLineMultipleChoice = true;
+  const testMultipleChoice = false;
 
   // Memoize the content rendering logic to avoid unnecessary re-renders
   const renderContent = useMemo(() => {
@@ -56,6 +58,14 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
          correct_answer: ["is", "am", "is", "is", "you"],
        };
       return <InLineMultipleChoice {...multipleChoiceData} />;
+    } else if (testMultipleChoice) {
+      const multipleChoiceData = {
+        instruction: "Pick the right answer.",
+        question: "What word is a color?",
+        options: ["book", "blue", "hair", "school"],
+        correct_answer: "blue",
+      };
+      return <MultipleChoiceExercise {...multipleChoiceData} />;
     } else if (testQAFillInTheBlank) {
       const qaFillInBlankData = {
         instruction: "Fill in the blanks with the correct words.",
@@ -86,7 +96,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
     testInLineMultipleChoice,
     testQAFillInTheBlank,
     testMatchingExercise,
-    jsonData
+    jsonData,
   ]); // Recompute only when these variables change
 
   return (
