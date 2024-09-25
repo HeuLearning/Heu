@@ -257,11 +257,11 @@ export default function ClassModeContainer({
   };
 
   const handleNextModule = (module: any, index: number) => {
-    // Update the elapsed time for the next module
-    const newElapsedTime = [...totalElapsedTime];
-    newElapsedTime[index] =
-      totalElapsedTime[index] + module.suggested_duration_seconds;
-    setTotalElapsedTime(newElapsedTime);
+    totalElapsedTime.push(
+      totalElapsedTime[index] + module.suggested_duration_seconds,
+    );
+    setElapsedTime(totalElapsedTime[index + 1]);
+
 
     // Find the index of the active phase by its ID
     const currentPhaseIndex = phases.findIndex(
@@ -272,7 +272,7 @@ export default function ClassModeContainer({
     const nextModuleIndex = index + 1;
 
     if (nextModuleIndex < phases[currentPhaseIndex]?.modules.length) {
-      setElapsedTime(newElapsedTime[nextModuleIndex]);
+      setElapsedTime(totalElapsedTime[nextModuleIndex]);
 
       // Increment the active module index
       setActiveModuleIndex(nextModuleIndex);
@@ -282,7 +282,7 @@ export default function ClassModeContainer({
       setModuleToSend({
         id: activePhaseId, // Still using activePhaseId here
         name: nextModule.name,
-        elapsedTime: newElapsedTime[nextModuleIndex],
+        elapsedTime: totalElapsedTime[nextModuleIndex],
         exercises: nextModule.exercises,
       });
 
@@ -300,26 +300,35 @@ export default function ClassModeContainer({
     const resetElapsedTime = new Array(activePhase.modules.length).fill(0);
     setTotalElapsedTime(resetElapsedTime);
 
-    // Increment the active phase index
-    const nextPhaseIndex =
-      phases.findIndex((phase) => phase.id === activePhaseId) + 1;
-    if (nextPhaseIndex < phases.length) {
-      const nextPhase = phases[nextPhaseIndex];
+    const currentPhaseIndex = phases.findIndex(
+      (phase) => phase.id === activePhaseId,
+    );
+
+    if (currentPhaseIndex < phases.length - 1) {
+      const nextPhase = phases[currentPhaseIndex + 1];
       setActivePhaseId(nextPhase.id);
-      setActiveModuleIndex(0); // Reset to the first module of the next phase
-
-      // Prepare the first module data to be sent
-      const firstModule = nextPhase.modules[0];
-      setModuleToSend({
-        id: firstModule.id,
-        name: firstModule.name,
-        elapsedTime: 0,
-        exercises: firstModule.exercises,
-      });
-    } else {
-      console.log("No more phases available.");
+      setActiveModuleIndex(0); // Reset to the first module of the new phase
+      setTotalElapsedTime([0]); // Add a new elapsed time for the new phase
+      setElapsedTime(0); // Reset elapsed time for the new phase
+      resetTimer();
+      startTimer(); // Start the timer for the new phase
+    
+      const nextPhaseIndex =
+      phases.findIndex((phase) => phase.id === activePhaseId) + 1;
+      if (nextPhaseIndex < phases.length) {
+        const nextPhase = phases[nextPhaseIndex];
+        // Prepare the first module data to be sent
+        const firstModule = nextPhase.modules[0];
+        setModuleToSend({
+          id: firstModule.id,
+          name: firstModule.name,
+          elapsedTime: 0,
+          exercises: firstModule.exercises,
+        });
+      } else {
+        console.log("No more phases available.");
+      }    
     }
-
     resetTimer(); // Reset any previous timers
     startTimer(); // Start the timer for the new phase
   };
