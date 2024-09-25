@@ -8,12 +8,14 @@ interface ButtonBarProps {
   secondaryButtonClassName?: string;
   secondaryButtonOnClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   secondaryContent?: React.ReactNode;
+  primaryButtonDisabled?: boolean;
 }
 
 export default function ButtonBar({
   primaryButtonText,
   primaryButtonClassName = "",
   primaryButtonOnClick,
+  primaryButtonDisabled,
   secondaryButtonText = "",
   secondaryButtonClassName = "",
   secondaryButtonOnClick = () => {},
@@ -31,16 +33,21 @@ export default function ButtonBar({
           </Button>
         )}
         {secondaryContent && <div className="w-1/3">{secondaryContent}</div>}
-        <Button
-          onClick={primaryButtonOnClick}
+        <div
           className={`${
-            primaryButtonClassName ? primaryButtonClassName : "button-primary"
-          } ${
             secondaryButtonText || secondaryContent ? "w-2/3" : "w-full"
-          } rounded-[10px]`}
+          }`}
         >
-          {primaryButtonText}
-        </Button>
+          <Button
+            onClick={primaryButtonOnClick}
+            className={`${
+              primaryButtonClassName ? primaryButtonClassName : "button-primary"
+            } w-full rounded-[10px]`}
+            disabled={primaryButtonDisabled}
+          >
+            {primaryButtonText}
+          </Button>
+        </div>
       </div>
     </div>
   );

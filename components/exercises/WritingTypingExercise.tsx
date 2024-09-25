@@ -4,6 +4,57 @@ import Textbox from "./Textbox";
 import Badge from "../all/Badge";
 import InfoPill from "../all/InfoPill";
 
+// const writingTypingData = {
+//   audioSrc:
+//     "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
+//   questions: [
+//     {
+//       id: "1",
+//       text: "What does Jorge do?",
+//       answer: "",
+//       requiredWord: "Driver",
+//       correctAnswer: "He drives a car.",
+//     },
+//     {
+//       id: "2",
+//       text: "Where does he work?",
+//       answer: "",
+//       requiredWord: "Truckers Plus",
+//       correctAnswer: "He works at Truckers Plus.",
+//     },
+//     {
+//       id: "3",
+//       text: "Does he like it?",
+//       answer: "",
+//       requiredWord: "No",
+//       correctAnswer: "No, he doesn't like it.",
+//     },
+//     {
+//       id: "4",
+//       text: "What does Miyen do?",
+//       answer: "",
+//       requiredWord: "Housekeeper",
+//       correctAnswer: "She is a housekeeper.",
+//     },
+//     {
+//       id: "5",
+//       text: "Where does she work?",
+//       answer: "",
+//       requiredWord: "a hotel",
+//       correctAnswer: "She works at a hotel.",
+//     },
+//     {
+//       id: "6",
+//       text: "Does she like it?",
+//       answer: "",
+//       requiredWord: "okay",
+//       correctAnswer: "She thinks it's okay.",
+//     },
+//   ],
+// };
+
+// return <WritingTypingExercise {...writingTypingData} />;
+
 interface Question {
   id: string;
   text: string;

@@ -24,6 +24,7 @@ import { useUserRole } from "../data-retrieval/UserRoleContext";
 import dictionary from "@/dictionary";
 import { getGT } from "gt-next";
 import ButtonBar from "../mobile/ButtonBar";
+import { ButtonBarProvider } from "../mobile/ButtonBarContext";
 
 let learners: any[] = [];
 
@@ -72,6 +73,10 @@ export default function ClassModeContainer({
   const [learnerJoined, setLearnerJoined] = useState(false);
   const [learners, setLearners] = useState<Learner[]>([]);
   const [jsonData, setJsonData] = useState([]);
+
+  const [handleSubmitAnswer, setHandleSubmitAnswer] = useState<any>(
+    () => () => {},
+  );
 
   const [moduleToSend, setModuleToSend] = useState<any | null>(null);
 
@@ -602,53 +607,60 @@ export default function ClassModeContainer({
     learners,
   };
 
+  const val = {
+    handleSubmitAnswer,
+    setHandleSubmitAnswer,
+  };
+
   if (!isSessionLoading) {
     if (userRole == "st") {
       if (isMobile) {
         return (
-          <MobileClassModeContainer
-            {...sharedProps}
-            buttonBarContent={
-              <ButtonBar
-                primaryButtonText="Continue"
-                primaryButtonClassName="button-primary"
-                primaryButtonOnClick={() => {}}
-                secondaryContent={
-                  <div className="flex items-center gap-[4px] pl-[8px]">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM7.25 4V8V8.31066L7.46967 8.53033L9.96967 11.0303L11.0303 9.96967L8.75 7.68934V4H7.25Z"
-                        fill="var(--typeface_primary)"
-                      />
-                    </svg>
-                    <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
-                      x mins left
-                    </p>
-                  </div>
-                }
-              />
-            }
-          >
-            {/* later this will be ClassModeContent component with json data fed in */}
-            <div className="items-center">
-              {/* <Button
+          <ButtonBarProvider value={val}>
+            <MobileClassModeContainer
+              {...sharedProps}
+              buttonBarContent={
+                <ButtonBar
+                  primaryButtonText="Submit answer"
+                  primaryButtonClassName="button-primary"
+                  primaryButtonOnClick={handleSubmitAnswer}
+                  secondaryContent={
+                    <div className="flex items-center gap-[4px] pl-[8px]">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          clip-rule="evenodd"
+                          d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM7.25 4V8V8.31066L7.46967 8.53033L9.96967 11.0303L11.0303 9.96967L8.75 7.68934V4H7.25Z"
+                          fill="var(--typeface_primary)"
+                        />
+                      </svg>
+                      <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
+                        x mins left
+                      </p>
+                    </div>
+                  }
+                />
+              }
+            >
+              {/* later this will be ClassModeContent component with json data fed in */}
+              <div className="items-center">
+                {/* <Button
                 className="button-primary"
                 onClick={!classStarted ? handleStartClass : handleBack}
                 disabled={!session?.start_time}
               >
                 {!classStarted ? "Join class" : "Leave class"}
               </Button> */}
-              <ClassModeContent jsonData={jsonData} />
-            </div>
-          </MobileClassModeContainer>
+                <ClassModeContent jsonData={jsonData} />
+              </div>
+            </MobileClassModeContainer>
+          </ButtonBarProvider>
         );
       }
       return (
