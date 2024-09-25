@@ -135,7 +135,6 @@ export default function ClassModeContainer({
     };
   }, [ws]);
 
-    
   useEffect(() => {
     const joinLearner = () => {
       // Check if WebSocket is already open or being created
@@ -223,12 +222,8 @@ export default function ClassModeContainer({
     if (userRole === "st") {
       joinLearner();
       setLearnerJoined(true);
-      console.log("JOIN LEARNER CALLED PROPERLY!!!")
     }
-    console.log("is this being seen here??")
-
   }, [userRole]);
-
 
   useEffect(() => {
     if (moduleToSend && activeModuleIndex !== -1) {
@@ -297,8 +292,7 @@ export default function ClassModeContainer({
       console.log("No more modules in the current phase.");
     }
   };
-  console.log("here is the user role");
-  console.log(userRole);
+
 
 
   const handleNextPhase = () => {
@@ -374,8 +368,11 @@ export default function ClassModeContainer({
     if (userRole === "in" && !classStarted) {
       setClassStarted(true);
       startTimer();
+    } else if (userRole === "st" && !classStarted) {
+      setLearnerJoined(true);
+    }
 
-       // Check if WebSocket is already open or being created
+    // Check if WebSocket is already open or being created
     if (ws && ws.readyState === WebSocket.OPEN) {
       console.log("WebSocket is already open.");
       return; // Do nothing if WebSocket is already open
@@ -456,10 +453,6 @@ export default function ClassModeContainer({
 
     // Store the WebSocket instance in the state (if needed later)
     setWs(websocket);
-
-    } else if (userRole === "st" && !classStarted) {
-      setLearnerJoined(true);
-    }
   };
 
   const handleShowLearners = () => {
@@ -586,6 +579,7 @@ export default function ClassModeContainer({
           </p>
         </div>
         <ClassModeContent jsonData={jsonData} />
+        
       </div>
       <ClassModeFooter
         totalElapsedTime={totalElapsedTime}
