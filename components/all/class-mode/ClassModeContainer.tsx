@@ -135,74 +135,7 @@ export default function ClassModeContainer({
     };
   }, [ws]);
 
-  useEffect(() => {
-    if (moduleToSend && activeModuleIndex !== -1) {
-      // Ensure WebSocket is open
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        const data = {
-          type: "NEXT_MODULE",
-          moduleId: moduleToSend.id,
-          moduleName: moduleToSend.name,
-          elapsedTime: moduleToSend.elapsedTime,
-          exercises: moduleToSend.exercises,
-        };
-
-        ws.send(JSON.stringify(data));
-        console.log("Sent over WebSocket: ", data);
-      } else {
-        console.error("WebSocket is not open or does not exist");
-      }
-      setModuleToSend(null);
-    }
-    console.log("HANDLE UPDATE HERE!!!");
-  }, [moduleToSend, activeModuleIndex]);
-
-  const controls = useStopwatchControls();
-  const { stopTimer, startTimer, lapTimer, resetTimer, setElapsedTime } =
-    controls;
-
-  const router = useRouter();
-  const handleBack = () => {
-    router.push("dashboard");
-  };
-
-  const handleNextModule = (module: any, index: number) => {
-    // Update the elapsed time for the next module
-    const newElapsedTime = [...totalElapsedTime];
-    newElapsedTime[index] =
-      totalElapsedTime[index] + module.suggested_duration_seconds;
-    setTotalElapsedTime(newElapsedTime);
-
-    // Find the index of the active phase by its ID
-    const currentPhaseIndex = phases.findIndex(
-      (phase) => phase.id === activePhaseId,
-    );
-
-    // Set the module data to be sent over WebSocket
-    const nextModuleIndex = index + 1;
-
-    if (nextModuleIndex < phases[currentPhaseIndex]?.modules.length) {
-      setElapsedTime(newElapsedTime[nextModuleIndex]);
-
-      // Increment the active module index
-      setActiveModuleIndex(nextModuleIndex);
-
-      const nextModule = phases[currentPhaseIndex].modules[nextModuleIndex];
-      // Set the module data to be sent over WebSocket
-      setModuleToSend({
-        id: activePhaseId, // Still using activePhaseId here
-        name: nextModule.name,
-        elapsedTime: newElapsedTime[nextModuleIndex],
-        exercises: nextModule.exercises,
-      });
-
-      startTimer();
-      lapTimer();
-    } else {
-      console.log("No more modules in the current phase.");
-    }
-  };
-
+    
   useEffect(() => {
     const joinLearner = () => {
       // Check if WebSocket is already open or being created
@@ -290,8 +223,83 @@ export default function ClassModeContainer({
     if (userRole === "st") {
       joinLearner();
       setLearnerJoined(true);
+      console.log("JOIN LEARNER CALLED PROPERLY!!!")
     }
-  }, []);
+    console.log("is this being seen here??")
+
+  }, [userRole]);
+
+
+  useEffect(() => {
+    if (moduleToSend && activeModuleIndex !== -1) {
+      // Ensure WebSocket is open
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        const data = {
+          type: "NEXT_MODULE",
+          moduleId: moduleToSend.id,
+          moduleName: moduleToSend.name,
+          elapsedTime: moduleToSend.elapsedTime,
+          exercises: moduleToSend.exercises,
+        };
+
+        ws.send(JSON.stringify(data));
+        console.log("Sent over WebSocket: ", data);
+      } else {
+        console.error("WebSocket is not open or does not exist");
+      }
+      setModuleToSend(null);
+    }
+    console.log("HANDLE UPDATE HERE!!!");
+  }, [moduleToSend, activeModuleIndex]);
+
+  const controls = useStopwatchControls();
+  const { stopTimer, startTimer, lapTimer, resetTimer, setElapsedTime } =
+    controls;
+
+  const router = useRouter();
+  const handleBack = () => {
+    router.push("dashboard");
+  };
+
+  const handleNextModule = (module: any, index: number) => {
+    // Update the elapsed time for the next module
+    const newElapsedTime = [...totalElapsedTime];
+    newElapsedTime[index] =
+      totalElapsedTime[index] + module.suggested_duration_seconds;
+    setTotalElapsedTime(newElapsedTime);
+
+    // Find the index of the active phase by its ID
+    const currentPhaseIndex = phases.findIndex(
+      (phase) => phase.id === activePhaseId,
+    );
+
+    // Set the module data to be sent over WebSocket
+    const nextModuleIndex = index + 1;
+
+    if (nextModuleIndex < phases[currentPhaseIndex]?.modules.length) {
+      setElapsedTime(newElapsedTime[nextModuleIndex]);
+
+      // Increment the active module index
+      setActiveModuleIndex(nextModuleIndex);
+
+      const nextModule = phases[currentPhaseIndex].modules[nextModuleIndex];
+      // Set the module data to be sent over WebSocket
+      setModuleToSend({
+        id: activePhaseId, // Still using activePhaseId here
+        name: nextModule.name,
+        elapsedTime: newElapsedTime[nextModuleIndex],
+        exercises: nextModule.exercises,
+      });
+
+      startTimer();
+      lapTimer();
+    } else {
+      console.log("No more modules in the current phase.");
+    }
+  };
+  console.log("here is the user role");
+  console.log(userRole);
+
 
   const handleNextPhase = () => {
     // Reset the elapsed time for the modules in the current phase
@@ -366,11 +374,8 @@ export default function ClassModeContainer({
     if (userRole === "in" && !classStarted) {
       setClassStarted(true);
       startTimer();
-    } else if (userRole === "st" && !classStarted) {
-      setLearnerJoined(true);
-    }
 
-    // Check if WebSocket is already open or being created
+       // Check if WebSocket is already open or being created
     if (ws && ws.readyState === WebSocket.OPEN) {
       console.log("WebSocket is already open.");
       return; // Do nothing if WebSocket is already open
@@ -451,6 +456,10 @@ export default function ClassModeContainer({
 
     // Store the WebSocket instance in the state (if needed later)
     setWs(websocket);
+
+    } else if (userRole === "st" && !classStarted) {
+      setLearnerJoined(true);
+    }
   };
 
   const handleShowLearners = () => {
