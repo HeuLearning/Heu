@@ -27,8 +27,8 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const testMatchingExercise = false;
   const testQAFillInTheBlank = false;
   const testInstruction = false;
-  const testInLineMultipleChoice = true;
-  const testMultipleChoice = false;
+  const testInLineMultipleChoice = false;
+  const testMultipleChoice = true;
 
   // Memoize the content rendering logic to avoid unnecessary re-renders
   const renderContent = useMemo(() => {
@@ -39,30 +39,35 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
       const instruction = "Repeat after your instructor.";
       return <Instruction instruction={instruction} />;
     } else if (testInLineMultipleChoice) {
-       const multipleChoiceData = {
-         instruction: "Pick the right answer.",
-         questions: [
-           "My name [__] Sarita.",
-           "I [__] from Nepal.",
-           "His name [__] José.",
-           "Her name [__] Maria.",
-           "Where are [__] from?",
-         ],
-         options: [
-           ["is", "are"],
-           ["am", "are"],
-           ["is", "are"],
-           ["is", "am"],
-           ["you", "your"],
-         ],
-         correct_answer: ["is", "am", "is", "is", "you"],
-       };
+      const multipleChoiceData = {
+        instruction: "Pick the right answer.",
+        questions: [
+          "My name [__] Sarita.",
+          "I [__] from Nepal.",
+          "His name [__] José.",
+          "Her name [__] Maria.",
+          "Where are [__] from?",
+        ],
+        options: [
+          ["is", "are"],
+          ["am", "are"],
+          ["is", "are"],
+          ["is", "am"],
+          ["you", "your"],
+        ],
+        correct_answer: ["is", "am", "is", "is", "you"],
+      };
       return <InLineMultipleChoice {...multipleChoiceData} />;
     } else if (testMultipleChoice) {
       const multipleChoiceData = {
         instruction: "Pick the right answer.",
         question: "What word is a color?",
-        options: ["book", "blue", "hair", "school"],
+        options: [
+          "book",
+          "blue",
+          "hair longer option here blah blah sentence",
+          "school",
+        ],
         correct_answer: "blue",
       };
       return <MultipleChoiceExercise {...multipleChoiceData} />;

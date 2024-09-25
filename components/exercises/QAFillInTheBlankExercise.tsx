@@ -40,7 +40,10 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     useEffect(() => {
       const handleClick = () => {
         console.log(userAnswers);
-        if (userAnswers.join("") === correct_answer.join("")) {
+        if (
+          userAnswers.join("").toLowerCase() ===
+          correct_answer.join("").toLowerCase()
+        ) {
           showPopUp({
             id: "correct-answer-popup",
             content: (

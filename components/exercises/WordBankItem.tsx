@@ -9,30 +9,26 @@ import { useResponsive } from "../all/ResponsiveContext";
 
 interface WordBankItemProps {
   id: string;
-  radio?: boolean;
-  checkbox?: boolean;
   draggable?: boolean;
   droppable?: boolean;
-  letter?: string;
   children?: React.ReactNode;
   x?: boolean;
   handleReset?: (id: string) => void;
   placeholder?: boolean;
   disabled?: boolean;
+  onClick?: () => void;
 }
 
 export default function WordBankItem({
   id,
-  radio = false,
-  checkbox = false,
   draggable = false,
   droppable = false,
-  letter = "",
   children = null,
   x = false,
   handleReset = () => {},
   placeholder = false,
   disabled,
+  onClick,
 }: WordBankItemProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
@@ -55,7 +51,8 @@ export default function WordBankItem({
 
   const content = (
     <div
-      className={`z-2 flex ${isMobile ? "h-[44px]" : "h-[32px]"} items-center rounded-[10px] ${disabled ? "" : "bg-surface_bg_highlight shadow-25"} px-[10px]`}
+      className={`${onClick ? "cursor-pointer" : ""} z-2 flex ${isMobile ? "h-[44px]" : "h-[32px]"} items-center rounded-[10px] ${disabled ? "" : "bg-surface_bg_highlight shadow-25"} px-[10px]`}
+      onClick={onClick ? onClick : () => {}}
     >
       <div className="flex items-center justify-between gap-[8px]">
         <div className="flex items-center gap-[8px]">
@@ -74,18 +71,6 @@ export default function WordBankItem({
                 fill="var(--typeface_primary)"
               />
             </svg>
-          ) : null}
-          {radio ? <RadioButton label={""} name={""} /> : null}
-          {checkbox ? <Checkbox /> : null}
-          {letter ? (
-            <div className="z-0">
-              <Badge
-                bgColor="var(--surface_bg_secondary)"
-                textColor="text-typeface_primary"
-              >
-                <p className="uppercase">{letter}</p>
-              </Badge>
-            </div>
           ) : null}
           <div
             className={`text-body-semibold-cap-height ${disabled ? "text-typeface_tertiary" : "text-typeface_primary"}`}
