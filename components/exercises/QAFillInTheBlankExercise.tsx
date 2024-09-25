@@ -172,7 +172,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         </p>
         <div className="space-y-[16px]">
           <p className="text-typeface_primary text-body-medium">
-            Please type the answers:{" "}
+            Please type the answers:
           </p>
           <div
             className={`rounded-[14px] bg-surface_bg_tertiary p-[8px] ${isMobile ? "flex flex-col gap-[24px]" : ""}`}
