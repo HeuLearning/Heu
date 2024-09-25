@@ -8,7 +8,6 @@
 }
 
 .small {
-  height: 32px;
   padding: 12px 12px;
   border: 1px solid var(--surface_border_tertiary);
   border-radius: 10px;

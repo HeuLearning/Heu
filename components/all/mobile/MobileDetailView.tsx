@@ -7,6 +7,7 @@ interface MobileDetailViewProps {
   children: React.ReactNode;
   headerContent?: React.ReactNode;
   buttonBar?: boolean;
+  height?: number;
 }
 
 export default function MobileDetailView({
@@ -15,6 +16,7 @@ export default function MobileDetailView({
   children,
   headerContent = null,
   buttonBar = false,
+  height,
 }: MobileDetailViewProps) {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -35,7 +37,7 @@ export default function MobileDetailView({
 
     handleScroll(); // Initial check
     const currentScrollable = scrollableRef.current;
-    if(currentScrollable === null) return;
+    if (currentScrollable === null) return;
     currentScrollable.addEventListener("scroll", handleScroll);
     // Clean up the event listener on component unmount
     return () => {
@@ -44,12 +46,16 @@ export default function MobileDetailView({
   }, []);
 
   // button bar = 64
-  const height = window.innerHeight - 64;
+  const windowHeight = window.innerHeight - 64;
 
   return (
     <div
-      style={buttonBar ? { height: height } : {}}
-      className={`fixed inset-0 flex flex-grow flex-col rounded-t-[20px] outline-surface_border_tertiary ${backgroundColor} ${className}`}
+      style={
+        buttonBar
+          ? { height: height ? height : windowHeight }
+          : { height: height }
+      }
+      className={`fixed flex flex-grow flex-col rounded-t-[20px] outline-surface_border_tertiary ${backgroundColor} ${className} ${className.includes("bottom-0") ? "bottom-[64px] left-0 right-0" : "inset-0"}`}
     >
       <div
         style={{ "--backgroundColor": backgroundColor } as React.CSSProperties}

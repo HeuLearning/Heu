@@ -5,6 +5,7 @@ import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import RadioButton from "./RadioButton";
 import Checkbox from "./Checkbox";
 import IconButton from "../../components/all/buttons/IconButton";
+import { useResponsive } from "../all/ResponsiveContext";
 
 interface WordBankItemProps {
   id: string;
@@ -33,6 +34,8 @@ export default function WordBankItem({
   placeholder = false,
   disabled,
 }: WordBankItemProps) {
+  const { isMobile, isTablet, isDesktop } = useResponsive();
+
   if ((!x && !children && !droppable) || (placeholder && droppable))
     return (
       <div className="border-1px min-h-[32px] flex-1 rounded-[10px] outline-dashed-surface_border_primary">
@@ -52,7 +55,7 @@ export default function WordBankItem({
 
   const content = (
     <div
-      className={`z-2 flex h-[32px] items-center rounded-[10px] ${disabled ? "" : "bg-surface_bg_highlight shadow-25"} px-[10px]`}
+      className={`z-2 flex ${isMobile ? "h-[44px]" : "h-[32px]"} items-center rounded-[10px] ${disabled ? "" : "bg-surface_bg_highlight shadow-25"} px-[10px]`}
     >
       <div className="flex items-center justify-between gap-[8px]">
         <div className="flex items-center gap-[8px]">

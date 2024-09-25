@@ -36,6 +36,8 @@ const Textbox = forwardRef<HTMLDivElement, TextboxProps>(
     const [inputValue, setInputValue] = useState(value);
     const [isPasswordShown, setIsPasswordShown] = useState(false);
 
+    const { isMobile, isTablet, isDesktop } = useResponsive();
+
     useEffect(() => {
       setInputValue(value);
     }, [value]);
@@ -72,6 +74,7 @@ const Textbox = forwardRef<HTMLDivElement, TextboxProps>(
               className={`${styles.small} text-typeface_primary text-body-medium`}
               style={{
                 width: `${width}px`,
+                height: isMobile ? "44px" : "32px",
                 paddingRight: inputValue ? "36px" : "12px", // Adjust padding to accommodate the IconButton
               }}
               required={required}
