@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import MatchingExercise from "../../../components/exercises/MatchingExercise";
 import ConvoFillInTheBlankExercise from "../../exercises/ConvoFillInTheBlankExercise";
 import QAFillInBlankExercise from "../../../components/exercises/QAFillInTheBlankExercise";
@@ -28,7 +28,11 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const testInstruction = false;
   const testInLineMultipleChoice = true;
 
-  const renderContent = () => {
+  // Memoize the content rendering logic to avoid unnecessary re-renders
+  const renderContent = useMemo(() => {
+    console.log("THIS IS THE JSON DATA");
+    console.log(jsonData.student_data?.exercises);
+
     if (testInstruction) {
       const instruction = "Repeat after your instructor.";
       return <Instruction instruction={instruction} />;
@@ -77,7 +81,13 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
     } else if (testMatchingExercise) {
       return <MatchingExercise />;
     }
-  };
+  }, [
+    testInstruction,
+    testInLineMultipleChoice,
+    testQAFillInTheBlank,
+    testMatchingExercise,
+    jsonData
+  ]); // Recompute only when these variables change
 
   return (
     <div className="flex h-full w-full items-center justify-center">
@@ -85,7 +95,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         <div>{JSON.stringify(jsonData, null, 2)}</div>
         <p>elapsed time: {elapsedTime}</p>
         <p>elapsed time in module: {elapsedLapTime}</p>
-        {renderContent()}
+        {renderContent}
       </div>
     </div>
   );
