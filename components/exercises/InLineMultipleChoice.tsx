@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "../all/buttons/Button";
 import MultipleSelectionButton from "./MultipleSelectionButton";
 import PopUpContainer from "../all/popups/PopUpContainer";
 import { usePopUp } from "../all/popups/PopUpContext";
+import Textbox from "./Textbox";
+import { set } from "date-fns";
 
 interface InLineMultipleChoiceProps {
   instruction: string;
@@ -45,30 +47,48 @@ export default function InLineMultipleChoice({
     );
   };
 
-  const isAllCorrect = selectedOptions.join("") === correct_answer.join("");
+  //   const isAllCorrect = selectedOptions.join("") === correct_answer.join("");
 
-  useEffect(() => {
-    updatePopUp(
-      "incorrect-answer-popup",
-      <PopUpContainer
-        header="Try again"
-        primaryButtonText="Continue"
-        primaryButtonDisabled={!isAllCorrect}
-        primaryButtonOnClick={() => hidePopUp("incorrect-answer-popup")}
-        popUpId="incorrect-answer-popup"
-      >
-        <IncorrectAnswerContent />
-      </PopUpContainer>,
-    );
-  }, [selectedOptions, isAllCorrect]);
+  //   useEffect(() => {
+  //     updatePopUp(
+  //       "incorrect-answer-popup",
+  //       <PopUpContainer
+  //         header="Try again"
+  //         primaryButtonText="Continue"
+  //         primaryButtonDisabled={!isAllCorrect}
+  //         primaryButtonOnClick={() => hidePopUp("incorrect-answer-popup")}
+  //         popUpId="incorrect-answer-popup"
+  //       >
+  //         <IncorrectAnswerContent />
+  //       </PopUpContainer>,
+  //     );
+  //   }, [selectedOptions, isAllCorrect]);
+
+  //   const largestWordWidth = useMemo(() => {
+  //     const largestWord = .reduce(
+  //       (max, word) => (word.length > max.length ? word : max),
+  //       "",
+  //     );
+  //     if (isMobile)
+  //       return `${Math.max(largestWord.length, "Type here".length) * 10 + 16}`;
+  //     return `${Math.max(largestWord.length, "Type here".length) * 8 + 20}`;
+  //   }, [word_bank]);
 
   const IncorrectAnswerContent = () => {
-    const wrongAnswers = selectedOptions
-      .map((answer, index) => (answer !== correct_answer[index] ? index : -1))
-      .filter((index) => index !== -1);
+    let wrongAnswers: number[] = [];
+    let clearedAnswers = [...selectedOptions]; // Create a local copy of answers
+
+    selectedOptions.forEach((answer, index) => {
+      if (answer !== correct_answer[index]) {
+        wrongAnswers.push(index);
+        clearedAnswers[index] = ""; // Clear the answer locally
+      }
+    });
+
+    console.log("cleared" + clearedAnswers);
 
     return (
-      <div>
+      <div className="rounded-[14px] bg-surface_bg_tertiary">
         {wrongAnswers.map((index) => {
           const question = questions[index];
           const parts = question.split("[__]");
@@ -78,14 +98,16 @@ export default function InLineMultipleChoice({
                 {parts[0]}
               </p>
               <div className="flex gap-[4px]">
-                {options[index].map((string, i) => (
-                  <MultipleSelectionButton
-                    text={string}
-                    key={i}
-                    isSelected={string === selectedOptions[index]}
-                    onClick={() => handleSelect(index, i)}
-                  />
-                ))}
+                <Textbox
+                  size="small"
+                  placeholder={correct_answer[index]}
+                  width={String(correct_answer[index].length * 10 + 48)}
+                  value={clearedAnswers[index]}
+                  onChange={(value) => {
+                    clearedAnswers[index] = value;
+                    checkAnswer(clearedAnswers);
+                  }}
+                />
               </div>
               <p className="px-[8px] py-[11px] text-typeface_primary text-body-semibold-cap-height">
                 {parts[1]}
@@ -97,21 +119,23 @@ export default function InLineMultipleChoice({
     );
   };
 
-  const checkAnswer = () => {
+  const checkAnswer = (clearedAnswers: string[]) => {
     console.log("cleared answers");
-    const isCorrect = selectedOptions.join("") === correct_answer.join(""); // New: checking all answers
-    updatePopUp(
-      "incorrect-answer-popup",
-      <PopUpContainer
-        header="Try again"
-        primaryButtonText="Continue"
-        primaryButtonDisabled={!isCorrect} // Changed: button disabled based on correctness
-        primaryButtonOnClick={() => {}}
-        popUpId="incorrect-answer-popup"
-      >
-        <IncorrectAnswerContent clearedAnswers={selectedOptions} />
-      </PopUpContainer>,
-    );
+    const isCorrect = clearedAnswers.join("") === correct_answer.join(""); // New: checking all answers
+    setSelectedOptions(clearedAnswers);
+    if (isCorrect) {
+      updatePopUp(
+        "incorrect-answer-popup",
+        <PopUpContainer
+          header="Try again"
+          primaryButtonText="Continue"
+          primaryButtonOnClick={() => {}}
+          popUpId="incorrect-answer-popup"
+        >
+          <IncorrectAnswerContent />
+        </PopUpContainer>,
+      );
+    }
   };
 
   const handleSubmit = () => {
