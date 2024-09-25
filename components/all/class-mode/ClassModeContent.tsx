@@ -37,25 +37,25 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
       const instruction = "Repeat after your instructor.";
       return <Instruction instruction={instruction} />;
     } else if (testInLineMultipleChoice) {
-      const multipleChoiceData = {
-        instruction: "Pick the right answer.",
-        questions: [
-          "My name [__] Sarita.",
-          "I [__] from Nepal.",
-          "His name [__] José.",
-          "Her name [__] Maria.",
-          "Where are [__] from?",
-        ],
-        options: [
-          ["is", "are"],
-          ["am", "are"],
-          ["is", "are"],
-          ["is", "am"],
-          ["you", "your"],
-        ],
-        correct_answer: ["is", "am", "is", "is", "you"],
-      };
-      return <InLineMultipleChoice {...multipleChoiceData} />;
+      // const multipleChoiceData = {
+      //   instruction: "Pick the right answer.",
+      //   questions: [
+      //     "My name [__] Sarita.",
+      //     "I [__] from Nepal.",
+      //     "His name [__] José.",
+      //     "Her name [__] Maria.",
+      //     "Where are [__] from?",
+      //   ],
+      //   options: [
+      //     ["is", "are"],
+      //     ["am", "are"],
+      //     ["is", "are"],
+      //     ["is", "am"],
+      //     ["you", "your"],
+      //   ],
+      //   correct_answer: ["is", "am", "is", "is", "you"],
+      // };
+      // return <InLineMultipleChoice {...multipleChoiceData} />;
     } else if (testQAFillInTheBlank) {
       const qaFillInBlankData = {
         instruction: "Fill in the blanks with the correct words.",
