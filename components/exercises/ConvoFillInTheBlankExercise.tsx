@@ -25,6 +25,57 @@ interface ConvoFillInTheBlankExerciseProps {
   speakers: string[];
 }
 
+// else if (testConvoFillInTheBlank) {
+//   const convoFillInTheBlankData = {
+//     questions: [
+//       {
+//         id: "q1",
+//         speakerIndex: 0,
+//         text: "Hi, Jon! How's the [__] today?",
+//         answer: "",
+//         correctAnswer: "weather",
+//       },
+//       {
+//         id: "q2",
+//         speakerIndex: 1,
+//         text: "It's bad. It's snowy and [__].",
+//         answer: "",
+//         correctAnswer: "rainy",
+//       },
+//       {
+//         id: "q3",
+//         speakerIndex: 0,
+//         text: "Oh no. What's the [__] today?",
+//         answer: "",
+//         correctAnswer: "temperature",
+//       },
+//       {
+//         id: "q4",
+//         speakerIndex: 1,
+//         text: "It's about 30 [__]. It's cold in the winter!",
+//         answer: "",
+//         correctAnswer: "degrees",
+//       },
+//       {
+//         id: "q5",
+//         speakerIndex: 0,
+//         text: "In Haiti, it's [__] sometimes. But it's always hot.",
+//         answer: "",
+//         correctAnswer: "windy",
+//       },
+//     ],
+//     words: [
+//       { id: "word1", content: "temperature" },
+//       { id: "word2", content: "weather" },
+//       { id: "word3", content: "degrees" },
+//       { id: "word4", content: "rainy" },
+//       { id: "word5", content: "windy" },
+//     ],
+//     speakers: ["Paula", "Jon"],
+//   };
+
+//   return <ConvoFillInTheBlankExercise {...convoFillInTheBlankData} />;
+
 const ConvoFillInTheBlankExercise: React.FC<
   ConvoFillInTheBlankExerciseProps
 > = ({ questions: initialQuestions, words: initialWords, speakers }) => {

@@ -9,6 +9,18 @@ interface MultipleSelectionExerciseProps {
   correctAnswers?: string[];
 }
 
+// if (testMultipleSelection) {
+//   const selectionData = {
+//     audioTitle: "Coffee Shop",
+//     audioSrc:
+//       "https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg",
+//     options: ["Hey", "Nice to meet you", "Last name", "Teacher", "Goodbye"],
+//     correctAnswers: ["Hey", "Nice to meet you"],
+//   };
+
+//   return <MultipleSelectionExercise {...selectionData} />;
+// }
+
 const MultipleSelectionExercise: React.FC<MultipleSelectionExerciseProps> = ({
   audioTitle,
   audioSrc,

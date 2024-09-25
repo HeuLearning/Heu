@@ -13,19 +13,8 @@ import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import XButton from "../all/buttons/XButton";
 
-// interface Question {
-//   id: string;
-//   text: string;
-//   answer: string;
-//   correctAnswer: string;
-// }
-
-// interface Word {
-//   id: string;
-//   content: string;
-// }
-
 interface QAFillInBlankExerciseProps {
+  instruction: string;
   questions: string[];
   answers: string[];
   word_bank: string[];
@@ -33,6 +22,7 @@ interface QAFillInBlankExerciseProps {
 }
 
 const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
+  instruction,
   questions,
   answers,
   word_bank,
@@ -338,6 +328,9 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     return (
       <>
         <div className="flex flex-col gap-[32px]">
+          <p className="text-typeface_primary text-body-regular">
+            {instruction}
+          </p>
           {questions.map((question, index) => {
             const parts = question.split("[__]");
             return (
@@ -351,7 +344,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                       {index + 1}
                     </Badge>
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex w-fit flex-wrap items-center">
                     {parts[0] && (
                       <span className="px-[10px] text-typeface_primary text-body-semibold">
                         {parts[0]}
@@ -393,7 +386,10 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   return (
     <div className="flex flex-col">
-      <div className="flex h-full w-full items-center justify-center bg-white p-[24px]">
+      <p className="pb-[32px] text-typeface_primary text-body-regular">
+        {instruction}
+      </p>
+      <div className="flex h-full w-full items-center justify-center">
         <div className="flex items-start gap-[128px]">
           {/* Questions Container */}
           <div className="flex flex-col">
