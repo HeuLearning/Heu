@@ -11,6 +11,7 @@ import {
   TouchSensor,
   DragEndEvent,
 } from "@dnd-kit/core";
+import Badge from "../all/Badge";
 
 interface DragItem {
   id: string;
@@ -134,7 +135,7 @@ function MatchingExercise() {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(MouseSensor),
-    useSensor(TouchSensor)
+    useSensor(TouchSensor),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -147,20 +148,20 @@ function MatchingExercise() {
       if (overItem && activeItem) {
         setDropItems((prevItems) =>
           prevItems.map((item) =>
-            item.id === over.id ? { ...activeItem, x: true } : item
-          )
+            item.id === over.id ? { ...activeItem, x: true } : item,
+          ),
         );
         setDragItems((prevItems) =>
           prevItems.map((item) =>
-            item.id === active.id ? { ...overItem, letter: null } : item
-          )
+            item.id === active.id ? { ...overItem, letter: null } : item,
+          ),
         );
         setPlaceholders((prevItems) =>
           prevItems.map((item) =>
             item.id === `placeholder${active.id.charAt(active.id.length - 1)}`
               ? { ...item, droppable: false }
-              : item
-          )
+              : item,
+          ),
         );
       }
     }
@@ -173,30 +174,62 @@ function MatchingExercise() {
 
     setDragItems((prevItems) =>
       prevItems.map((item, index) =>
-        index === oldIndex ? { ...originalDragItem, x: false } : item
-      )
+        index === oldIndex ? { ...originalDragItem, x: false } : item,
+      ),
     );
     setDropItems((prevItems) =>
-      prevItems.map((item) => (item.id === id ? { ...originalDropItem } : item))
+      prevItems.map((item) =>
+        item.id === id ? { ...originalDropItem } : item,
+      ),
     );
   };
 
   return (
     <div className="flex h-full w-full items-center justify-center bg-white p-6">
       <div className="w-[243px]">
-        <WordBankItem id="1" letter="1">
+        <WordBankItem id="1">
+          <Badge
+            bgColor="var(--surface_bg_secondary)"
+            textColor="text-typeface_primary"
+          >
+            <p className="uppercase">{1}</p>
+          </Badge>
           What's your name?
         </WordBankItem>
-        <WordBankItem id="2" letter="2">
+        <WordBankItem id="2">
+          <Badge
+            bgColor="var(--surface_bg_secondary)"
+            textColor="text-typeface_primary"
+          >
+            <p className="uppercase">{2}</p>
+          </Badge>
           How do you spell your name?
         </WordBankItem>
-        <WordBankItem id="3" letter="3">
+        <WordBankItem id="3">
+          <Badge
+            bgColor="var(--surface_bg_secondary)"
+            textColor="text-typeface_primary"
+          >
+            <p className="uppercase">{3}</p>
+          </Badge>
           Where are you from?
         </WordBankItem>
-        <WordBankItem id="4" letter="4">
+        <WordBankItem id="4">
+          <Badge
+            bgColor="var(--surface_bg_secondary)"
+            textColor="text-typeface_primary"
+          >
+            <p className="uppercase">{4}</p>
+          </Badge>
           What's your address?
         </WordBankItem>
-        <WordBankItem id="5" letter="5">
+        <WordBankItem id="5">
+          <Badge
+            bgColor="var(--surface_bg_secondary)"
+            textColor="text-typeface_primary"
+          >
+            <p className="uppercase">{5}</p>
+          </Badge>
           Who's your teacher?
         </WordBankItem>
       </div>

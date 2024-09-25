@@ -73,7 +73,7 @@ const Textbox = forwardRef<HTMLDivElement, TextboxProps>(
               placeholder={placeholder}
               className={`${styles.small} text-typeface_primary text-body-medium`}
               style={{
-                width: `${width}px`,
+                width: width === "100%" ? "100%" : `${width}px`,
                 height: isMobile ? "44px" : "32px",
                 paddingRight: inputValue ? "36px" : "12px", // Adjust padding to accommodate the IconButton
               }}
