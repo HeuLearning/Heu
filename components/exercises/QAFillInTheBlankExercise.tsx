@@ -19,6 +19,7 @@ interface QAFillInBlankExerciseProps {
   answers: string[];
   word_bank: string[];
   correct_answer: string[];
+  onComplete: () => void;
 }
 
 const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
@@ -27,12 +28,17 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   answers,
   word_bank,
   correct_answer,
+  onComplete,
 }) => {
   const [userAnswers, setUserAnswers] = useState<string[]>(
     new Array(questions.length).fill(""),
   );
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
+
+  const handleComplete = () => {
+    onComplete();
+  };
 
   if (isMobile) {
     const { setHandleSubmitAnswer } = useButtonBar();
@@ -70,7 +76,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                   <div className="-ml-[16px]">
                     <ButtonBar
                       primaryButtonText="Continue"
-                      primaryButtonOnClick={() => {}}
+                      primaryButtonOnClick={() => {handleComplete}}
                     />
                   </div>
                 </MobileDetailView>
@@ -154,7 +160,9 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     return (
       <p className="text-typeface_primary text-body-regular">
         Great job! You got all the answers correct.
+        <button onClick = {handleComplete}> Click this to continue this needs to be fixed lol</button>
       </p>
+     
     );
   };
 

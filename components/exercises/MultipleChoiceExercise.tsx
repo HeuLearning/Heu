@@ -16,6 +16,7 @@ interface MultipleChoiceExerciseProps {
   question: string;
   options: string[];
   correct_answer: string;
+  onComplete: () => void;
 }
 
 export default function MultipleChoiceExercise({
@@ -23,10 +24,15 @@ export default function MultipleChoiceExercise({
   question,
   options,
   correct_answer,
+  onComplete,
 }: MultipleChoiceExerciseProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const { isMobile, isTablet, isDesktop } = useResponsive();
+
+  const handleComplete = () => {
+    onComplete();
+  };
 
   useEffect(() => {
     console.log(selectedOption);
@@ -132,7 +138,9 @@ export default function MultipleChoiceExercise({
     return (
       <p className="text-typeface_primary text-body-regular">
         Great job! You got all the answers correct.
+        <button onClick = {handleComplete}> Click this to continue this needs to be fixed lol</button>
       </p>
+     
     );
   };
 
