@@ -15,6 +15,7 @@ interface InLineMultipleChoiceProps {
   questions: string[];
   options: string[][];
   correct_answer: string[];
+  onComplete: () => void;
 }
 
 export default function InLineMultipleChoice({
@@ -22,12 +23,18 @@ export default function InLineMultipleChoice({
   questions,
   options,
   correct_answer,
+  onComplete,
 }: InLineMultipleChoiceProps) {
   const [selectedOptions, setSelectedOptions] = useState<string[]>(
     new Array(questions.length).fill(""),
   );
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
+
+
+  const handleComplete = () => {
+    onComplete();
+  };
 
   if (isMobile) {
     const { setHandleSubmitAnswer } = useButtonBar();
@@ -137,7 +144,9 @@ export default function InLineMultipleChoice({
     return (
       <p className="text-typeface_primary text-body-regular">
         Great job! You got all the answers correct.
+        <button onClick = {handleComplete}> Click this to continue this needs to be fixed lol</button>
       </p>
+     
     );
   };
 
