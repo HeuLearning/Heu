@@ -109,6 +109,10 @@ export default function ClassModeContainer({
   }
 
   useEffect(() => {
+    console.log("Updated totalElapsedTime:", totalElapsedTime);
+  }, [totalElapsedTime]);
+
+  useEffect(() => {
     const findSession = () => {
       if (upcomingSessions && sessionId) {
         const found = upcomingSessions.find((s) => String(s.id) === sessionId);
@@ -144,7 +148,7 @@ export default function ClassModeContainer({
       }
 
       // Create a new WebSocket connection to the server
-      const websocket = new WebSocket("ws://localhost:8080");
+      const websocket = new WebSocket('wss://heu-websocket-yfpz8.ondigitalocean.app');
 
       // Create a new learner object for the current user
       const learner = {
@@ -194,7 +198,10 @@ export default function ClassModeContainer({
 
           if (parsedData.type === "UPDATE_DATA") {
             setJsonData(parsedData);
-            console.log("Update data recognized"); // Update the local learners state with the list from the server
+            setTotalElapsedTime((prevArray) => [...prevArray, parsedData.student_data.elapsedTime])
+            console.log(parsedData.student_data.elapsedTime)
+            console.log("HERE IS THE STUDENT DATA");
+            // Update the local learners state with the list from the server
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
@@ -385,7 +392,7 @@ export default function ClassModeContainer({
     }
 
     // Create a new WebSocket connection to the server
-    const websocket = new WebSocket("ws://localhost:8080");
+    const websocket = new WebSocket('wss://heu-websocket-yfpz8.ondigitalocean.app');
 
     // Create a new learner object for the current user
     const learner = {
