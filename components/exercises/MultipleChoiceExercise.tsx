@@ -32,6 +32,8 @@ export default function MultipleChoiceExercise({
 
   const handleComplete = () => {
     onComplete();
+    hidePopUp("correct-answer-popup");
+    hidePopUp("incorrect-answer-popup");
   };
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export default function MultipleChoiceExercise({
                   <div className="-ml-[16px]">
                     <ButtonBar
                       primaryButtonText="Continue"
-                      primaryButtonOnClick={() => {}}
+                      primaryButtonOnClick={handleComplete}
                     />
                   </div>
                 </MobileDetailView>
@@ -112,7 +114,7 @@ export default function MultipleChoiceExercise({
                   <div className="-ml-[16px]">
                     <ButtonBar
                       primaryButtonText="Continue"
-                      primaryButtonOnClick={() => {}}
+                      primaryButtonOnClick={handleComplete}
                       primaryButtonDisabled={true}
                     />
                   </div>
@@ -138,9 +140,7 @@ export default function MultipleChoiceExercise({
     return (
       <p className="text-typeface_primary text-body-regular">
         Great job! You got all the answers correct.
-        <button onClick = {handleComplete}> Click this to continue this needs to be fixed lol</button>
       </p>
-     
     );
   };
 
@@ -202,7 +202,7 @@ export default function MultipleChoiceExercise({
             <div className="-ml-[16px]">
               <ButtonBar
                 primaryButtonText="Continue"
-                primaryButtonOnClick={() => {}}
+                primaryButtonOnClick={handleComplete}
                 primaryButtonDisabled={false}
               />
             </div>
@@ -215,7 +215,7 @@ export default function MultipleChoiceExercise({
         <PopUpContainer
           header="Try again"
           primaryButtonText="Continue"
-          primaryButtonOnClick={() => {}}
+          primaryButtonOnClick={handleComplete}
           popUpId="incorrect-answer-popup"
         >
           <IncorrectAnswerContent />
@@ -236,7 +236,7 @@ export default function MultipleChoiceExercise({
           <PopUpContainer
             header="Good job!"
             primaryButtonText="Continue"
-            primaryButtonOnClick={() => {}}
+            primaryButtonOnClick={handleComplete}
             popUpId="correct-answer-popup"
           >
             <CorrectAnswerContent />
@@ -256,7 +256,7 @@ export default function MultipleChoiceExercise({
             header="Try again"
             primaryButtonText="Continue"
             primaryButtonDisabled={true}
-            primaryButtonOnClick={() => {}}
+            primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
           >
             <IncorrectAnswerContent />

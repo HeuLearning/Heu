@@ -38,6 +38,8 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   const handleComplete = () => {
     onComplete();
+    hidePopUp("correct-answer-popup");
+    hidePopUp("incorrect-answer-popup");
   };
 
   if (isMobile) {
@@ -76,7 +78,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                   <div className="-ml-[16px]">
                     <ButtonBar
                       primaryButtonText="Continue"
-                      primaryButtonOnClick={() => {handleComplete}}
+                      primaryButtonOnClick={handleComplete}
                     />
                   </div>
                 </MobileDetailView>
@@ -114,7 +116,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                   <div className="-ml-[16px]">
                     <ButtonBar
                       primaryButtonText="Continue"
-                      primaryButtonOnClick={() => {}}
+                      primaryButtonOnClick={handleComplete}
                       primaryButtonDisabled={true}
                     />
                   </div>
@@ -160,9 +162,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     return (
       <p className="text-typeface_primary text-body-regular">
         Great job! You got all the answers correct.
-        <button onClick = {handleComplete}> Click this to continue this needs to be fixed lol</button>
       </p>
-     
     );
   };
 
@@ -255,7 +255,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           <PopUpContainer
             header="Good job!"
             primaryButtonText="Continue"
-            primaryButtonOnClick={() => {}}
+            primaryButtonOnClick={handleComplete}
             popUpId="correct-answer-popup"
           >
             <CorrectAnswerContent />
@@ -275,7 +275,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
             header="Try again"
             primaryButtonText="Continue"
             primaryButtonDisabled={true}
-            primaryButtonOnClick={() => {}}
+            primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
           >
             <IncorrectAnswerContent />
@@ -318,7 +318,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
             <div className="-ml-[16px]">
               <ButtonBar
                 primaryButtonText="Continue"
-                primaryButtonOnClick={() => {}}
+                primaryButtonOnClick={handleComplete}
                 primaryButtonDisabled={false}
               />
             </div>
@@ -331,7 +331,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         <PopUpContainer
           header="Try again"
           primaryButtonText="Continue"
-          primaryButtonOnClick={() => {}}
+          primaryButtonOnClick={handleComplete}
           popUpId="incorrect-answer-popup"
         >
           <IncorrectAnswerContent />
