@@ -99,8 +99,32 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
             `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
           );
 
+
         if (sessionError || !sessions || sessions.length === 0) {
           throw new Error("Session not found or invalid session data.");
+        }
+
+  
+        const sessionData = sessions[0];
+  
+        const { data: sesh, error: session2 } = await supabase
+          .from("heu_session")
+          .select("*")
+          .eq("approved", true)
+          .eq("id", sessionId)
+          .or(
+            `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
+          );
+
+        console.log(sesh[0]);
+        console.log("here is the session data")
+
+        if (sesh[0].full_session) {
+          console.log("Using cached full_session data");
+  
+          setLessonPlan(sesh[0].full_session); // Set the lesson plan directly from full_session
+          setIsLoading(false); // Stop loading
+          return; // Exit early, no need to make further API calls
         }
 
         // GET LESSON IDS FROM ARRAY IN SESSIONS
@@ -226,14 +250,27 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
           phases: validPhasesData,
         });
 
-        // Set the final lesson plan state
-        setLessonPlan({
+        const finalSessionData = {
           session_id: sessionId,
           lesson_plan_id: lessonPlan.id,
           lesson_plan_name: lessonPlan.name,
           lesson_plan_description: lessonPlan.description,
           phases: validPhasesData,
-        });
+        };
+
+        // Set the final lesson plan state
+        setLessonPlan(finalSessionData);
+
+        const { error: updateError } = await supabase
+        .from("heu_session")
+        .update({ full_session: finalSessionData })
+        .eq("id", sessionId);
+
+        if (updateError) {
+          console.error("Error updating full_session:", updateError);
+        }
+
+
       } catch (e) {
         setError(`Failed to fetch phases: ${e.message}`);
       } finally {
