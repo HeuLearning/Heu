@@ -11,10 +11,14 @@ import { PopUpProvider } from "../../../components/all/popups/PopUpContext";
 import Navbar from "../../../components/all/Navbar";
 import EnhancedPopUp from "../../../components/all/popups/EnhancedPopUp";
 import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 const LearnerDashboard = () => {
   const [userData, setUserData] = useState(null);
   const router = useRouter();
+
+  const t = getGT();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -85,7 +89,7 @@ const LearnerDashboard = () => {
           <UserRoleProvider accessToken={userData.accessToken}>
             <SessionsProvider accessToken={userData.accessToken} userRole="st">
               <PopUpProvider>
-                <Navbar activeTab="Dashboard" />
+                <Navbar activeTab={t("button_content.dashboard")} />
                 <DashboardContainer accessToken={userData.accessToken} />
                 <EnhancedPopUp />
               </PopUpProvider>
