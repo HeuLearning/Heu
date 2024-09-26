@@ -253,17 +253,23 @@ export default function Calendar({
                                 : ""
                             }
                           >
-                            {session.start_time.toLocaleTimeString("default", {
-                              hour: "numeric",
-                              minute: "2-digit",
-                              hour12: undefined,
-                            }) +
-                              " - " +
-                              session.end_time.toLocaleTimeString("default", {
+                            {new Date(session.start_time).toLocaleTimeString(
+                              "default",
+                              {
                                 hour: "numeric",
                                 minute: "2-digit",
                                 hour12: undefined,
-                              })}
+                              },
+                            ) +
+                              " - " +
+                              new Date(session.end_time).toLocaleTimeString(
+                                "default",
+                                {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                  hour12: undefined,
+                                },
+                              )}
                           </div>
                         </div>
                       </MenuItem>

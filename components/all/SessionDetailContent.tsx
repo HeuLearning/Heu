@@ -18,6 +18,7 @@ import AttendancePopUp from "./popups/AttendancePopUp";
 import { usePopUp } from "./popups/PopUpContext";
 import dictionary from "../../dictionary.js";
 import { getGT } from "gt-next";
+import { useTransition } from "react";
 
 interface SessionDetailContentProps {
   activeSessionId: string | null;
@@ -39,6 +40,7 @@ export default function SessionDetailContent({
   const { showPopUp, hidePopUp } = usePopUp();
   const { userRole } = useUserRole();
   const { upcomingSessions, allSessions, getSessionStatus } = useSessions();
+  const [isPending, startTransition] = useTransition();
   let enrollSession;
   if (userRole === "st") {
     const learnerHooks = useLearnerSessions();
@@ -117,7 +119,15 @@ export default function SessionDetailContent({
             return <RSVPSelector session={session} />;
           } else if (getSessionStatus(session) === "Online") {
             return (
-              <Button className="button-primary" onClick={handleEnter}>
+              <Button
+                className="button-primary"
+                onClick={() =>
+                  startTransition(() => {
+                    handleEnter();
+                  })
+                }
+                disabled={isPending}
+              >
                 {t("button_content.enter_class")}
               </Button>
             );
@@ -140,7 +150,15 @@ export default function SessionDetailContent({
             );
           } else if (getSessionStatus(session) === "Online") {
             return (
-              <Button className="button-primary" onClick={handleEnter}>
+              <Button
+                className="button-primary"
+                onClick={() =>
+                  startTransition(() => {
+                    handleEnter();
+                  })
+                }
+                disabled={isPending}
+              >
                 {t("button_content.enter_class")}
               </Button>
             );
