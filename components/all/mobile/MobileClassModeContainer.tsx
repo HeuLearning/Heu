@@ -30,7 +30,6 @@ interface MobileClassModeContainerProps {
   totalElapsedTime: number[];
   learners: any;
   children: JSX.Element;
-  buttonBarContent?: JSX.Element;
 }
 
 export default function MobileClassModeContainer(
@@ -57,7 +56,6 @@ export default function MobileClassModeContainer(
     totalElapsedTime,
     learners,
     children,
-    buttonBarContent,
   } = props;
 
   const router = useRouter();
@@ -114,7 +112,7 @@ export default function MobileClassModeContainer(
         ) : (
           <div className="relative">
             <MobileDetailView
-              buttonBar={true}
+              buttonBar={classStarted}
               headerContent={
                 <div className="relative flex w-full flex-col gap-[16px]">
                   <div className="flex h-[44px] w-full items-center justify-center">
@@ -139,7 +137,7 @@ export default function MobileClassModeContainer(
             >
               {children}
             </MobileDetailView>
-            {buttonBarContent}
+            {/* {buttonBarContent} */}
           </div>
         )}
       </div>
@@ -156,7 +154,7 @@ export default function MobileClassModeContainer(
           />
         )}
         <MobileDetailView
-          buttonBar={true}
+          buttonBar={classStarted}
           headerContent={
             <div className="relative flex w-full flex-col gap-[16px]">
               <div className="flex h-[44px] w-full items-center justify-center">

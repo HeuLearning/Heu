@@ -31,9 +31,10 @@ export default function InLineMultipleChoice({
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
 
-
   const handleComplete = () => {
     onComplete();
+    hidePopUp("correct-answer-popup");
+    hidePopUp("incorrect-answer-popup");
   };
 
   if (isMobile) {
@@ -72,7 +73,7 @@ export default function InLineMultipleChoice({
                   <div className="-ml-[16px]">
                     <ButtonBar
                       primaryButtonText="Continue"
-                      primaryButtonOnClick={() => {}}
+                      primaryButtonOnClick={handleComplete}
                     />
                   </div>
                 </MobileDetailView>
@@ -110,7 +111,7 @@ export default function InLineMultipleChoice({
                   <div className="-ml-[16px]">
                     <ButtonBar
                       primaryButtonText="Continue"
-                      primaryButtonOnClick={() => {}}
+                      primaryButtonOnClick={handleComplete}
                       primaryButtonDisabled={true}
                     />
                   </div>
@@ -144,9 +145,7 @@ export default function InLineMultipleChoice({
     return (
       <p className="text-typeface_primary text-body-regular">
         Great job! You got all the answers correct.
-        <button onClick = {handleComplete}> Click this to continue this needs to be fixed lol</button>
       </p>
-     
     );
   };
 
@@ -236,7 +235,7 @@ export default function InLineMultipleChoice({
             <div className="-ml-[16px]">
               <ButtonBar
                 primaryButtonText="Continue"
-                primaryButtonOnClick={() => {}}
+                primaryButtonOnClick={handleComplete}
                 primaryButtonDisabled={false}
               />
             </div>
@@ -249,7 +248,7 @@ export default function InLineMultipleChoice({
         <PopUpContainer
           header="Try again"
           primaryButtonText="Continue"
-          primaryButtonOnClick={() => {}}
+          primaryButtonOnClick={handleComplete}
           popUpId="incorrect-answer-popup"
         >
           <IncorrectAnswerContent />
@@ -270,7 +269,7 @@ export default function InLineMultipleChoice({
           <PopUpContainer
             header="Good job!"
             primaryButtonText="Continue"
-            primaryButtonOnClick={() => {}}
+            primaryButtonOnClick={handleComplete}
             popUpId="correct-answer-popup"
           >
             <CorrectAnswerContent />
@@ -290,7 +289,7 @@ export default function InLineMultipleChoice({
             header="Try again"
             primaryButtonText="Continue"
             primaryButtonDisabled={true}
-            primaryButtonOnClick={() => {}}
+            primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
           >
             <IncorrectAnswerContent />

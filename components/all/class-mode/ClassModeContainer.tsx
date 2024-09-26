@@ -262,7 +262,6 @@ export default function ClassModeContainer({
     );
     setElapsedTime(totalElapsedTime[index + 1]);
 
-
     // Find the index of the active phase by its ID
     const currentPhaseIndex = phases.findIndex(
       (phase) => phase.id === activePhaseId,
@@ -293,8 +292,6 @@ export default function ClassModeContainer({
     }
   };
 
-
-
   const handleNextPhase = () => {
     // Reset the elapsed time for the modules in the current phase
     const resetElapsedTime = new Array(activePhase.modules.length).fill(0);
@@ -312,9 +309,9 @@ export default function ClassModeContainer({
       setElapsedTime(0); // Reset elapsed time for the new phase
       resetTimer();
       startTimer(); // Start the timer for the new phase
-    
+
       const nextPhaseIndex =
-      phases.findIndex((phase) => phase.id === activePhaseId) + 1;
+        phases.findIndex((phase) => phase.id === activePhaseId) + 1;
       if (nextPhaseIndex < phases.length) {
         const nextPhase = phases[nextPhaseIndex];
         // Prepare the first module data to be sent
@@ -327,7 +324,7 @@ export default function ClassModeContainer({
         });
       } else {
         console.log("No more phases available.");
-      }    
+      }
     }
     resetTimer(); // Reset any previous timers
     startTimer(); // Start the timer for the new phase
@@ -587,8 +584,9 @@ export default function ClassModeContainer({
             {activeModule.name}
           </p>
         </div>
-        <ClassModeContent jsonData={jsonData} />
-        
+        <ButtonBarProvider value={val}>
+          <ClassModeContent jsonData={jsonData} />
+        </ButtonBarProvider>
       </div>
       <ClassModeFooter
         totalElapsedTime={totalElapsedTime}
@@ -628,51 +626,14 @@ export default function ClassModeContainer({
     if (userRole == "st") {
       if (isMobile) {
         return (
-          <ButtonBarProvider value={val}>
-            <MobileClassModeContainer
-              {...sharedProps}
-              buttonBarContent={
-                <ButtonBar
-                  primaryButtonText="Submit answer"
-                  primaryButtonClassName="button-primary"
-                  primaryButtonOnClick={handleSubmitAnswer}
-                  secondaryContent={
-                    <div className="flex items-center gap-[4px] pl-[8px]">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          clip-rule="evenodd"
-                          d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM7.25 4V8V8.31066L7.46967 8.53033L9.96967 11.0303L11.0303 9.96967L8.75 7.68934V4H7.25Z"
-                          fill="var(--typeface_primary)"
-                        />
-                      </svg>
-                      <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
-                        x mins left
-                      </p>
-                    </div>
-                  }
-                />
-              }
-            >
-              {/* later this will be ClassModeContent component with json data fed in */}
-              <div className="items-center">
-                {/* <Button
-                className="button-primary"
-                onClick={!classStarted ? handleStartClass : handleBack}
-                disabled={!session?.start_time}
-              >
-                {!classStarted ? "Join class" : "Leave class"}
-              </Button> */}
+          <MobileClassModeContainer {...sharedProps}>
+            {/* later this will be ClassModeContent component with json data fed in */}
+            <div className="items-center">
+              <ButtonBarProvider value={val}>
                 <ClassModeContent jsonData={jsonData} />
-              </div>
-            </MobileClassModeContainer>
-          </ButtonBarProvider>
+              </ButtonBarProvider>
+            </div>
+          </MobileClassModeContainer>
         );
       }
       return (
@@ -696,14 +657,18 @@ export default function ClassModeContainer({
               </div>
             }
           />
-          <ClassModeContent jsonData={jsonData} />
+          <ButtonBarProvider value={val}>
+            <ClassModeContent jsonData={jsonData} />
+          </ButtonBarProvider>
         </div>
       );
     } else if (userRole == "in")
       if (isMobile)
         return (
           <MobileClassModeContainer {...sharedProps}>
-            <ClassModeContent jsonData={jsonData} />
+            <ButtonBarProvider value={val}>
+              <ClassModeContent jsonData={jsonData} />
+            </ButtonBarProvider>
           </MobileClassModeContainer>
         );
     return (
@@ -788,7 +753,9 @@ export default function ClassModeContainer({
                   totalElapsedTime={totalElapsedTime}
                 />
               </div>
-              <ClassDetailsContainer lessonPlan={lessonPlan} />
+              <ButtonBarProvider value={val}>
+                <ClassDetailsContainer lessonPlan={lessonPlan} />
+              </ButtonBarProvider>
             </div>
           </div>
         ) : (
