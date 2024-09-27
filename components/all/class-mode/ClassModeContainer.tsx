@@ -38,14 +38,14 @@ interface ClassModeContainerProps {
   sessionId: string;
 }
 
-const supabase = createClient();
+// const supabase = createClient();
 
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+// const {
+//   data: { user },
+// } = await supabase.auth.getUser();
 
-console.log("USER HERE");
-console.log(user?.email);
+// console.log("USER HERE");
+// console.log(user?.email);
 
 export default function ClassModeContainer({
   sessionId,
@@ -80,7 +80,7 @@ export default function ClassModeContainer({
 
   const [moduleToSend, setModuleToSend] = useState<any | null>(null);
 
-  const { userRole } = useUserRole();
+  const { userRole, firstName, lastName } = useUserRole();
 
   //WS
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -138,7 +138,7 @@ export default function ClassModeContainer({
 
       const learner = {
         id: Date.now(),
-        name: user?.email || "Unknown",
+        name: firstName + " " + lastName || "Unknown",
         status: "In class",
       };
 
@@ -383,7 +383,7 @@ export default function ClassModeContainer({
     // Create a new learner object for the current user
     const learner = {
       id: Date.now(),
-      name: user?.email || "Unknown",
+      name: firstName + " " + lastName || "Unknown",
       status: "In class",
     };
 
