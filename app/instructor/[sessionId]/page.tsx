@@ -50,6 +50,7 @@ const ClassModeDashboard = () => {
 
       if (!user || !session) {
         router.push("/sign-in");
+        console.log("REDIRECT TO SIGN IN FOR NOW")
         return;
       }
 
