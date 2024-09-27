@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
-const { initGT } = require("gt-next/config");
+import { initGT } from "gt-next/config";
 
 const withGT = initGT();
 
-module.exports = withGT({
+export default withGT({
   reactStrictMode: true,
 });
