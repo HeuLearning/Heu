@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import WordBankItem from "../../components/exercises/WordBankItem";
-
 import {
   DndContext,
   closestCenter,
@@ -20,6 +19,8 @@ import Textbox from "./Textbox";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import ButtonBar from "../all/mobile/ButtonBar";
 import { useButtonBar } from "../all/mobile/ButtonBarContext";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface DragItem {
   id: string;
@@ -54,6 +55,7 @@ function MatchingExercise({
 }: MatchingExerciseProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
+  const t = getGT();
 
   const handleComplete = () => {
     onComplete();
@@ -203,7 +205,7 @@ function MatchingExercise({
                   headerContent={
                     <div className="flex h-[40px] w-full flex-col justify-center">
                       <h3 className="text-typeface_primary text-h3">
-                        Well done!
+                        {t("class_mode_content.well_done")}
                       </h3>
                     </div>
                   }
@@ -211,7 +213,7 @@ function MatchingExercise({
                   <CorrectAnswerContent />
                   <div className="-ml-[16px]">
                     <ButtonBar
-                      primaryButtonText="Continue"
+                      primaryButtonText={t("button_content.continue")}
                       primaryButtonOnClick={handleComplete}
                     />
                   </div>
@@ -242,14 +244,16 @@ function MatchingExercise({
                   className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
                   headerContent={
                     <div className="flex h-[40px] w-full flex-col justify-center">
-                      <h3 className="text-typeface_primary text-h3">Oops!</h3>
+                      <h3 className="text-typeface_primary text-h3">
+                        {t("class_mode_content.oops")}
+                      </h3>
                     </div>
                   }
                 >
                   <IncorrectAnswerContent />
                   <div className="-ml-[16px]">
                     <ButtonBar
-                      primaryButtonText="Continue"
+                      primaryButtonText={t("button_content.continue")}
                       primaryButtonOnClick={handleComplete}
                       primaryButtonDisabled={true}
                     />
@@ -280,8 +284,8 @@ function MatchingExercise({
         id: "correct-answer-popup",
         content: (
           <PopUpContainer
-            header="Good job!"
-            primaryButtonText="Continue"
+            header={t("class_mode_content.well_done")}
+            primaryButtonText={t("button_content.continue")}
             primaryButtonOnClick={handleComplete}
             popUpId="correct-answer-popup"
           >
@@ -299,8 +303,8 @@ function MatchingExercise({
         id: "incorrect-answer-popup",
         content: (
           <PopUpContainer
-            header="Try again"
-            primaryButtonText="Continue"
+            header={t("class_mode_content.try_again")}
+            primaryButtonText={t("button_content.continue")}
             primaryButtonDisabled={true}
             primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
@@ -320,7 +324,7 @@ function MatchingExercise({
   const CorrectAnswerContent = () => {
     return (
       <p className="text-typeface_primary text-body-regular">
-        Great job! You got all the answers correct.
+        {t("class_mode_content.correct_answer_message")}
       </p>
     );
   };
@@ -347,11 +351,11 @@ function MatchingExercise({
     return (
       <div className="space-y-[32px]">
         <p className="text-typeface_primary text-body-regular">
-          Oops, it looks like you got something wrong. Keep going!
+          {t("class_mode_content.incorrect_answer_message")}
         </p>
         <div className="space-y-[16px]">
           <p className="text-typeface_primary text-body-medium">
-            Please type the answers:
+            {t("class_mode_content.please_type_answers")}
           </p>
           <div
             className={`rounded-[14px] bg-surface_bg_tertiary p-[4px] ${isMobile && "flex flex-col gap-[12px]"} `}
@@ -433,14 +437,16 @@ function MatchingExercise({
             className="bottom-0 z-50 max-h-[570px] overflow-y-auto px-[16px] pb-[32px] pt-[16px]"
             headerContent={
               <div className="flex h-[40px] w-full flex-col justify-center">
-                <h3 className="text-typeface_primary text-h3">Oops!</h3>
+                <h3 className="text-typeface_primary text-h3">
+                  {t("class_mode_content.oops")}
+                </h3>
               </div>
             }
           >
             <IncorrectAnswerContent />
             <div className="-ml-[16px]">
               <ButtonBar
-                primaryButtonText="Continue"
+                primaryButtonText={t("button_content.continue")}
                 primaryButtonOnClick={handleComplete}
                 primaryButtonDisabled={false}
               />
@@ -453,8 +459,8 @@ function MatchingExercise({
       updatePopUp(
         "incorrect-answer-popup",
         <PopUpContainer
-          header="Try again"
-          primaryButtonText="Continue"
+          header={t("class_mode_content.try_again")}
+          primaryButtonText={t("button_content.continue")}
           primaryButtonOnClick={handleComplete}
           popUpId="incorrect-answer-popup"
         >
@@ -488,7 +494,7 @@ function MatchingExercise({
           headerContent={
             <div className="flex h-[40px] w-full flex-col items-center justify-center">
               <h3 className="text-typeface_primary text-body-medium">
-                Pick an option
+                {t("class_mode_content.pick_an_option")}
               </h3>
             </div>
           }
@@ -566,7 +572,7 @@ function MatchingExercise({
       ),
       container: null, // Ensure this ID exists in your DOM
       style: {
-        overlay: "overlay-high",
+        overlay: "overlay-medium",
       },
       height: "auto",
     });
@@ -708,7 +714,7 @@ function MatchingExercise({
       <div className="self-end">
         {!isMobile && (
           <Button className="button-primary" onClick={handleSubmit}>
-            Submit answer
+            {t("button_content.submit_answer")}
           </Button>
         )}
       </div>

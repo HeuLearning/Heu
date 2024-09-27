@@ -27,6 +27,11 @@ const dictionary = {
     settings: "Settings",
     log_out: "Log out",
     start_class: "Start class",
+    continue: "Continue",
+    submit_answer: "Submit answer",
+    end_class: "End class",
+    next_module: "Next module",
+    next_phase: "Next phase",
   },
   info_pill_content: {
     class_started: "Your class has started",
@@ -42,6 +47,22 @@ const dictionary = {
     confirmed: "Confirmed",
     canceled: "Canceled",
     attended: "Attended",
+  },
+  class_mode_content: {
+    learners: "Learners",
+    well_done: "Well done!",
+    oops: "Oops!",
+    try_again: "Try again",
+    correct_answer_message: "Great job! You got all the answers correct.",
+    incorrect_answer_message:
+      "Oops, it looks like you got something wrong. Keep going!",
+    please_type_answers: "Please type the answers:",
+    questions: "Questions:",
+    answers: "Answers:",
+    pick_an_option: "Pick an option",
+    end_class_confirm_message:
+      "Are you sure you'd like to proceed and end the current class?",
+    phase_line_up: "Modules in this phase",
   },
 };
 

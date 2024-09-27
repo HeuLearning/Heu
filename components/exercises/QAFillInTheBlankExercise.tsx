@@ -6,12 +6,13 @@ import WordBankItem from "./WordBankItem";
 import Button from "../all/buttons/Button";
 import { usePopUp } from "../all/popups/PopUpContext";
 import PopUpContainer from "../all/popups/PopUpContainer";
-import { set } from "date-fns";
 import { useResponsive } from "../all/ResponsiveContext";
 import ButtonBar from "../all/mobile/ButtonBar";
 import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import XButton from "../all/buttons/XButton";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface QAFillInBlankExerciseProps {
   instruction: string;
@@ -35,6 +36,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   );
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const t = getGT();
 
   const handleComplete = () => {
     onComplete();
@@ -73,7 +75,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                   headerContent={
                     <div className="flex h-[40px] w-full flex-col justify-center">
                       <h3 className="text-typeface_primary text-h3">
-                        Well done!
+                        {t("class_mode_content.well_done")}
                       </h3>
                     </div>
                   }
@@ -81,7 +83,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                   <CorrectAnswerContent />
                   <div className="-ml-[16px]">
                     <ButtonBar
-                      primaryButtonText="Continue"
+                      primaryButtonText={t("button_content.continue")}
                       primaryButtonOnClick={handleComplete}
                     />
                   </div>
@@ -112,14 +114,16 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                   className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
                   headerContent={
                     <div className="flex h-[40px] w-full flex-col justify-center">
-                      <h3 className="text-typeface_primary text-h3">Oops!</h3>
+                      <h3 className="text-typeface_primary text-h3">
+                        {t("class_mode_content.oops")}
+                      </h3>
                     </div>
                   }
                 >
                   <IncorrectAnswerContent />
                   <div className="-ml-[16px]">
                     <ButtonBar
-                      primaryButtonText="Continue"
+                      primaryButtonText={t("button_content.continue")}
                       primaryButtonOnClick={handleComplete}
                       primaryButtonDisabled={true}
                     />
@@ -165,7 +169,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   const CorrectAnswerContent = () => {
     return (
       <p className="text-typeface_primary text-body-regular">
-        Great job! You got all the answers correct.
+        {t("class_mode_content.correct_answer_message")}
       </p>
     );
   };
@@ -183,11 +187,11 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     return (
       <div className="space-y-[32px]">
         <p className="text-typeface_primary text-body-regular">
-          Oops, it looks like you got something wrong. Keep going!
+          {t("class_mode_content.incorrect_answer_message")}
         </p>
         <div className="space-y-[16px]">
           <p className="text-typeface_primary text-body-medium">
-            Please type the answers:
+            {t("class_mode_content.please_type_answers")}
           </p>
           <div
             className={`rounded-[14px] bg-surface_bg_tertiary p-[8px] ${isMobile ? "flex flex-col gap-[24px]" : ""}`}
@@ -254,8 +258,8 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         id: "correct-answer-popup",
         content: (
           <PopUpContainer
-            header="Good job!"
-            primaryButtonText="Continue"
+            header={t("class_mode_content.well_done")}
+            primaryButtonText={t("button_content.continue")}
             primaryButtonOnClick={handleComplete}
             popUpId="correct-answer-popup"
           >
@@ -273,8 +277,8 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         id: "incorrect-answer-popup",
         content: (
           <PopUpContainer
-            header="Try again"
-            primaryButtonText="Continue"
+            header={t("class_mode_content.try_again")}
+            primaryButtonText={t("button_content.continue")}
             primaryButtonDisabled={true}
             primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
@@ -308,14 +312,16 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
             className="bottom-0 z-50 max-h-[570px] overflow-y-auto px-[16px] pb-[32px] pt-[16px]"
             headerContent={
               <div className="flex h-[40px] w-full flex-col justify-center">
-                <h3 className="text-typeface_primary text-h3">Oops!</h3>
+                <h3 className="text-typeface_primary text-h3">
+                  {t("class_mode_content.oops")}
+                </h3>
               </div>
             }
           >
             <IncorrectAnswerContent />
             <div className="-ml-[16px]">
               <ButtonBar
-                primaryButtonText="Continue"
+                primaryButtonText={t("button_content.continue")}
                 primaryButtonOnClick={handleComplete}
                 primaryButtonDisabled={false}
               />
@@ -327,8 +333,8 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
       updatePopUp(
         "incorrect-answer-popup",
         <PopUpContainer
-          header="Try again"
-          primaryButtonText="Continue"
+          header={t("class_mode_content.try_again")}
+          primaryButtonText={t("button_content.continue")}
           primaryButtonOnClick={handleComplete}
           popUpId="incorrect-answer-popup"
         >
@@ -408,7 +414,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           {/* Questions Container */}
           <div className="flex flex-col">
             <h2 className="mb-4 pl-3 text-typeface_primary text-body-regular">
-              Questions:
+              {t("class_mode_content.questions")}
             </h2>
             {questions.map((question, index) => {
               const parts = question.split("[__]");
@@ -452,7 +458,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           {/* Answers Container */}
           <div className="flex flex-col">
             <h2 className="mb-[16px] pl-[10px] text-typeface_primary text-body-regular">
-              Answers:
+              {t("class_mode_content.answers")}
             </h2>
             <div className="flex flex-col">
               {answers.map((answer, index) => (
@@ -485,7 +491,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           onClick={handleSubmit}
           disabled={userAnswers.some((item) => item.trim() === "")}
         >
-          Submit answer
+          {t("button_content.submit_answer")}
         </Button>
       </div>
     </div>

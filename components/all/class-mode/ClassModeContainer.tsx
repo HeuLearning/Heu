@@ -112,10 +112,11 @@ export default function ClassModeContainer({
     if (websocket && websocket.readyState === WebSocket.OPEN) {
       // Notify the server that this learner is disconnecting
       console.log("Sending disconnect data:", learner);
-      websocket.send(JSON.stringify({ type: "disconnect", learnerId: learner.id }));
+      websocket.send(
+        JSON.stringify({ type: "disconnect", learnerId: learner.id }),
+      );
     }
   };
-
 
   useEffect(() => {
     console.log("Updated totalElapsedTime:", totalElapsedTime);
@@ -172,7 +173,9 @@ export default function ClassModeContainer({
         status: "In class",
       };
 
-      const websocket = new WebSocket("wss://heu-websocket-yfpz8.ondigitalocean.app");
+      const websocket = new WebSocket(
+        "wss://heu-websocket-yfpz8.ondigitalocean.app",
+      );
 
       websocket.onopen = () => {
         console.log("Connected to WebSocket server");
@@ -202,7 +205,10 @@ export default function ClassModeContainer({
         }
         if (data.type === "UPDATE_DATA") {
           setJsonData(data);
-          setTotalElapsedTime((prev) => [...prev, data.student_data.elapsedTime]);
+          setTotalElapsedTime((prev) => [
+            ...prev,
+            data.student_data.elapsedTime,
+          ]);
         }
       };
 
@@ -350,15 +356,15 @@ export default function ClassModeContainer({
       id: "end-class-popup",
       content: (
         <PopUpContainer
-          header="End class"
-          primaryButtonText="End class"
+          header={t("button_content.end_class")}
+          primaryButtonText={t("button_content.end_class")}
           secondaryButtonText="Cancel"
           primaryButtonOnClick={() => handleEndClass()}
           secondaryButtonOnClick={() => hidePopUp("end-class-popup")}
           popUpId="end-class-popup"
         >
           <p className="text-typeface_primary text-body-regular">
-            Are you sure you'd like to proceed and end the current class?
+            {t("class_mode_content.end_class_confirm_message")}
           </p>
         </PopUpContainer>
       ),
@@ -396,7 +402,9 @@ export default function ClassModeContainer({
     }
 
     // Create a new WebSocket connection to the server
-    const websocket = new WebSocket('wss://heu-websocket-yfpz8.ondigitalocean.app');
+    const websocket = new WebSocket(
+      "wss://heu-websocket-yfpz8.ondigitalocean.app",
+    );
 
     // Create a new learner object for the current user
     const learner = {
@@ -479,7 +487,7 @@ export default function ClassModeContainer({
         <SidePopUp
           headerContent={
             <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-              Learners
+              {t("class_mode_content.learners")}
               <XButton onClick={() => hidePopUp("learners-popup")} />
             </div>
           }
@@ -508,7 +516,7 @@ export default function ClassModeContainer({
         <SidePopUp
           headerContent={
             <div className="flex items-center justify-between font-medium text-typeface_primary text-h3">
-              Modules in this phase
+              {t("class_mode_content.phase_line_up")}
               <XButton onClick={() => hidePopUp("phase-lineup-popup")} />
             </div>
           }
@@ -723,7 +731,7 @@ export default function ClassModeContainer({
                       className="button-tertiary"
                       onClick={handleEndClassPopUp}
                     >
-                      End class
+                      {t("button_content.end_class")}
                     </Button>
                   )}
                   <Button

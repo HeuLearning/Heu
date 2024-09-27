@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from "react";
 import MatchingExercise from "../../../components/exercises/MatchingExercise";
-import ConvoFillInTheBlankExercise from "../../exercises/ConvoFillInTheBlankExercise";
 import QAFillInBlankExercise from "../../../components/exercises/QAFillInTheBlankExercise";
-import MultipleSelectionExercise from "../../exercises/MultipleSelectionExercise";
-import WritingTypingExercise from "../../exercises/WritingTypingExercise";
 import { useStopwatchState } from "./StopwatchContext";
-import TypingLongExercise from "@/components/exercises/TypingLongExercise";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
-import Button from "../buttons/Button";
 import { useResponsive } from "../ResponsiveContext";
 import Instruction from "@/components/exercises/Instruction";
 import InLineMultipleChoice from "@/components/exercises/InLineMultipleChoice";
@@ -15,6 +10,8 @@ import MultipleChoiceExercise from "@/components/exercises/MultipleChoiceExercis
 import { useMemo } from "react";
 import ButtonBar from "../mobile/ButtonBar";
 import { useButtonBar } from "../mobile/ButtonBarContext";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface ClassModeContentProps {
   jsonData: any; // Consider defining a specific type for jsonData if possible
@@ -23,6 +20,8 @@ interface ClassModeContentProps {
 function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const state = useStopwatchState();
   const { elapsedTime, elapsedLapTime } = state;
+
+  const t = getGT();
 
   const { userRole } = useUserRole();
   const { isMobile } = useResponsive();
@@ -46,7 +45,11 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
     console.log(jsonData.student_data?.exercises);
 
     if (currentExerciseIndex >= exercises.length) {
-      return <div>No more exercises available.</div>;
+      return (
+        <p className="text-typeface_primary text-body-regular">
+          No more exercises available.
+        </p>
+      );
     }
 
     const currentExercise = exercises[currentExerciseIndex];
@@ -62,7 +65,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
 
     switch (currentExercise.question_type) {
       case "instruction":
-        setButtonBarText("Continue");
+        setButtonBarText(t("button_content.continue"));
         return (
           <Instruction
             instruction={currentExercise.content.instruction}
@@ -70,7 +73,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           />
         );
       case "inlinemultiplechoice":
-        setButtonBarText("Submit answer");
+        setButtonBarText(t("button_content.submit_answer"));
         return (
           <InLineMultipleChoice
             {...currentExercise.content}
@@ -78,7 +81,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           />
         );
       case "multiplechoice":
-        setButtonBarText("Submit answer");
+        setButtonBarText(t("button_content.submit_answer"));
         return (
           <MultipleChoiceExercise
             {...currentExercise.content}
@@ -86,7 +89,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           />
         );
       case "qa_fill_in_blank":
-        setButtonBarText("Submit answer");
+        setButtonBarText(t("button_content.submit_answer"));
         return (
           <QAFillInBlankExercise
             {...currentExercise.content}
@@ -94,7 +97,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           />
         );
       case "matching":
-        setButtonBarText("Submit answer");
+        setButtonBarText(t("button_content.submit_answer"));
         return (
           <MatchingExercise
             {...currentExercise.content}

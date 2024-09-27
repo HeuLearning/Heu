@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { useResponsive } from "../all/ResponsiveContext";
 import Button from "../all/buttons/Button";
 import { useButtonBar } from "../all/mobile/ButtonBarContext";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface InstructionProps {
   instruction: string;
@@ -13,6 +15,7 @@ export default function Instruction({
   onComplete,
 }: InstructionProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const t = getGT();
 
   const handleComplete = () => {
     // Call the onComplete function passed as a prop
@@ -39,7 +42,7 @@ export default function Instruction({
       {!isMobile && (
         <div className="self-end">
           <Button className="button-primary" onClick={handleComplete}>
-            Continue
+            {t("button_content.continue")}
           </Button>
         </div>
       )}

@@ -110,7 +110,9 @@ export default function MobileDashboard({
           {currentDateKey === previousDateKey ? (
             <MiniClassBlock
               dateCard={
-                index === 0 && filteredSessions[0].id === upcomingSessions[0].id
+                index === 0 &&
+                upcomingSessions.length > 0 &&
+                filteredSessions[0].id === upcomingSessions[0].id
               }
               sessionId={session.id}
               activeSessionId={activeSessionId}
@@ -121,7 +123,9 @@ export default function MobileDashboard({
           ) : (
             <MiniClassBlock
               dateCard={
-                index === 0 && filteredSessions[0].id === upcomingSessions[0].id
+                index === 0 &&
+                upcomingSessions.length > 0 &&
+                filteredSessions[0].id === upcomingSessions[0].id
               }
               sessionId={session.id}
               activeSessionId={activeSessionId}
