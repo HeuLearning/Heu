@@ -407,6 +407,18 @@ export default function ClassModeContainer({
     // Check if WebSocket is already open or being created
     if (ws && ws.readyState === WebSocket.OPEN) {
       console.log("WebSocket is already open.");
+
+      const moduleData = {
+        type: "NEXT_MODULE",
+        moduleId: activeModule.id,
+        moduleName: activeModule.name,
+        elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
+        exercises: activeModule.exercises,
+      };
+
+      ws.send(JSON.stringify(moduleData));
+      console.log("Sent over WebSocket: ", moduleData);
+
       return; // Do nothing if WebSocket is already open
     }
 
