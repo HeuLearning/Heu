@@ -10,7 +10,8 @@ import Badge from "../all/Badge";
 import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import ButtonBar from "../all/mobile/ButtonBar";
-import { Antic_Slab } from "next/font/google";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface MultipleChoiceExerciseProps {
   instruction: string;
@@ -30,6 +31,7 @@ export default function MultipleChoiceExercise({
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const { isMobile, isTablet, isDesktop } = useResponsive();
+  const t = getGT();
 
   const handleComplete = () => {
     onComplete();
@@ -69,7 +71,7 @@ export default function MultipleChoiceExercise({
                   headerContent={
                     <div className="flex h-[40px] w-full flex-col justify-center">
                       <h3 className="text-typeface_primary text-h3">
-                        Well done!
+                        {t("class_mode_content.well_done")}
                       </h3>
                     </div>
                   }
@@ -77,7 +79,7 @@ export default function MultipleChoiceExercise({
                   <CorrectAnswerContent />
                   <div className="-ml-[16px]">
                     <ButtonBar
-                      primaryButtonText="Continue"
+                      primaryButtonText={t("button_content.continue")}
                       primaryButtonOnClick={handleComplete}
                     />
                   </div>
@@ -108,14 +110,16 @@ export default function MultipleChoiceExercise({
                   className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
                   headerContent={
                     <div className="flex h-[40px] w-full flex-col justify-center">
-                      <h3 className="text-typeface_primary text-h3">Oops!</h3>
+                      <h3 className="text-typeface_primary text-h3">
+                        {t("class_mode_content.oops")}
+                      </h3>
                     </div>
                   }
                 >
                   <IncorrectAnswerContent />
                   <div className="-ml-[16px]">
                     <ButtonBar
-                      primaryButtonText="Continue"
+                      primaryButtonText={t("button_content.continue")}
                       primaryButtonOnClick={handleComplete}
                       primaryButtonDisabled={true}
                     />
@@ -141,7 +145,7 @@ export default function MultipleChoiceExercise({
   const CorrectAnswerContent = () => {
     return (
       <p className="text-typeface_primary text-body-regular">
-        Great job! You got all the answers correct.
+        {t("class_mode_content.correct_answer_message")}
       </p>
     );
   };
@@ -151,11 +155,11 @@ export default function MultipleChoiceExercise({
     return (
       <div className="space-y-[32px]">
         <p className="text-typeface_primary text-body-regular">
-          Oops, it looks like you got something wrong. Keep going!
+          {t("class_mode_content.incorrect_answer_message")}
         </p>
         <div className="space-y-[16px]">
           <p className="text-typeface_primary text-body-medium">
-            Please type the answers:
+            {t("class_mode_content.please_type_answers")}
           </p>
           <div
             className={`rounded-[14px] bg-surface_bg_tertiary p-[8px] ${isMobile ? "flex flex-col gap-[24px]" : ""}`}
@@ -194,14 +198,16 @@ export default function MultipleChoiceExercise({
             className="bottom-0 z-50 max-h-[570px] overflow-y-auto px-[16px] pb-[32px] pt-[16px]"
             headerContent={
               <div className="flex h-[40px] w-full flex-col justify-center">
-                <h3 className="text-typeface_primary text-h3">Oops!</h3>
+                <h3 className="text-typeface_primary text-h3">
+                  {t("class_mode_content.oops")}
+                </h3>
               </div>
             }
           >
             <IncorrectAnswerContent />
             <div className="-ml-[16px]">
               <ButtonBar
-                primaryButtonText="Continue"
+                primaryButtonText={t("button_content.continue")}
                 primaryButtonOnClick={handleComplete}
                 primaryButtonDisabled={false}
               />
@@ -213,8 +219,8 @@ export default function MultipleChoiceExercise({
       updatePopUp(
         "incorrect-answer-popup",
         <PopUpContainer
-          header="Try again"
-          primaryButtonText="Continue"
+          header={t("class_mode_content.try_again")}
+          primaryButtonText={t("button_content.continue")}
           primaryButtonOnClick={handleComplete}
           popUpId="incorrect-answer-popup"
         >
@@ -231,8 +237,8 @@ export default function MultipleChoiceExercise({
         id: "correct-answer-popup",
         content: (
           <PopUpContainer
-            header="Good job!"
-            primaryButtonText="Continue"
+            header={t("class_mode_content.well_done")}
+            primaryButtonText={t("button_content.continue")}
             primaryButtonOnClick={handleComplete}
             popUpId="correct-answer-popup"
           >
@@ -250,8 +256,8 @@ export default function MultipleChoiceExercise({
         id: "incorrect-answer-popup",
         content: (
           <PopUpContainer
-            header="Try again"
-            primaryButtonText="Continue"
+            header={t("class_mode_content.try_again")}
+            primaryButtonText={t("button_content.continue")}
             primaryButtonDisabled={true}
             primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
@@ -299,7 +305,7 @@ export default function MultipleChoiceExercise({
       {!isMobile && (
         <div className="self-end">
           <Button className="button-primary" onClick={handleSubmit}>
-            Submit answer
+            {t("button_content.submit_answer")}
           </Button>
         </div>
       )}
