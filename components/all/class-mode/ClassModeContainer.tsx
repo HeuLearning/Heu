@@ -663,7 +663,7 @@ export default function ClassModeContainer({
         >
           <ClassModeHeaderBar
             onBack={handleBack}
-            title="Classroom"
+            title={t("class_mode_content.classroom")}
             rightSide={
               <div className="flex gap-[12px]">
                 {/* <Button
