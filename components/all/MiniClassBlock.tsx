@@ -185,7 +185,7 @@ export default function MiniClassBlock({
               ? t("status.pending")
               : status === "Class full"
                 ? t("status.class_full")
-                : t(`status.${status}`)}
+                : t(`status.${status.toLowerCase()}`)}
           </h2>
         ) : (
           <Placeholder width={60} height={10} />
