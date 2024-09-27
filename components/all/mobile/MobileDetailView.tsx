@@ -55,7 +55,7 @@ export default function MobileDetailView({
           ? { height: height ? height : windowHeight }
           : { height: height }
       }
-      className={`fixed flex flex-grow flex-col rounded-t-[20px] outline-surface_border_tertiary ${backgroundColor} ${className} ${className.includes("bottom-0") ? "bottom-[64px] left-0 right-0" : "inset-0"}`}
+      className={`fixed flex flex-grow flex-col rounded-t-[20px] outline-surface_border_tertiary ${backgroundColor} ${className} ${className.includes("bottom-0") ? (buttonBar ? "bottom-[64px] left-0 right-0" : "bottom-0 left-0 right-0") : "inset-0"}`}
     >
       <div
         style={{ "--backgroundColor": backgroundColor } as React.CSSProperties}

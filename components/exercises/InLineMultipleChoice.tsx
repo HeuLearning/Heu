@@ -37,16 +37,20 @@ export default function InLineMultipleChoice({
     hidePopUp("incorrect-answer-popup");
   };
 
+  const isCorrect = (answers: string[]) => {
+    return (
+      answers.join("").toLowerCase().trim() ===
+      correct_answer.join("").toLowerCase().trim()
+    );
+  };
+
   if (isMobile) {
     const { setHandleSubmitAnswer } = useButtonBar();
 
     useEffect(() => {
       const handleClick = () => {
         console.log(selectedOptions);
-        if (
-          selectedOptions.join("").toLowerCase() ===
-          correct_answer.join("").toLowerCase()
-        ) {
+        if (isCorrect(selectedOptions)) {
           showPopUp({
             id: "correct-answer-popup",
             content: (
@@ -207,11 +211,8 @@ export default function InLineMultipleChoice({
 
   const checkAnswer = (clearedAnswers: string[]) => {
     console.log("cleared answers");
-    const isCorrect =
-      clearedAnswers.join("").toLowerCase() ===
-      correct_answer.join("").toLowerCase(); // New: checking all answers
     setSelectedOptions(clearedAnswers);
-    if (isCorrect && isMobile) {
+    if (isCorrect(clearedAnswers) && isMobile) {
       updatePopUp(
         "incorrect-answer-popup",
         <div>
@@ -242,7 +243,7 @@ export default function InLineMultipleChoice({
           </MobileDetailView>
         </div>,
       );
-    } else if (isCorrect) {
+    } else if (isCorrect(clearedAnswers)) {
       updatePopUp(
         "incorrect-answer-popup",
         <PopUpContainer
@@ -259,10 +260,7 @@ export default function InLineMultipleChoice({
 
   const handleSubmit = () => {
     console.log(selectedOptions);
-    if (
-      selectedOptions.join("").toLowerCase() ===
-      correct_answer.join("").toLowerCase()
-    ) {
+    if (isCorrect(selectedOptions)) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
@@ -306,30 +304,33 @@ export default function InLineMultipleChoice({
 
   return (
     <div className="flex flex-col gap-[16px]">
+      <p className="text-typeface_primary text-h3">{instruction}</p>
       {questions.map((question, index) => {
         const parts = question.split("[__]");
         return (
-          <div className={`flex ${isMobile ? "flex-wrap" : ""}`}>
-            <p
-              className={`flex items-center justify-center px-[8px] py-[11px] text-typeface_primary text-body-semibold-cap-height`}
-            >
-              {parts[0]}
-            </p>
-            <div className="flex gap-[4px]">
-              {options[index].map((string, i) => {
-                return (
-                  <MultipleSelectionButton
-                    text={string}
-                    key={i}
-                    isSelected={selectedOptions[index] === string}
-                    onClick={() => handleSelect(index, i)}
-                  />
-                );
-              })}
+          <div>
+            <div className={`flex ${isMobile ? "flex-wrap" : ""}`}>
+              <p
+                className={`flex items-center justify-center px-[8px] py-[11px] text-typeface_primary text-body-semibold-cap-height`}
+              >
+                {parts[0]}
+              </p>
+              <div className="flex gap-[4px]">
+                {options[index].map((string, i) => {
+                  return (
+                    <MultipleSelectionButton
+                      text={string}
+                      key={i}
+                      isSelected={selectedOptions[index] === string}
+                      onClick={() => handleSelect(index, i)}
+                    />
+                  );
+                })}
+              </div>
+              <p className="flex items-center justify-center px-[8px] py-[11px] text-typeface_primary text-body-semibold-cap-height">
+                {parts[1]}
+              </p>
             </div>
-            <p className="flex items-center justify-center px-[8px] py-[11px] text-typeface_primary text-body-semibold-cap-height">
-              {parts[1]}
-            </p>
           </div>
         );
       })}

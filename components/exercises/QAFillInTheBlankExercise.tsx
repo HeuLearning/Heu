@@ -42,16 +42,20 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     hidePopUp("incorrect-answer-popup");
   };
 
+  const isCorrect = (answers: string[]) => {
+    return (
+      answers.join("").toLowerCase().trim() ===
+      correct_answer.join("").toLowerCase().trim()
+    );
+  };
+
   if (isMobile) {
     const { setHandleSubmitAnswer } = useButtonBar();
 
     useEffect(() => {
       const handleClick = () => {
         console.log(userAnswers);
-        if (
-          userAnswers.join("").toLowerCase() ===
-          correct_answer.join("").toLowerCase()
-        ) {
+        if (isCorrect(userAnswers)) {
           showPopUp({
             id: "correct-answer-popup",
             content: (
@@ -245,10 +249,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   const handleSubmit = () => {
     console.log(userAnswers);
-    if (
-      userAnswers.join("").toLowerCase() ===
-      correct_answer.join("").toLowerCase()
-    ) {
+    if (isCorrect(userAnswers)) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
@@ -291,10 +292,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   };
 
   const checkAnswers = (clearedAnswers: string[]) => {
-    const isCorrect =
-      clearedAnswers.join("").toLowerCase() ===
-      correct_answer.join("").toLowerCase();
-    if (isCorrect && isMobile) {
+    if (isCorrect(clearedAnswers) && isMobile) {
       updatePopUp(
         "incorrect-answer-popup",
         <div>
@@ -325,7 +323,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           </MobileDetailView>
         </div>,
       );
-    } else if (isCorrect) {
+    } else if (isCorrect(clearedAnswers)) {
       updatePopUp(
         "incorrect-answer-popup",
         <PopUpContainer

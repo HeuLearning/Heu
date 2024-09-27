@@ -10,6 +10,7 @@ import Badge from "../all/Badge";
 import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import ButtonBar from "../all/mobile/ButtonBar";
+import { Antic_Slab } from "next/font/google";
 
 interface MultipleChoiceExerciseProps {
   instruction: string;
@@ -36,6 +37,10 @@ export default function MultipleChoiceExercise({
     hidePopUp("incorrect-answer-popup");
   };
 
+  const isCorrect = (answer: string) => {
+    return answer.toLowerCase().trim() === correct_answer.toLowerCase().trim();
+  };
+
   useEffect(() => {
     console.log(selectedOption);
   }, [selectedOption]);
@@ -46,10 +51,7 @@ export default function MultipleChoiceExercise({
     useEffect(() => {
       const handleClick = () => {
         console.log(selectedOption);
-        if (
-          selectedOption &&
-          selectedOption.toLowerCase() === correct_answer.toLowerCase()
-        ) {
+        if (selectedOption && isCorrect(selectedOption)) {
           showPopUp({
             id: "correct-answer-popup",
             content: (
@@ -176,9 +178,7 @@ export default function MultipleChoiceExercise({
   };
 
   const checkAnswers = (clearedAnswer: string) => {
-    let isCorrect =
-      clearedAnswer.toLowerCase() === correct_answer.toLowerCase();
-    if (isCorrect && isMobile) {
+    if (isCorrect(clearedAnswer) && isMobile) {
       updatePopUp(
         "incorrect-answer-popup",
         <div>
@@ -209,7 +209,7 @@ export default function MultipleChoiceExercise({
           </MobileDetailView>
         </div>,
       );
-    } else if (isCorrect) {
+    } else if (isCorrect(clearedAnswer)) {
       updatePopUp(
         "incorrect-answer-popup",
         <PopUpContainer
@@ -226,10 +226,7 @@ export default function MultipleChoiceExercise({
 
   const handleSubmit = () => {
     console.log(selectedOption);
-    if (
-      selectedOption &&
-      selectedOption.toLowerCase() === correct_answer.toLowerCase()
-    ) {
+    if (selectedOption && isCorrect(selectedOption)) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
