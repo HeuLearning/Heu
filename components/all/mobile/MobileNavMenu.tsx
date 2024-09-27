@@ -1,7 +1,7 @@
 import MobileDetailView from "./MobileDetailView";
 import XButton from "../buttons/XButton";
 import BackButton from "../buttons/BackButton";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import NavButton from "../buttons/NavButton";
 import dictionary from "@/dictionary";
 import { getGT } from "gt-next";
@@ -17,6 +17,8 @@ interface MobileNavMenuProps {
 
 export default function MobileNavMenu({ closeMenu }: MobileNavMenuProps) {
   const t = getGT();
+
+  const [isPending, startTransition] = useTransition();
 
   const [selectedNavButton, setSelectedNavButton] = useState(
     t("button_content.dashboard"),
@@ -106,7 +108,11 @@ export default function MobileNavMenu({ closeMenu }: MobileNavMenuProps) {
               <p className="text-typeface_primary text-body-medium">{email}</p>
             </div>
           </div>
-          <Button className="button-primary" onClick={() => signOutAction()}>
+          <Button
+            className="button-primary"
+            onClick={() => startTransition(() => signOutAction())}
+            disabled={isPending}
+          >
             {t("button_content.log_out")}
           </Button>
         </div>

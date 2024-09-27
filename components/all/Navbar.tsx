@@ -3,7 +3,7 @@ import LanguageSelector from "./buttons/LanguageSelector";
 import ProfilePic from "./ProfilePic";
 import { useResponsive } from "./ResponsiveContext";
 import HamburgerButton from "./mobile/HamburgerButton";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import MobileNavMenu from "./mobile/MobileNavMenu";
 import NavButton from "./buttons/NavButton";
 import NotificationButton from "./buttons/NotificationButton";
@@ -33,6 +33,8 @@ export default function Navbar({ activeTab }: NavbarProps) {
   const [activeNotifTab, setActiveNotifTab] = useState("New");
   const [isNotifsOpen, setIsNotifsOpen] = useState(false);
   const [isSettingsShown, setIsSettingsShown] = useState(false);
+
+  const [isPending, startTransition] = useTransition();
 
   const t = getGT();
 
@@ -315,7 +317,8 @@ export default function Navbar({ activeTab }: NavbarProps) {
               </div>
               <Button
                 className="button-primary justify-end"
-                onClick={() => signOutAction()}
+                onClick={() => startTransition(() => signOutAction())}
+                disabled={isPending}
               >
                 {t("button_content.log_out")}
               </Button>
