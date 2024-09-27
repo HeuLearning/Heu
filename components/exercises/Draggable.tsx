@@ -7,10 +7,15 @@ interface DraggableProps {
   className?: string;
 }
 
-export default function Draggable({ id, children, className = "" }: DraggableProps) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: id,
-  });
+export default function Draggable({
+  id,
+  children,
+  className = "",
+}: DraggableProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: id,
+    });
 
   const style = transform
     ? {

@@ -86,6 +86,9 @@ export default function MobileClassModeContainer(
     setIsClassScheduleShown(false);
   };
 
+  console.log("class STARTEDDDDDDDDDDDDDD???");
+  console.log(classStarted);
+
   if (userRole === "st")
     return (
       <div>

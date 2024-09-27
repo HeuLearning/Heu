@@ -6,16 +6,17 @@ import RadioButton from "./RadioButton";
 import Checkbox from "./Checkbox";
 import IconButton from "../../components/all/buttons/IconButton";
 import { useResponsive } from "../all/ResponsiveContext";
+import React from "react";
 
 interface WordBankItemProps {
   id: string;
   draggable?: boolean;
   droppable?: boolean;
   children?: React.ReactNode;
-  x?: boolean;
-  handleReset?: (id: string) => void;
   placeholder?: boolean;
   disabled?: boolean;
+  x?: boolean;
+  xButtonOnClick?: () => void;
   onClick?: () => void;
 }
 
@@ -24,15 +25,22 @@ export default function WordBankItem({
   draggable = false,
   droppable = false,
   children = null,
-  x = false,
-  handleReset = () => {},
   placeholder = false,
   disabled,
+  x,
+  xButtonOnClick,
   onClick,
 }: WordBankItemProps) {
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
-  if ((!x && !children && !droppable) || (placeholder && droppable))
+  if (
+    (!x &&
+      React.isValidElement(children) &&
+      children.type === React.Fragment &&
+      React.Children.count(children.props.children) === 0 &&
+      !droppable) ||
+    (placeholder && droppable)
+  )
     return (
       <div className="border-1px min-h-[32px] flex-1 rounded-[10px] outline-dashed-surface_border_primary">
         <Droppable id={id}>
@@ -51,10 +59,10 @@ export default function WordBankItem({
 
   const content = (
     <div
-      className={`${onClick ? "cursor-pointer" : ""} z-2 flex ${isMobile ? "h-[44px]" : "h-[32px]"} items-center rounded-[10px] ${disabled ? "" : "bg-surface_bg_highlight shadow-25"} px-[10px]`}
-      onClick={onClick ? onClick : () => {}}
+      className={`${onClick && !disabled ? "cursor-pointer" : ""} z-2 flex ${isMobile ? "h-[44px]" : "h-[32px]"} items-center rounded-[10px] ${disabled ? "" : "bg-surface_bg_highlight shadow-25"} px-[10px]`}
+      onClick={onClick && !disabled ? onClick : () => {}}
     >
-      <div className="flex items-center justify-between gap-[8px]">
+      <div className="flex w-full items-center justify-between gap-[8px]">
         <div className="flex items-center gap-[8px]">
           {draggable ? (
             <svg
@@ -79,7 +87,7 @@ export default function WordBankItem({
           </div>
         </div>
         {x ? (
-          <IconButton onClick={handleReset}>
+          <IconButton onClick={xButtonOnClick}>
             <svg
               width="16"
               height="16"
