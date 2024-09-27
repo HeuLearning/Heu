@@ -133,7 +133,7 @@ export default function SignInRegistrationComponent() {
   return (
     <div className="fixed inset-0 flex items-center justify-center">
       <div
-        className={`inset-0 z-[50] flex ${isMobile ? "h-screen w-screen" : "w-[372px]"} flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
+        className={`inset-0 z-[50] flex ${isMobile ? "fixed h-screen w-screen" : "w-[372px]"} flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
       >
         {renderContent()}
       </div>

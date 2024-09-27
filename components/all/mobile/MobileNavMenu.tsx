@@ -8,6 +8,8 @@ import { getGT } from "gt-next";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
 import ProfilePic from "../ProfilePic";
 import Dot from "../Dot";
+import Button from "../buttons/Button";
+import { signOutAction } from "@/app/actions";
 
 interface MobileNavMenuProps {
   closeMenu: () => void;
@@ -84,7 +86,7 @@ export default function MobileNavMenu({ closeMenu }: MobileNavMenuProps) {
           </div>
         </div>
       ) : selectedNavButton === t("button_content.profile") ? (
-        <div className="flex flex-col justify-center gap-[12px] pb-[16px]">
+        <div className="flex flex-col justify-center gap-[16px] pb-[16px]">
           <div className="flex items-center gap-[4px]">
             <ProfilePic size={48} />
             <div>
@@ -104,6 +106,9 @@ export default function MobileNavMenu({ closeMenu }: MobileNavMenuProps) {
               <p className="text-typeface_primary text-body-medium">{email}</p>
             </div>
           </div>
+          <Button className="button-primary" onClick={() => signOutAction()}>
+            {t("button_content.log_out")}
+          </Button>
         </div>
       ) : (
         <div className="space-y-[24px]">
