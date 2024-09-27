@@ -147,7 +147,12 @@ export default function MobileClassDetails({
             </div>
           }
         >
-          <ClassSchedulePopUpContainer {...lessonPlanData} />
+          <ClassSchedulePopUpContainer
+            {...{
+              ...lessonPlanData,
+              getModules: (phaseId: string) => lessonPlanData.getModules(phaseId) || [], // Return an empty array if undefined
+            }}
+          />
         </MobileDetailView>
       </div>
     </div>

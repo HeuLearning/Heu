@@ -9,9 +9,9 @@ interface SignUpRegistrationComponent {
   className?: string;
 }
 
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
+function debounce(func: any, wait: any) {
+  let timeout: any;
+  return function executedFunction(...args: any) {
     const later = () => {
       clearTimeout(timeout);
       func(...args);

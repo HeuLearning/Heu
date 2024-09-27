@@ -14,8 +14,19 @@ import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
 
+
+
+interface UserData {
+  user: {
+      email: string;
+  };
+  role: string;
+  accessToken: string;
+}
+
+
 const LearnerDashboard = () => {
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const router = useRouter();
 
   const t = getGT();
@@ -58,10 +69,10 @@ const LearnerDashboard = () => {
       }
 
       setUserData({
-        user: { email: user.email },
+        user: { email: user.email || '' },
         role: roleType.role,
         accessToken: session.access_token,
-      });
+    });
     };
 
     fetchUserData();

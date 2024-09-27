@@ -117,11 +117,11 @@ export default function WordBankItem({
       </div>
     );
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: any) => {
     console.log("drag end");
   };
 
-  const handleDragDropReset = (id) => {
+  const handleDragDropReset = (id: any) => {
     console.log("reset");
   };
 

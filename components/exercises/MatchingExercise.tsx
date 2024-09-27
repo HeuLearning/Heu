@@ -161,8 +161,8 @@ function MatchingExercise({
     const otherIndex = dropItems.findIndex((item) => item.id === id);
     const originalDropItem = dragItems[oldIndex];
 
-    setDragItems((prevItems) =>
-      prevItems.map((item, index) =>
+    setDragItems((prevItems: any) =>
+      prevItems.map((item: any, index: any) =>
         index === oldIndex ? { ...originalDragItem, x: false } : item,
       ),
     );
