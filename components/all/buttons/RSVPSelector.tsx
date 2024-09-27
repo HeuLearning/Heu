@@ -8,6 +8,7 @@ import Dot from "../Dot";
 import { usePopUp } from "../popups/PopUpContext";
 import AttendancePopUp from "../popups/AttendancePopUp";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
+import dictionary from "@/dictionary.js";
 import { getGT } from "gt-next";
 
 interface RSVPSelectorProps {

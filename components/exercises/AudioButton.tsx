@@ -2,7 +2,7 @@ interface AudioButtonProps {
   size: number;
   togglePlay: () => void;
   isPlaying: boolean;
-  color: string;
+  color?: string;
 }
 
 export default function AudioButton({

@@ -42,6 +42,7 @@ const AttendancePopUp: React.FC<AttendancePopUpProps> = ({ session, action, popU
           primaryButtonOnClick={() => {
             cancelSession(sessionId)
             hidePopUp("cancel-class-confirmation-popup");
+            window.location.reload();
           }}
           popUpId="cancel-class-confirmation-popup"
         >

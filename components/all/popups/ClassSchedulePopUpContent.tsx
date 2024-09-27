@@ -24,7 +24,7 @@ export default function ClassSchedulePopUpContainer({
   getModules,
   phaseTimes,
 }: ClassSchedulePopUpContainerProps) {
-  const { isMobile } = useResponsive();
+  const { isMobile, isTablet, isDesktop } = useResponsive();
 
   return (
     <div>
