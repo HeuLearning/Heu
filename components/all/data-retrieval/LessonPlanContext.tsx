@@ -307,21 +307,8 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   const phases = lessonPlan?.phases || [];
 
   const phaseTimes = new Map();
-  let prevStartTime: Date;
-
-  if (sessionStartTime) {
-    // Make sure sessionStartTime is a valid date string before creating a Date object
-    const parsedStartTime = Date.parse(sessionStartTime);
-    if (!isNaN(parsedStartTime)) {
-      prevStartTime = new Date(parsedStartTime);
-    } else {
-      console.error("Parsed sessionStartTime is invalid. Setting prevStartTime to current date.");
-      prevStartTime = new Date(); // Default to current date if parsing fails
-    }
-  } else {
-    console.error("sessionStartTime is null. Setting prevStartTime to current date.");
-    prevStartTime = new Date(); // Default to current date if sessionStartTime is null
-  }
+  // @ts-ignore: Ignore implicit 'any' type here
+  let prevStartTime = new Date(sessionStartTime);
 
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i];
