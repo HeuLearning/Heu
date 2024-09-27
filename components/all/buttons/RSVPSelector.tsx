@@ -97,7 +97,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
               : "var(--typeface_tertiary)"
           }
         />
-        {t("status." + status)}
+        {t("status." + status.toLowerCase())}
       </div>
     );
   } else if (status === "Attended") {
@@ -117,7 +117,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
             strokeLinecap="round"
           />
         </svg>
-        {t("status." + status)}
+        {t("status." + status.toLowerCase())}
       </div>
     );
   } else if (

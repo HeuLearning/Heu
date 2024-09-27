@@ -4,7 +4,7 @@ import { FormMessage, Message } from "@/components/form-message";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import SignUpRegistrationComponent from "@/components/all/SignUpRegistrationComponent";
+import SignUpRegistrationComponent from "@/components/all/auth-components/SignUpRegistrationComponent";
 
 export default function SignUp({ searchParams }: { searchParams: Message }) {
   const router = useRouter();

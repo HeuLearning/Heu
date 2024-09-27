@@ -12,12 +12,15 @@ const dictionary = {
     agenda: "Agenda",
     class_code: "Class Code",
     coming_up: "Coming up",
+    menu: "Menu",
   },
   button_content: {
     enter_class: "Enter class",
     enroll: "Enroll",
     cancel: "Cancel",
     confirm: "Confirm",
+    confirm_attendance: "Confirm attendance",
+    i_cant_attend: "I can't attend",
     join_waiting_list: "Join waiting list",
     leave_waiting_list: "Leave waiting list",
     monthly: "Monthly",
@@ -32,6 +35,10 @@ const dictionary = {
     end_class: "End class",
     next_module: "Next module",
     next_phase: "Next phase",
+    share_code: "Share code",
+    sign_in: "Sign in",
+    profile: "Profile",
+    reset_password: "Reset password",
   },
   info_pill_content: {
     class_started: "Your class has started",
@@ -49,6 +56,9 @@ const dictionary = {
     attended: "Attended",
   },
   class_mode_content: {
+    class_details: "Class details",
+    phases: "Phases",
+    classroom: "Classroom",
     learners: "Learners",
     well_done: "Well done!",
     oops: "Oops!",
@@ -63,6 +73,19 @@ const dictionary = {
     end_class_confirm_message:
       "Are you sure you'd like to proceed and end the current class?",
     phase_line_up: "Modules in this phase",
+    no_more_exercises: "No more exercises available.",
+  },
+  sign_in_sign_up_content: {
+    sign_in_heu: "Sign in to Heu Learning",
+    email: "Email",
+    password: "Password",
+    or: "or",
+    no_account: "Don't have an account?",
+    sign_in: "Sign in",
+    sign_up: "Sign up",
+    forgot_password: "Forgot password?",
+    forgot_password_description:
+      "You will receive an email to reset your password.",
   },
 };
 

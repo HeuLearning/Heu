@@ -63,8 +63,8 @@ const Textbox = forwardRef<HTMLDivElement, TextboxProps>(
 
     if (size === "small") {
       return (
-        <div className="relative" ref={ref}>
-          <div className="relative inline-block">
+        <div className="relative w-full" ref={ref}>
+          <div className="relative inline-block w-full">
             <input
               name={name}
               type={password && !isPasswordShown ? "password" : "text"}

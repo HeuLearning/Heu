@@ -263,7 +263,7 @@ export default function Navbar({ activeTab }: NavbarProps) {
           </div>
         </div>
         <div className="flex items-center gap-[16px]">
-          <LanguageSelector
+          {/* <LanguageSelector
             className="shadow-25"
             selected="EN"
             allOptions={[
@@ -271,7 +271,7 @@ export default function Navbar({ activeTab }: NavbarProps) {
               ["Spanish", "ES"],
               ["Portuguese", "PT"],
             ]}
-          />
+          /> */}
           <NotificationButton
             onClick={() => toggleNotifs(isNotifsOpen)}
             isOpen={isNotifsOpen}
