@@ -286,11 +286,12 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   }, [accessToken, sessionId]);
 
   useEffect(() => {
+    console.log("Upcoming Sessions:", upcomingSessions); // Log upcoming sessions
     if (upcomingSessions && upcomingSessions.length > 0 && sessionId) {
       const session = upcomingSessions.find(
         (session) => String(session.id) === sessionId,
       );
-
+  
       if (session && session.start_time) {
         setSessionStartTime(session.start_time);
       } else {
@@ -309,10 +310,17 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   let prevStartTime: Date;
 
   if (sessionStartTime) {
-    prevStartTime = new Date(sessionStartTime);
+    // Make sure sessionStartTime is a valid date string before creating a Date object
+    const parsedStartTime = Date.parse(sessionStartTime);
+    if (!isNaN(parsedStartTime)) {
+      prevStartTime = new Date(parsedStartTime);
+    } else {
+      console.error("Parsed sessionStartTime is invalid. Setting prevStartTime to current date.");
+      prevStartTime = new Date(); // Default to current date if parsing fails
+    }
   } else {
     console.error("sessionStartTime is null. Setting prevStartTime to current date.");
-    prevStartTime = new Date(); // or any default date
+    prevStartTime = new Date(); // Default to current date if sessionStartTime is null
   }
 
   for (let i = 0; i < phases.length; i++) {
