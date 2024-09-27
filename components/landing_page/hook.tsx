@@ -1,6 +1,5 @@
 import styles from './Hook.module.css';
-import "animate.css/animate.compat.css"
-import ScrollAnimation from 'react-animate-on-scroll';
+import "animate.css/animate.compat.css";
 
 export default function Hook() {
     return (

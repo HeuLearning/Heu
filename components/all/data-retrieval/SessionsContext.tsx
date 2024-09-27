@@ -18,12 +18,19 @@ interface Session {
   id: string;
   start_time: string;
   end_time: string;
-  max_capacity: number;
+  max_capacity?: number; // Optional, if not returned from first structure
+  total_max_capacity?: number; // Optional, only for the first structure
   num_enrolled: number;
   num_waitlist: number;
-  learning_organization: string;
-  location: string;
-  other_instructors: [];
+  num_confirmed: number;
+  learning_organization_name: string;
+  location_name: string;
+  isEnrolled?: boolean; // Optional for the first structure
+  isWaitlisted?: boolean; // Optional for the first structure
+  isConfirmed?: boolean; // Optional for the first structure
+  instructors?: any[]; // Optional for the first structure
+  other_instructors?: any[]; // Optional for the second structure
+  instructor_status?: string; // Optional for the second structure
 }
 
 // context type
@@ -65,7 +72,7 @@ const SessionsContext = createContext<SessionContextType | undefined>(
 // props for provider
 interface SessionsProviderProps {
   children: ReactNode;
-  accessToken;
+  accessToken: any;
   userRole: string;
 }
 
@@ -79,9 +86,6 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
 
   // Example effect to fetch sessions (replace with your actual data fetching logic)
   useEffect(() => {
@@ -366,28 +370,28 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
           throw new Error("Only instructors can access this route");
         }
 
-        // Assuming you have these fields in your session table
-        let { data: updatedSession, error: updateError } = await supabase
-          .from("sessions")
-          .update({
-            pending_instructors: supabase.raw(
-              "array_remove(pending_instructors, ?)",
-              [user.id],
-            ),
-            confirmed_instructors: supabase.raw(
-              "array_append(confirmed_instructors, ?)",
-              [user.id],
-            ),
-          })
-          .eq("id", sessionId)
-          .single();
+        // // Assuming you have these fields in your session table
+        // let { data: updatedSession, error: updateError } = await supabase
+        //   .from("sessions")
+        //   .update({
+        //     pending_instructors: supabase.raw(
+        //       "array_remove(pending_instructors, ?)",
+        //       [user.id],
+        //     ),
+        //     confirmed_instructors: supabase.raw(
+        //       "array_append(confirmed_instructors, ?)",
+        //       [user.id],
+        //     ),
+        //   })
+        //   .eq("id", sessionId)
+        //   .single();
 
-        if (updateError) throw updateError;
+        // if (updateError) throw updateError;
 
         return { message: "Successfully confirmed to teach this session" };
       } catch (error) {
         console.error(error);
-        return { error: error.message };
+        return;
       }
     } else if (userRole === "st") {
       await handleChange("confirm", sessionId);
@@ -402,7 +406,7 @@ export const SessionsProvider: React.FC<SessionsProviderProps> = ({
     }
   }
 
-  async function handleChange(taskString, sessionId) {
+  async function handleChange(taskString: any, sessionId: any) {
     const {
       data: { user },
       error: userError,

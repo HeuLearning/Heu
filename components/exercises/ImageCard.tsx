@@ -67,8 +67,7 @@ export default function ImageCard({
             <AudioButton
               size={32}
               togglePlay={togglePlay}
-              isPlaying={isPlaying}
-            />
+              isPlaying={isPlaying} color={""}            />
           </div>
         ) : null}
         {checkbox ? (

@@ -81,7 +81,10 @@ export default function SessionDetailViewContainer({
           height={containerHeight}
         >
           {lessonPlanData.phases && (
-            <ClassSchedulePopUpContainer {...lessonPlanData} />
+            <ClassSchedulePopUpContainer
+            {...lessonPlanData}
+            getModules={(phaseId: string) => lessonPlanData.getModules(phaseId) ?? []} // Ensure that it returns an empty array if undefined
+          />
           )}
         </SidePopUp>
       ),

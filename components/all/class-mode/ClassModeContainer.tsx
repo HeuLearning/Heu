@@ -108,15 +108,6 @@ export default function ClassModeContainer({
     // Handle the case where the element is not found
   }
 
-  const handleDisconnect = (websocket: WebSocket, learner: Learner) => {
-    if (websocket && websocket.readyState === WebSocket.OPEN) {
-      // Notify the server that this learner is disconnecting
-      console.log("Sending disconnect data:", learner);
-      websocket.send(
-        JSON.stringify({ type: "disconnect", learnerId: learner.id }),
-      );
-    }
-  };
 
   useEffect(() => {
     console.log("Updated totalElapsedTime:", totalElapsedTime);
@@ -139,30 +130,9 @@ export default function ClassModeContainer({
   }, [activePhaseId]);
 
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        handleDisconnect(ws, {
-          id: Date.now(),
-          name: user?.email || "Unknown",
-          status: "Leaving",
-        });
-        ws.close();
-      }
-    };
-
-    // Add event listener for page refresh/close
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // Cleanup the event listener on component unmount
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [ws]);
-
-  useEffect(() => {
     // This function handles creating the WebSocket connection
     const joinLearner = () => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
+      if (ws) {
         console.log("WebSocket is already open.");
         return;
       }
@@ -179,6 +149,7 @@ export default function ClassModeContainer({
 
       websocket.onopen = () => {
         console.log("Connected to WebSocket server");
+        console.log(learner)
         setConnected(true);
 
         websocket.send(JSON.stringify({ type: "join", learner }));
@@ -229,17 +200,6 @@ export default function ClassModeContainer({
       joinLearner();
     }
 
-    // Cleanly disconnect WebSocket on component unmount or page refresh
-    return () => {
-      if (ws) {
-        handleDisconnect(ws, {
-          id: Date.now(),
-          name: user?.email || "Unknown",
-          status: "Leaving",
-        });
-        ws.close();
-      }
-    };
   }, [userRole]);
 
   useEffect(() => {
@@ -271,11 +231,6 @@ export default function ClassModeContainer({
   const router = useRouter();
   const handleBack = () => {
     if (ws && ws.readyState === WebSocket.OPEN) {
-      handleDisconnect(ws, {
-        id: Date.now(),
-        name: user?.email || "Unknown",
-        status: "Leaving",
-      });
       ws.close();
     }
     

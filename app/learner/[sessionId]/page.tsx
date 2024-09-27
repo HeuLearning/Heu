@@ -18,12 +18,21 @@ import { LessonPlanProvider } from "@/components/all/data-retrieval/LessonPlanCo
 import { StopwatchProvider } from "@/components/all/class-mode/StopwatchContext";
 import ClassModeContainer from "@/components/all/class-mode/ClassModeContainer";
 
+interface UserData {
+  user: {
+      email: string;
+  };
+  role: string;
+  accessToken: string;
+}
+
+
 const ClassModeDashboard = () => {
   const params = useParams();
   const sessionId = Array.isArray(params?.sessionId)
     ? params.sessionId[0]
     : params?.sessionId;
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<UserData | null>(null); 
   const router = useRouter();
 
   useEffect(() => {
@@ -64,7 +73,7 @@ const ClassModeDashboard = () => {
       }
 
       setUserData({
-        user: { email: user.email },
+        user: { email: user.email || '' },
         role: roleType.role,
         accessToken: session.access_token,
       });

@@ -1,45 +1,54 @@
-import { useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import styles from "./SidePopUp.module.css";
 import Scrollbar from "../Scrollbar";
+
+interface SidePopUpProps {
+  headerContent: any;
+  className?: any;
+  children: any;
+  height: any; 
+}
 
 export default function SidePopUp({
   headerContent,
   className = "",
   children,
   height,
-}) {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(0);
+}: SidePopUpProps) {
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [headerHeight, setHeaderHeight] = useState<number>(0);
 
-  const scrollableRef = useRef(null);
-  const headerRef = useRef(null);
+  // Explicitly typing useRef with null initial value and specific types
+  const scrollableRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (headerRef.current) {
       setHeaderHeight(headerRef.current.offsetHeight);
     }
-    console.log("header height" + headerHeight);
-  }, [headerContent]);
+    console.log("header height", headerHeight);
+  }, [headerContent, headerHeight]);
 
   // scroll sticky content
   useEffect(() => {
     const handleScroll = () => {
       if (scrollableRef.current) {
         const scrollY = scrollableRef.current.scrollTop; // Use scrollTop for the scrollable container
-        if (scrollY > 25) {
-          setIsScrolled(true);
-        } else {
-          setIsScrolled(false);
-        }
+        setIsScrolled(scrollY > 25);
       }
     };
 
     handleScroll(); // Initial check
     const currentScrollable = scrollableRef.current;
-    currentScrollable.addEventListener("scroll", handleScroll);
+    if (currentScrollable) {
+      currentScrollable.addEventListener("scroll", handleScroll);
+    }
+
     // Clean up the event listener on component unmount
     return () => {
-      currentScrollable.removeEventListener("scroll", handleScroll);
+      if (currentScrollable) {
+        currentScrollable.removeEventListener("scroll", handleScroll);
+      }
     };
   }, []);
 

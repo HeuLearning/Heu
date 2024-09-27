@@ -19,7 +19,7 @@ export default function MobileNavMenu({ closeMenu }: MobileNavMenuProps) {
     setSelectedNavButton(buttonText);
   };
 
-  const handleLanguageButtonClick = (language) => {
+  const handleLanguageButtonClick = (language: any) => {
     setSelectedLanguage(language);
   };
 

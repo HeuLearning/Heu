@@ -75,6 +75,7 @@ export default {
   },
   plugins: [
     require("tailwindcss-capsize"),
+    // @ts-ignore: Ignore implicit 'any' type here
     function ({ addBase, theme }) {
       addBase({
         ":root": {
@@ -123,6 +124,7 @@ export default {
         },
       });
     },
+    // @ts-ignore: Ignore implicit 'any' type here
     plugin(function ({ addComponents, theme }) {
       addComponents({
         ".button-primary": {
@@ -282,6 +284,7 @@ export default {
         },
       });
     }),
+    // @ts-ignore: Ignore implicit 'any' type here
     function ({ addUtilities, theme }) {
       addUtilities({
         ".text-h1": {
@@ -510,6 +513,7 @@ export default {
         },
       });
     },
+    // @ts-ignore: Ignore implicit 'any' type here
     plugin(function ({ addUtilities, theme }) {
       const colors = theme("colors");
       const outlineUtilities = Object.entries(colors).map(

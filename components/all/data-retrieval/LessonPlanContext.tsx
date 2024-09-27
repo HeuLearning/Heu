@@ -27,6 +27,7 @@ interface Phase {
 }
 
 interface Module {
+  exercises: any;
   id: string;
   name: string;
   description: string;
@@ -115,10 +116,13 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
           .or(
             `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
           );
-
-        console.log(sesh[0]);
-        console.log("here is the session data")
-
+        
+        if (!sesh || sesh.length === 0) {
+          console.error("No session data found.");
+          setIsLoading(false);
+          return;
+        }
+      
         if (sesh[0].full_session) {
           console.log("Using cached full_session data");
   
@@ -272,7 +276,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
 
       } catch (e) {
-        setError(`Failed to fetch phases: ${e.message}`);
+        setError(`Failed to fetch phases: ${e}`);
       } finally {
         setIsLoading(false);
       }
@@ -288,11 +292,7 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
       );
 
       if (session && session.start_time) {
-        try {
-          setSessionStartTime(session.start_time);
-        } catch (error) {
-          setSessionStartTime(null);
-        }
+        setSessionStartTime(session.start_time);
       } else {
         setSessionStartTime(null);
       }
@@ -306,7 +306,15 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   const phases = lessonPlan?.phases || [];
 
   const phaseTimes = new Map();
-  let prevStartTime = new Date(sessionStartTime);
+  let prevStartTime: Date;
+
+  if (sessionStartTime) {
+    prevStartTime = new Date(sessionStartTime);
+  } else {
+    console.error("sessionStartTime is null. Setting prevStartTime to current date.");
+    prevStartTime = new Date(); // or any default date
+  }
+
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i];
     const phaseDuration = phase.phase_duration_seconds;
@@ -336,7 +344,13 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
   return (
     <LessonPlanContext.Provider
       value={{
-        lessonPlan: { ...lessonPlan } || null,
+        lessonPlan: lessonPlan || {
+          session_id: "",
+          lesson_plan_id: 0,
+          lesson_plan_name: "",
+          lesson_plan_description: "",
+          phases: [],
+        }, // Provide a default value when lessonPlan is null
         phases: phases,
         getModules,
         phaseTimes: phaseTimes,
