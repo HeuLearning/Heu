@@ -47,7 +47,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
     if (currentExerciseIndex >= exercises.length) {
       return (
         <p className="text-typeface_primary text-body-regular">
-          No more exercises available.
+          {t("class_mode_content.no_more_exercises")}
         </p>
       );
     }

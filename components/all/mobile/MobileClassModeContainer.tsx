@@ -9,11 +9,12 @@ import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
 import ClassStats from "../ClassStats";
 import InfoCard from "../InfoCard";
 import HamburgerButton from "./HamburgerButton";
-import ClassModeContent from "../class-mode/ClassModeContent";
 import MobileClassModeNotebook from "./MobileClassModeNotebook";
 import { useStopwatchState } from "../class-mode/StopwatchContext";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
 import ClassSchedulePopUpContainer from "../popups/ClassSchedulePopUpContent";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface MobileClassModeContainerProps {
   activePhase: any;
@@ -57,6 +58,8 @@ export default function MobileClassModeContainer(
     learners,
     children,
   } = props;
+
+  const t = getGT();
 
   const router = useRouter();
   const handleExitClassroom = () => {
@@ -104,7 +107,7 @@ export default function MobileClassModeContainer(
                   className="absolute left-0"
                 />
                 <h3 className="text-typeface_primary text-body-medium">
-                  Class Schedule
+                  {t("session_detail_content.class_schedule")}
                 </h3>
               </div>
             }
@@ -120,7 +123,7 @@ export default function MobileClassModeContainer(
                 <div className="relative flex w-full flex-col gap-[16px]">
                   <div className="flex h-[44px] w-full items-center justify-center">
                     <h3 className="text-typeface_primary text-body-medium">
-                      Classroom
+                      {t("class_mode_content.classroom")}
                     </h3>
                     <BackButton
                       variation="button-secondary"
@@ -157,12 +160,12 @@ export default function MobileClassModeContainer(
           />
         )}
         <MobileDetailView
-          buttonBar={classStarted}
+          buttonBar={true}
           headerContent={
             <div className="relative flex w-full flex-col gap-[16px]">
               <div className="flex h-[44px] w-full items-center justify-center">
                 <h3 className="text-typeface_primary text-body-medium">
-                  Classroom
+                  {t("class_mode_content.classroom")}
                 </h3>
                 <BackButton
                   variation="button-secondary"
@@ -179,7 +182,10 @@ export default function MobileClassModeContainer(
               </div>
               {!classStarted && (
                 <ToggleButton
-                  buttonOptions={["Phases", "Class details"]}
+                  buttonOptions={[
+                    t("class_mode_content.phases"),
+                    t("class_mode_content.class_details"),
+                  ]}
                   selected={activeTab}
                   onToggle={onToggle}
                 />
@@ -193,7 +199,7 @@ export default function MobileClassModeContainer(
             children
           ) : (
             <div className="">
-              {activeTab === "Phases" ? (
+              {activeTab === t("class_mode_content.phases") ? (
                 <div className="flex flex-col gap-[24px]">
                   <ClassModePhases
                     phases={phases}
@@ -229,9 +235,9 @@ export default function MobileClassModeContainer(
             primaryButtonText={
               activeModuleIndex === activePhase.modules.length - 1
                 ? phases.indexOf(activePhase) === phases.length - 1
-                  ? "End class"
-                  : "Next phase"
-                : "Next module"
+                  ? t("button_content.end_class")
+                  : t("button_content.next_phase")
+                : t("button_content.next_module")
             }
             primaryButtonClassName={
               Math.min(
@@ -283,9 +289,9 @@ export default function MobileClassModeContainer(
           phases &&
           phases.length > 0 && (
             <ButtonBar
-              primaryButtonText="Start class"
+              primaryButtonText={t("button_content.start_class")}
               primaryButtonOnClick={handleStartClass}
-              secondaryButtonText="Share code"
+              secondaryButtonText={t("button_content.share_code")}
             />
           )
         )}

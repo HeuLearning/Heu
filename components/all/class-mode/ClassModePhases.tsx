@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import PhaseCard from "./PhaseCard";
 import { useResponsive } from "../ResponsiveContext";
 import { useStopwatchControls, useStopwatchState } from "./StopwatchContext";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface ClassModePhasesProps {
   phases: any[];
@@ -25,6 +27,8 @@ export default function ClassModePhases({
   const { elapsedTime } = state;
   const controls = useStopwatchControls();
   const { stopTimer } = controls;
+
+  const t = getGT();
 
   useEffect(() => {
     console.log(elapsedTime);

@@ -1,21 +1,22 @@
-import Divider from "./Divider";
-import Textbox from "../exercises/Textbox";
-import Button from "./buttons/Button";
+import Divider from "../Divider";
+import Textbox from "../../exercises/Textbox";
+import Button from "../buttons/Button";
 import { useTransition, useEffect, useState } from "react";
 import { signInAction } from "@/app/actions";
 import { useSearchParams } from "next/navigation";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
+import { useResponsive } from "../ResponsiveContext";
 
-interface SignInRegistrationComponentProps {
-  className?: string;
-}
-
-export default function SignInRegistrationComponent({
-  className = "",
-}: SignInRegistrationComponentProps) {
+export default function SignInRegistrationComponent() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string>("");
 
+  const t = getGT();
+
   const [isPending, startTransition] = useTransition();
+
+  const { isMobile, isTablet, isDesktop } = useResponsive();
 
   useEffect(() => {
     const errorMessage = searchParams.get("error");
@@ -28,7 +29,9 @@ export default function SignInRegistrationComponent({
   const renderContent = () => {
     return (
       <div className="flex flex-col gap-[24px]">
-        <h3 className="py-[3px] text-h3">Sign in to Heu Learning</h3>
+        <h3 className="py-[3px] text-h3">
+          {t("sign_in_sign_up_content.sign_in_heu")}
+        </h3>
         <form
           className="flex flex-col gap-[24px]"
           onSubmit={(e) => {
@@ -43,18 +46,18 @@ export default function SignInRegistrationComponent({
             <Textbox
               name="email"
               size="small"
-              width="324"
+              width={isMobile ? "100%" : "324"}
               value=""
-              placeholder="Email"
+              placeholder={t("sign_in_sign_up_content.email")}
               required={true}
               onChange={() => {}}
             />
             <Textbox
               name="password"
               size="small"
-              width="324"
+              width={isMobile ? "100%" : "324"}
               value=""
-              placeholder="Password"
+              placeholder={t("sign_in_sign_up_content.password")}
               onChange={() => {}}
               required={true}
               password={true}
@@ -63,13 +66,13 @@ export default function SignInRegistrationComponent({
           </div>
           <div className="self-start">
             <Button className="button-primary" disabled={isPending}>
-              Sign In
+              {t("button_content.sign_in")}
             </Button>
           </div>
-          <div className="relative">
+          {/* <div className="relative">
             <Divider spacing={8} />
             <span className="absolute left-[28px] top-[-4px] bg-white px-[6px] text-typeface_secondary text-body-regular">
-              or
+              {t("sign_in_sign_up_content.or")}
             </span>
           </div>
           <Button className="button-tertiary self-start">
@@ -102,18 +105,26 @@ export default function SignInRegistrationComponent({
               </div>
               Continue with Google
             </div>
-          </Button>
+          </Button> */}
         </form>
+        <a
+          href="/forgot-password"
+          className="text-typeface_primary text-body-semibold"
+        >
+          {t("sign_in_sign_up_content.forgot_password")}
+        </a>
         <Divider spacing={0} />
-        <div className="flex items-center gap-[8px]">
+        <div
+          className={`${isMobile ? "flex flex-col" : "flex items-center"} gap-[8px]`}
+        >
           <p className="text-typeface_primary text-body-regular">
-            Don't have an account?
+            {t("sign_in_sign_up_content.no_account")}
           </p>
           <a
             href="/sign-up"
             className="text-typeface_primary text-body-semibold"
           >
-            Sign up
+            {t("sign_in_sign_up_content.sign_up")}
           </a>
         </div>
       </div>
@@ -122,7 +133,7 @@ export default function SignInRegistrationComponent({
   return (
     <div className="fixed inset-0 flex items-center justify-center">
       <div
-        className={`inset-0 z-[50] ${className} flex w-[372px] flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
+        className={`inset-0 z-[50] flex ${isMobile ? "h-screen w-screen" : "w-[372px]"} flex-col rounded-[20px] bg-white p-[24px] shadow-200 outline-surface_border_tertiary`}
       >
         {renderContent()}
       </div>

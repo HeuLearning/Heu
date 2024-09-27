@@ -1,7 +1,7 @@
 import MobileDetailView from "./MobileDetailView";
 import XButton from "../buttons/XButton";
 import SessionDetailContent from "../SessionDetailContent";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useTransition } from "react";
 import { useResponsive } from "../ResponsiveContext";
 import { useSessions } from "../data-retrieval/SessionsContext";
 import ClassSchedulePopUpContainer from "../popups/ClassSchedulePopUpContent";
@@ -35,6 +35,8 @@ export default function MobileClassDetails({
   const [isClassSchedShown, setIsClassSchedShown] = useState(false);
 
   const t = getGT();
+
+  const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
 
@@ -109,9 +111,11 @@ export default function MobileClassDetails({
                     : () => {}
                 }
               >
-                Confirm attendance
+                {t("button_content.confirm_attendance")}
               </MenuItem>
-              <MenuItem onClick={() => {}}>I can't attend</MenuItem>
+              <MenuItem onClick={() => {}}>
+                {t("button_content.i_cant_attend")}
+              </MenuItem>
             </div>
           </div>
         </>
@@ -125,7 +129,9 @@ export default function MobileClassDetails({
   };
 
   const handleEnterClass = () => {
-    router.push(`${session?.id}`);
+    startTransition(() => {
+      router.push(`${session?.id}`);
+    });
   };
 
   return isClassSchedShown ? (
@@ -142,7 +148,7 @@ export default function MobileClassDetails({
                 className="absolute left-0"
               />
               <h3 className="text-typeface_primary text-body-medium">
-                Class Schedule
+                {t("session_detail_content.class_schedule")}
               </h3>
             </div>
           }
@@ -150,7 +156,8 @@ export default function MobileClassDetails({
           <ClassSchedulePopUpContainer
             {...{
               ...lessonPlanData,
-              getModules: (phaseId: string) => lessonPlanData.getModules(phaseId) || [], // Return an empty array if undefined
+              getModules: (phaseId: string) =>
+                lessonPlanData.getModules(phaseId) || [], // Return an empty array if undefined
             }}
           />
         </MobileDetailView>
@@ -171,7 +178,7 @@ export default function MobileClassDetails({
         headerContent={
           <div className="rits fine uelative flex h-[44px] w-full items-center justify-center">
             <h3 className="text-typeface_primary text-body-medium-mobile">
-              Class details
+              {t("class_mode_content.class_details")}
             </h3>
             <XButton
               variation="button-secondary"
@@ -206,6 +213,7 @@ export default function MobileClassDetails({
                 <ButtonBar
                   primaryButtonText={t("button_content.enter_class")}
                   primaryButtonOnClick={handleEnterClass}
+                  disabled={isPending}
                 />
               </div>
             ) : null}

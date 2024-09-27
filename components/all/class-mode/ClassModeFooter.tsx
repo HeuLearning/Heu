@@ -3,6 +3,8 @@ import Button from "../buttons/Button";
 import CompletionBar from "./CompletionBar";
 import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
 import { useStopwatchContext } from "./StopwatchContext";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface ClassModeFooterProps {
   totalElapsedTime: number[];
@@ -27,6 +29,8 @@ export default function ClassModeFooter({
   const { state, controls } = useStopwatchContext();
   const { elapsedTime, elapsedLapTime } = state;
   const { stopTimer } = controls;
+
+  const t = getGT();
 
   useEffect(() => {
     if (
@@ -77,9 +81,9 @@ export default function ClassModeFooter({
       >
         {activeModuleIndex === activePhase.modules.length - 1
           ? phases.indexOf(activePhase) === phases.length - 1
-            ? "End class"
-            : "Next phase"
-          : "Next module"}
+            ? t("button_content.end_class")
+            : t("button_content.next_phase")
+          : t("button_content.next_module")}
       </Button>
     </div>
   );

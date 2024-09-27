@@ -1,13 +1,9 @@
-import RadioButton from "../exercises/RadioButton";
-import Divider from "./Divider";
-import Textbox from "../exercises/Textbox";
-import Button from "./buttons/Button";
+import RadioButton from "../../exercises/RadioButton";
+import Divider from "../Divider";
+import Textbox from "../../exercises/Textbox";
+import Button from "../buttons/Button";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signUpAction } from "@/app/actions";
-
-interface SignUpRegistrationComponent {
-  className?: string;
-}
 
 function debounce(func: any, wait: any) {
   let timeout: any;
@@ -21,9 +17,7 @@ function debounce(func: any, wait: any) {
   };
 }
 
-export default function SignUpRegistrationComponent({
-  className = "",
-}: SignUpRegistrationComponent) {
+export default function SignUpRegistrationComponent() {
   const [signUpStage, setSignUpStage] = useState(0);
   const [role, setRole] = useState("");
 
@@ -466,7 +460,7 @@ export default function SignUpRegistrationComponent({
       ref={backgroundRef}
     >
       <div
-        className={`inset-0 z-[50] ${className} flex ${
+        className={`inset-0 z-[50] flex ${
           signUpStage === 0 ? "w-[372px]" : ""
         } ${
           signUpStage >= 1 ? "w-[468px]" : ""

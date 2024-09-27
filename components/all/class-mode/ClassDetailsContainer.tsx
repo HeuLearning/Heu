@@ -1,15 +1,23 @@
 import ClassStats from "../ClassStats";
 import SideBar from "../SideBar";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface ClassDetailsContainerProps {
   lessonPlan: any;
 }
 
-export default function ClassDetailsContainer({ lessonPlan }: ClassDetailsContainerProps) {
+export default function ClassDetailsContainer({
+  lessonPlan,
+}: ClassDetailsContainerProps) {
+  const t = getGT();
+  
   return (
     <SideBar className="flex flex-col justify-between">
       <div className="space-y-[24px]">
-        <h3 className="text-typeface_primary text-h3">Class details</h3>
+        <h3 className="text-typeface_primary text-h3">
+          {t("class_mode_content.class_details")}
+        </h3>
         <p className="text-typeface_primary text-body-regular">
           {lessonPlan.lesson_plan_description}
         </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import SignInRegistrationComponent from "@/components/all/SignInRegistrationComponent";
+import SignInRegistrationComponent from "@/components/all/auth-components/SignInRegistrationComponent";
 import { FormMessage, Message } from "@/components/form-message";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";

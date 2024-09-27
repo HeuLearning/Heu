@@ -18,15 +18,13 @@ import { LessonPlanProvider } from "@/components/all/data-retrieval/LessonPlanCo
 import { StopwatchProvider } from "@/components/all/class-mode/StopwatchContext";
 import ClassModeContainer from "@/components/all/class-mode/ClassModeContainer";
 
-
 interface UserData {
   user: {
-      email: string;
+    email: string;
   };
   role: string;
   accessToken: string;
 }
-
 
 const ClassModeDashboard = () => {
   const params = useParams();
@@ -75,10 +73,10 @@ const ClassModeDashboard = () => {
       }
 
       setUserData({
-        user: { email: user.email || '' },
+        user: { email: user.email || "" },
         role: roleType.role,
         accessToken: session.access_token,
-    });
+      });
     };
 
     fetchUserData();

@@ -1,5 +1,6 @@
 import BackButton from "../buttons/BackButton";
-import Button from "../buttons/Button";
+import { getGT } from "gt-next";
+import dictionary from "@/dictionary";
 
 interface ClassModeHeaderBarProps {
   onBack: () => void;
@@ -15,7 +16,9 @@ export default function ClassModeHeaderBar({
   title,
   subtitle = "",
   rightSide,
-}:  ClassModeHeaderBarProps) {
+}: ClassModeHeaderBarProps) {
+  const t = getGT();
+
   type IconComponent = () => JSX.Element;
   let Icon: IconComponent | undefined;
 

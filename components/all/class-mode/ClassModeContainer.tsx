@@ -108,7 +108,6 @@ export default function ClassModeContainer({
     // Handle the case where the element is not found
   }
 
-
   useEffect(() => {
     console.log("Updated totalElapsedTime:", totalElapsedTime);
   }, [totalElapsedTime]);
@@ -149,7 +148,7 @@ export default function ClassModeContainer({
 
       websocket.onopen = () => {
         console.log("Connected to WebSocket server");
-        console.log(learner)
+        console.log(learner);
         setConnected(true);
 
         websocket.send(JSON.stringify({ type: "join", learner }));
@@ -199,7 +198,6 @@ export default function ClassModeContainer({
     if (userRole === "st") {
       joinLearner();
     }
-
   }, [userRole]);
 
   useEffect(() => {
@@ -233,7 +231,7 @@ export default function ClassModeContainer({
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.close();
     }
-    
+
     router.push("dashboard");
   };
 
