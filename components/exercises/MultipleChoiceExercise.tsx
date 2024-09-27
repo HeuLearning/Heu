@@ -105,7 +105,7 @@ export default function MultipleChoiceExercise({
                 />
                 <MobileDetailView
                   buttonBar={true}
-                  height={570}
+                  height={500}
                   backgroundColor="bg-surface_bg_highlight"
                   className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
                   headerContent={

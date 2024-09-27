@@ -118,7 +118,7 @@ export default function MobileClassModeContainer(
         ) : (
           <div className="relative">
             <MobileDetailView
-              buttonBar={classStarted}
+              buttonBar={true} // ideally = classStarted
               headerContent={
                 <div className="relative flex w-full flex-col gap-[16px]">
                   <div className="flex h-[44px] w-full items-center justify-center">
