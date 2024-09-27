@@ -270,6 +270,15 @@ export default function ClassModeContainer({
 
   const router = useRouter();
   const handleBack = () => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      handleDisconnect(ws, {
+        id: Date.now(),
+        name: user?.email || "Unknown",
+        status: "Leaving",
+      });
+      ws.close();
+    }
+    
     router.push("dashboard");
   };
 
