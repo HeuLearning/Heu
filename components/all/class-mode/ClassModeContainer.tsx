@@ -83,9 +83,9 @@ export default function ClassModeContainer({
   const { userRole } = useUserRole();
 
   //WS
-  const [ws, setWs] = useState<WebSocket | null>(null);
-  const [message, setMessage] = useState<string>("");
-  const [connected, setConnected] = useState<boolean>(false);
+  // const [ws, setWs] = useState<WebSocket | null>(null);
+  // const [message, setMessage] = useState<string>("");
+  // const [connected, setConnected] = useState<boolean>(false);
 
   const { upcomingSessions } = useSessions();
   const [session, setSession] = useState<any>(null);
@@ -132,68 +132,68 @@ export default function ClassModeContainer({
   useEffect(() => {
     // This function handles creating the WebSocket connection
     const joinLearner = () => {
-      if (ws) {
-        console.log("WebSocket is already open.");
-        return;
-      }
+      // if (ws) {
+      //   console.log("WebSocket is already open.");
+      //   return;
+      // }
 
-      const learner = {
-        id: Date.now(),
-        name: user?.email || "Unknown",
-        status: "In class",
-      };
+      // const learner = {
+      //   id: Date.now(),
+      //   name: user?.email || "Unknown",
+      //   status: "In class",
+      // };
 
-      const websocket = new WebSocket(
-        "wss://heu-websocket-yfpz8.ondigitalocean.app",
-      );
+      // const websocket = new WebSocket(
+      //   "wss://heu-websocket-yfpz8.ondigitalocean.app",
+      // );
 
-      websocket.onopen = () => {
-        console.log("Connected to WebSocket server");
-        console.log(learner)
-        setConnected(true);
+      // websocket.onopen = () => {
+      //   console.log("Connected to WebSocket server");
+      //   console.log(learner)
+      //   setConnected(true);
 
-        websocket.send(JSON.stringify({ type: "join", learner }));
-        setLearners((prev) => [...prev, learner]);
+      //   websocket.send(JSON.stringify({ type: "join", learner }));
+      //   setLearners((prev) => [...prev, learner]);
 
-        // Handle module sending if needed (if you have module data at the time of connection)
-        if (activeModule) {
-          const moduleData = {
-            type: "NEXT_MODULE",
-            moduleId: activeModule.id,
-            moduleName: activeModule.name,
-            elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
-            exercises: activeModule.exercises,
-          };
-          websocket.send(JSON.stringify(moduleData));
-          console.log("Sent module data over WebSocket: ", moduleData);
-        }
-      };
+      //   // Handle module sending if needed (if you have module data at the time of connection)
+      //   if (activeModule) {
+      //     const moduleData = {
+      //       type: "NEXT_MODULE",
+      //       moduleId: activeModule.id,
+      //       moduleName: activeModule.name,
+      //       elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
+      //       exercises: activeModule.exercises,
+      //     };
+      //     websocket.send(JSON.stringify(moduleData));
+      //     console.log("Sent module data over WebSocket: ", moduleData);
+      //   }
+      // };
 
-      websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === "UPDATE_LEARNERS") {
-          setLearners(data.learners);
-        }
-        if (data.type === "UPDATE_DATA") {
-          setJsonData(data);
-          setTotalElapsedTime((prev) => [
-            ...prev,
-            data.student_data.elapsedTime,
-          ]);
-        }
-      };
+      // websocket.onmessage = (event) => {
+      //   const data = JSON.parse(event.data);
+      //   if (data.type === "UPDATE_LEARNERS") {
+      //     setLearners(data.learners);
+      //   }
+      //   if (data.type === "UPDATE_DATA") {
+      //     setJsonData(data);
+      //     setTotalElapsedTime((prev) => [
+      //       ...prev,
+      //       data.student_data.elapsedTime,
+      //     ]);
+      //   }
+      // };
 
-      websocket.onerror = (error) => {
-        console.error("WebSocket error:", error);
-      };
+      // websocket.onerror = (error) => {
+      //   console.error("WebSocket error:", error);
+      // };
 
-      websocket.onclose = () => {
-        console.log("Disconnected from WebSocket server");
-        setConnected(false);
-      };
+      // websocket.onclose = () => {
+      //   console.log("Disconnected from WebSocket server");
+      //   setConnected(false);
+      // };
 
-      // Store the WebSocket instance
-      setWs(websocket);
+      // // Store the WebSocket instance
+      // setWs(websocket);
     };
 
     if (userRole === "st") {
@@ -204,21 +204,21 @@ export default function ClassModeContainer({
 
   useEffect(() => {
     if (moduleToSend && activeModuleIndex !== -1) {
-      // Ensure WebSocket is open
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        const data = {
-          type: "NEXT_MODULE",
-          moduleId: moduleToSend.id,
-          moduleName: moduleToSend.name,
-          elapsedTime: moduleToSend.elapsedTime,
-          exercises: moduleToSend.exercises,
-        };
+      // // Ensure WebSocket is open
+      // if (ws && ws.readyState === WebSocket.OPEN) {
+      //   const data = {
+      //     type: "NEXT_MODULE",
+      //     moduleId: moduleToSend.id,
+      //     moduleName: moduleToSend.name,
+      //     elapsedTime: moduleToSend.elapsedTime,
+      //     exercises: moduleToSend.exercises,
+      //   };
 
-        ws.send(JSON.stringify(data));
-        console.log("Sent over WebSocket: ", data);
-      } else {
-        console.error("WebSocket is not open or does not exist");
-      }
+      //   ws.send(JSON.stringify(data));
+      //   console.log("Sent over WebSocket: ", data);
+      // } else {
+      //   console.error("WebSocket is not open or does not exist");
+      // }
       setModuleToSend(null);
     }
     console.log("HANDLE UPDATE HERE!!!");
@@ -230,9 +230,9 @@ export default function ClassModeContainer({
 
   const router = useRouter();
   const handleBack = () => {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.close();
-    }
+    // if (ws && ws.readyState === WebSocket.OPEN) {
+    //   ws.close();
+    // }
     
     router.push("dashboard");
   };
@@ -360,100 +360,100 @@ export default function ClassModeContainer({
     }
 
     // Check if WebSocket is already open or being created
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      console.log("WebSocket is already open.");
+    // if (ws && ws.readyState === WebSocket.OPEN) {
+    //   console.log("WebSocket is already open.");
 
-      const moduleData = {
-        type: "NEXT_MODULE",
-        moduleId: activeModule.id,
-        moduleName: activeModule.name,
-        elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
-        exercises: activeModule.exercises,
-      };
+    //   const moduleData = {
+    //     type: "NEXT_MODULE",
+    //     moduleId: activeModule.id,
+    //     moduleName: activeModule.name,
+    //     elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
+    //     exercises: activeModule.exercises,
+    //   };
 
-      ws.send(JSON.stringify(moduleData));
-      console.log("Sent over WebSocket: ", moduleData);
+    //   ws.send(JSON.stringify(moduleData));
+    //   console.log("Sent over WebSocket: ", moduleData);
 
-      return; // Do nothing if WebSocket is already open
-    }
+    //   return; // Do nothing if WebSocket is already open
+    // }
 
-    // Create a new WebSocket connection to the server
-    const websocket = new WebSocket(
-      "wss://heu-websocket-yfpz8.ondigitalocean.app",
-    );
+    // // Create a new WebSocket connection to the server
+    // const websocket = new WebSocket(
+    //   "wss://heu-websocket-yfpz8.ondigitalocean.app",
+    // );
 
-    // Create a new learner object for the current user
-    const learner = {
-      id: Date.now(),
-      name: user?.email || "Unknown",
-      status: "In class",
-    };
+    // // Create a new learner object for the current user
+    // const learner = {
+    //   id: Date.now(),
+    //   name: user?.email || "Unknown",
+    //   status: "In class",
+    // };
 
-    websocket.onopen = () => {
-      console.log("Connected to the WebSocket server");
-      setConnected(true);
+    // websocket.onopen = () => {
+    //   console.log("Connected to the WebSocket server");
+    //   setConnected(true);
 
-      // Notify the server that a learner has joined the class
-      console.log("Sending learner data:", learner);
-      websocket.send(JSON.stringify({ type: "join", learner }));
+    //   // Notify the server that a learner has joined the class
+    //   console.log("Sending learner data:", learner);
+    //   websocket.send(JSON.stringify({ type: "join", learner }));
 
-      // Add the new learner to the local learners state
-      setLearners((prevLearners) => [...prevLearners, learner]);
+    //   // Add the new learner to the local learners state
+    //   setLearners((prevLearners) => [...prevLearners, learner]);
 
-      // Now that the WebSocket is open, send the current module data
-      if (activeModule) {
-        const moduleData = {
-          type: "NEXT_MODULE",
-          moduleId: activeModule.id,
-          moduleName: activeModule.name,
-          elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
-          exercises: activeModule.exercises,
-        };
+    //   // Now that the WebSocket is open, send the current module data
+    //   if (activeModule) {
+    //     const moduleData = {
+    //       type: "NEXT_MODULE",
+    //       moduleId: activeModule.id,
+    //       moduleName: activeModule.name,
+    //       elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
+    //       exercises: activeModule.exercises,
+    //     };
 
-        console.log("PHASE ID: " + activePhaseId);
+    //     console.log("PHASE ID: " + activePhaseId);
 
-        websocket.send(JSON.stringify(moduleData));
-        console.log("Sent over WebSocket: ", moduleData);
-      }
-    };
+    //     websocket.send(JSON.stringify(moduleData));
+    //     console.log("Sent over WebSocket: ", moduleData);
+    //   }
+    // };
 
-    websocket.onmessage = (event) => {
-      console.log("Message from server:", event.data);
+    // websocket.onmessage = (event) => {
+    //   console.log("Message from server:", event.data);
 
-      try {
-        const parsedData = JSON.parse(event.data);
+    //   try {
+    //     const parsedData = JSON.parse(event.data);
 
-        // Handle the message type: updating the list of learners
-        if (parsedData.type === "UPDATE_LEARNERS") {
-          setLearners(parsedData.learners); // Update the local learners state with the list from the server
-        }
+    //     // Handle the message type: updating the list of learners
+    //     if (parsedData.type === "UPDATE_LEARNERS") {
+    //       setLearners(parsedData.learners); // Update the local learners state with the list from the server
+    //     }
 
-        if (parsedData.type === "UPDATE_DATA") {
-          setJsonData(parsedData);
-          console.log("Update data recognized"); // Update the local learners state with the list from the server
-        }
-      } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
-      }
-    };
+    //     if (parsedData.type === "UPDATE_DATA") {
+    //       setJsonData(parsedData);
+    //       console.log("Update data recognized"); // Update the local learners state with the list from the server
+    //     }
+    //   } catch (error) {
+    //     console.error("Error parsing WebSocket message:", error);
+    //   }
+    // };
 
-    websocket.onclose = () => {
-      console.log("Disconnected from the WebSocket server");
-      setConnected(false);
+    // websocket.onclose = () => {
+    //   console.log("Disconnected from the WebSocket server");
+    //   setConnected(false);
 
-      // Notify the server that this learner is disconnecting
-      console.log("Sending disconnect data:", learner);
-      websocket.send(
-        JSON.stringify({ type: "disconnect", learnerId: learner.id }),
-      );
-    };
+    //   // Notify the server that this learner is disconnecting
+    //   console.log("Sending disconnect data:", learner);
+    //   websocket.send(
+    //     JSON.stringify({ type: "disconnect", learnerId: learner.id }),
+    //   );
+    // };
 
-    websocket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+    // websocket.onerror = (error) => {
+    //   console.error("WebSocket error:", error);
+    // };
 
-    // Store the WebSocket instance in the state (if needed later)
-    setWs(websocket);
+    // // Store the WebSocket instance in the state (if needed later)
+    // setWs(websocket);
   };
 
   const handleShowLearners = () => {
