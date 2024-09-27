@@ -33,6 +33,6 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.mjs"
-, "prettier.config.js", "server.js", "next.config.js"],
+, "prettier.config.js", "server.js", "next.config.mjs"],
   "exclude": ["node_modules"]
 }
