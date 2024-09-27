@@ -3,4 +3,6 @@ const { initGT } = require("gt-next/config");
 
 const withGT = initGT();
 
-module.exports = withGT({});
+module.exports = withGT({
+  reactStrictMode: true,
+});
