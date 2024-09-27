@@ -213,7 +213,7 @@ export default function MobileClassDetails({
                 <ButtonBar
                   primaryButtonText={t("button_content.enter_class")}
                   primaryButtonOnClick={handleEnterClass}
-                  disabled={isPending}
+                  primaryButtonDisabled={isPending}
                 />
               </div>
             ) : null}
