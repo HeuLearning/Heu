@@ -60,7 +60,7 @@ export default function ClassModeContainer({
     useLessonPlan();
 
   if (isLoading) {
-    return <div></div>; // or loading screen here
+    return <div></div>;
   }
 
   const [activePhaseId, setActivePhaseId] = useState<string>(
@@ -108,6 +108,15 @@ export default function ClassModeContainer({
     // Handle the case where the element is not found
   }
 
+  const handleDisconnect = (websocket: WebSocket, learner: Learner) => {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+      // Notify the server that this learner is disconnecting
+      console.log("Sending disconnect data:", learner);
+      websocket.send(JSON.stringify({ type: "disconnect", learnerId: learner.id }));
+    }
+  };
+
+
   useEffect(() => {
     console.log("Updated totalElapsedTime:", totalElapsedTime);
   }, [totalElapsedTime]);
@@ -129,46 +138,50 @@ export default function ClassModeContainer({
   }, [activePhaseId]);
 
   useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        handleDisconnect(ws, {
+          id: Date.now(),
+          name: user?.email || "Unknown",
+          status: "Leaving",
+        });
+        ws.close();
+      }
+    };
+
+    // Add event listener for page refresh/close
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Cleanup the event listener on component unmount
     return () => {
-      if (ws) {
-        ws.close();
-      }
-      if (ws) {
-        ws.close();
-      }
+      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
   }, [ws]);
 
   useEffect(() => {
+    // This function handles creating the WebSocket connection
     const joinLearner = () => {
-      // Check if WebSocket is already open or being created
       if (ws && ws.readyState === WebSocket.OPEN) {
         console.log("WebSocket is already open.");
-        return; // Do nothing if WebSocket is already open
+        return;
       }
 
-      // Create a new WebSocket connection to the server
-      const websocket = new WebSocket('wss://heu-websocket-yfpz8.ondigitalocean.app');
-
-      // Create a new learner object for the current user
       const learner = {
         id: Date.now(),
         name: user?.email || "Unknown",
         status: "In class",
       };
 
+      const websocket = new WebSocket("wss://heu-websocket-yfpz8.ondigitalocean.app");
+
       websocket.onopen = () => {
-        console.log("Connected to the WebSocket server");
+        console.log("Connected to WebSocket server");
         setConnected(true);
 
-        // Notify the server that a learner has joined the class
-        console.log("Sending learner data:", learner);
         websocket.send(JSON.stringify({ type: "join", learner }));
+        setLearners((prev) => [...prev, learner]);
 
-        // Add the new learner to the local learners state
-        setLearners((prevLearners) => [...prevLearners, learner]);
-
-        // Now that the WebSocket is open, send the current module data
+        // Handle module sending if needed (if you have module data at the time of connection)
         if (activeModule) {
           const moduleData = {
             type: "NEXT_MODULE",
@@ -177,59 +190,50 @@ export default function ClassModeContainer({
             elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
             exercises: activeModule.exercises,
           };
-
-          console.log("PHASE ID: " + activePhaseId);
-
           websocket.send(JSON.stringify(moduleData));
-          console.log("Sent over WebSocket: ", moduleData);
+          console.log("Sent module data over WebSocket: ", moduleData);
         }
       };
 
       websocket.onmessage = (event) => {
-        console.log("Message from server:", event.data);
-
-        try {
-          const parsedData = JSON.parse(event.data);
-
-          // Handle the message type: updating the list of learners
-          if (parsedData.type === "UPDATE_LEARNERS") {
-            setLearners(parsedData.learners); // Update the local learners state with the list from the server
-          }
-
-          if (parsedData.type === "UPDATE_DATA") {
-            setJsonData(parsedData);
-            setTotalElapsedTime((prevArray) => [...prevArray, parsedData.student_data.elapsedTime])
-            console.log(parsedData.student_data.elapsedTime)
-            console.log("HERE IS THE STUDENT DATA");
-            // Update the local learners state with the list from the server
-          }
-        } catch (error) {
-          console.error("Error parsing WebSocket message:", error);
+        const data = JSON.parse(event.data);
+        if (data.type === "UPDATE_LEARNERS") {
+          setLearners(data.learners);
         }
-      };
-
-      websocket.onclose = () => {
-        console.log("Disconnected from the WebSocket server");
-        setConnected(false);
-
-        // Notify the server that this learner is disconnecting
-        console.log("Sending disconnect data:", learner);
-        websocket.send(
-          JSON.stringify({ type: "disconnect", learnerId: learner.id }),
-        );
+        if (data.type === "UPDATE_DATA") {
+          setJsonData(data);
+          setTotalElapsedTime((prev) => [...prev, data.student_data.elapsedTime]);
+        }
       };
 
       websocket.onerror = (error) => {
         console.error("WebSocket error:", error);
       };
 
-      // Store the WebSocket instance in the state (if needed later)
+      websocket.onclose = () => {
+        console.log("Disconnected from WebSocket server");
+        setConnected(false);
+      };
+
+      // Store the WebSocket instance
       setWs(websocket);
     };
+
     if (userRole === "st") {
       joinLearner();
-      setLearnerJoined(true);
     }
+
+    // Cleanly disconnect WebSocket on component unmount or page refresh
+    return () => {
+      if (ws) {
+        handleDisconnect(ws, {
+          id: Date.now(),
+          name: user?.email || "Unknown",
+          status: "Leaving",
+        });
+        ws.close();
+      }
+    };
   }, [userRole]);
 
   useEffect(() => {
