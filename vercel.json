@@ -1,1 +1,9 @@
-{ "rewrites": [{ "source": "/(.*)", "destination": "/" }] }
+{
+    "rewrites": [
+      { "source": "/instructor/:sessionId", "destination": "/instructor/[sessionId]" },
+      { "source": "/learner/:sessionId", "destination": "/learner/[sessionId]" },
+      { "source": "/api/(.*)", "destination": "/api/$1" },
+      { "source": "/(.*)", "destination": "/" }
+    ]
+  }
+  
