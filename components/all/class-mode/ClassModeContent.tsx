@@ -43,7 +43,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const renderContent = useMemo(() => {
     console.log("THIS IS THE JSON DATA");
     console.log(jsonData.student_data?.exercises);
-
+  
     if (currentExerciseIndex >= exercises.length) {
       return (
         <p className="text-typeface_primary text-body-regular">
@@ -51,23 +51,24 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         </p>
       );
     }
-
+  
     const currentExercise = exercises[currentExerciseIndex];
-
+  
     const handleComplete = () => {
       setCurrentExerciseIndex((prevIndex) =>
         Math.min(prevIndex + 1, exercises.length),
       );
     };
-
+  
     console.log(currentExercise);
     console.log("CURRENT EXERCISE BEING SERVED");
-
+  
     switch (currentExercise.question_type) {
       case "instruction":
         setButtonBarText(t("button_content.continue"));
         return (
           <Instruction
+            key={currentExercise.id} // Assuming currentExercise has an `id` property
             instruction={currentExercise.content.instruction}
             onComplete={handleComplete}
           />
@@ -76,6 +77,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         setButtonBarText(t("button_content.submit_answer"));
         return (
           <InLineMultipleChoice
+            key={currentExercise.id} // Add key here
             {...currentExercise.content}
             onComplete={handleComplete}
           />
@@ -84,6 +86,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         setButtonBarText(t("button_content.submit_answer"));
         return (
           <MultipleChoiceExercise
+            key={currentExercise.id} // Add key here
             {...currentExercise.content}
             onComplete={handleComplete}
           />
@@ -92,6 +95,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         setButtonBarText(t("button_content.submit_answer"));
         return (
           <QAFillInBlankExercise
+            key={currentExercise.id} // Add key here
             {...currentExercise.content}
             onComplete={handleComplete}
           />
@@ -100,6 +104,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         setButtonBarText(t("button_content.submit_answer"));
         return (
           <MatchingExercise
+            key={currentExercise.id} // Add key here
             {...currentExercise.content}
             onComplete={handleComplete}
           />
@@ -108,6 +113,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         return <div>Unknown exercise type.</div>;
     }
   }, [currentExerciseIndex, jsonData]);
+  
 
   return (
     <div>
