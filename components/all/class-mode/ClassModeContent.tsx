@@ -113,8 +113,6 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
     <div>
       <div className="flex h-full w-full items-center justify-center">
         <div className="flex flex-col">
-          <p>elapsed time: {elapsedTime}</p>
-          <p>elapsed time in module: {elapsedLapTime}</p>
           {renderContent}
         </div>
       </div>
