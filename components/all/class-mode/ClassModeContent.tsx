@@ -22,6 +22,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const { elapsedTime, elapsedLapTime } = state;
 
   const t = getGT();
+  
 
   const { userRole } = useUserRole();
   const { isMobile } = useResponsive();
