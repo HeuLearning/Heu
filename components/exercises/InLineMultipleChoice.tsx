@@ -39,11 +39,16 @@ export default function InLineMultipleChoice({
     hidePopUp("incorrect-answer-popup");
   };
 
+  const removeAccents = (str: string) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
   const isCorrect = (answers: string[]) => {
-    return (
-      answers.join("").toLowerCase().trim() ===
+    const formattedAnswer = removeAccents(answers.join("").toLowerCase().trim());
+    const formattedCorrectAnswer = removeAccents(
       correct_answer.join("").toLowerCase().trim()
     );
+    return formattedAnswer === formattedCorrectAnswer;
   };
 
   if (isMobile) {
