@@ -153,6 +153,7 @@ export default function ClassModeContainer({
             moduleName: activeModule.name,
             elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
             exercises: activeModule.exercises,
+            instructor_content: activeModule.instructor_content
           };
           websocket.send(JSON.stringify(moduleData));
           console.log("Sent module data over WebSocket: ", moduleData);
@@ -218,6 +219,7 @@ export default function ClassModeContainer({
           moduleName: moduleToSend.name,
           elapsedTime: moduleToSend.elapsedTime,
           exercises: moduleToSend.exercises,
+          instructor_content: moduleToSend.instructor_content
         };
 
         ws.send(JSON.stringify(data));
@@ -270,6 +272,7 @@ export default function ClassModeContainer({
         name: nextModule.name,
         elapsedTime: totalElapsedTime[nextModuleIndex],
         exercises: nextModule.exercises,
+        instructor_content: nextModule.instructor_content
       });
 
       startTimer();
@@ -308,6 +311,7 @@ export default function ClassModeContainer({
           name: firstModule.name,
           elapsedTime: 0,
           exercises: firstModule.exercises,
+          instructor_content: firstModule.instructor_content
         });
       } else {
         console.log("No more phases available.");
@@ -375,6 +379,7 @@ export default function ClassModeContainer({
         moduleName: activeModule.name,
         elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
         exercises: activeModule.exercises,
+        instructor_content: activeModule.instructor_content
       };
 
       ws.send(JSON.stringify(moduleData));
@@ -414,6 +419,7 @@ export default function ClassModeContainer({
           moduleName: activeModule.name,
           elapsedTime: totalElapsedTime[activeModuleIndex] || 0,
           exercises: activeModule.exercises,
+          instructor_content: activeModule.instructor_content
         };
 
         console.log("PHASE ID: " + activePhaseId);
