@@ -27,6 +27,7 @@ interface Phase {
 }
 
 interface Module {
+  instructor_content: any;
   exercises: any;
   id: string;
   name: string;
@@ -211,11 +212,15 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
               }
             }
 
+            console.log("here is the module data...")
+            console.log(moduleData)
+
             // Push module into array
             modulesData.push({
               id: moduleData.id,
               name: moduleData.name,
               description: moduleData.description,
+              instructor_content: moduleData.instructor_content,
               suggested_duration_seconds: moduleData.suggested_duration_seconds,
               exercises: exercisesData, // Include exercises in module
             });

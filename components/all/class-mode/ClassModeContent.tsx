@@ -5,6 +5,7 @@ import { useStopwatchState } from "./StopwatchContext";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
 import { useResponsive } from "../ResponsiveContext";
 import Instruction from "@/components/exercises/Instruction";
+import InstructorContent from "@/components/exercises/InstructorContent";
 import InLineMultipleChoice from "@/components/exercises/InLineMultipleChoice";
 import MultipleChoiceExercise from "@/components/exercises/MultipleChoiceExercise";
 import { useMemo } from "react";
@@ -64,55 +65,67 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
     console.log(currentExercise);
     console.log("CURRENT EXERCISE BEING SERVED");
   
-    switch (currentExercise.question_type) {
-      case "instruction":
-        setButtonBarText(t("button_content.continue"));
-        return (
-          <Instruction
-            key={currentExercise.id} // Assuming currentExercise has an `id` property
-            instruction={currentExercise.content.instruction}
-            onComplete={handleComplete}
-          />
-        );
-      case "inlinemultiplechoice":
-        setButtonBarText(t("button_content.submit_answer"));
-        return (
-          <InLineMultipleChoice
-            key={currentExercise.id} // Add key here
-            {...currentExercise.content}
-            onComplete={handleComplete}
-          />
-        );
-      case "multiplechoice":
-        setButtonBarText(t("button_content.submit_answer"));
-        return (
-          <MultipleChoiceExercise
-            key={currentExercise.id} // Add key here
-            {...currentExercise.content}
-            onComplete={handleComplete}
-          />
-        );
-      case "qa_fill_in_blank":
-        setButtonBarText(t("button_content.submit_answer"));
-        return (
-          <QAFillInBlankExercise
-            key={currentExercise.id} // Add key here
-            {...currentExercise.content}
-            onComplete={handleComplete}
-          />
-        );
-      case "matching":
-        setButtonBarText(t("button_content.submit_answer"));
-        return (
-          <MatchingExercise
-            key={currentExercise.id} // Add key here
-            {...currentExercise.content}
-            onComplete={handleComplete}
-          />
-        );
-      default:
-        return <div>Unknown exercise type.</div>;
+    if (userRole === "st"){
+      switch (currentExercise.question_type) {
+        case "instruction":
+          setButtonBarText(t("button_content.continue"));
+          return (
+            <Instruction
+              key={currentExercise.id} // Assuming currentExercise has an `id` property
+              instruction={currentExercise.content.instruction}
+              onComplete={handleComplete}
+            />
+          );
+        case "inlinemultiplechoice":
+          setButtonBarText(t("button_content.submit_answer"));
+          return (
+            <InLineMultipleChoice
+              key={currentExercise.id} // Add key here
+              {...currentExercise.content}
+              onComplete={handleComplete}
+            />
+          );
+        case "multiplechoice":
+          setButtonBarText(t("button_content.submit_answer"));
+          return (
+            <MultipleChoiceExercise
+              key={currentExercise.id} // Add key here
+              {...currentExercise.content}
+              onComplete={handleComplete}
+            />
+          );
+        case "qa_fill_in_blank":
+          setButtonBarText(t("button_content.submit_answer"));
+          return (
+            <QAFillInBlankExercise
+              key={currentExercise.id} // Add key here
+              {...currentExercise.content}
+              onComplete={handleComplete}
+            />
+          );
+        case "matching":
+          setButtonBarText(t("button_content.submit_answer"));
+          return (
+            <MatchingExercise
+              key={currentExercise.id} // Add key here
+              {...currentExercise.content}
+              onComplete={handleComplete}
+            />
+          );
+        default:
+          return <div>Unknown exercise type.</div>;
+      }
+    } else if (userRole === "in"){
+      setButtonBarText(t("button_content.continue"));
+      return (
+        <InstructorContent
+          key={currentExercise.id}
+          instruction={jsonData.student_data?.instructor_content}
+          onComplete={handleComplete}
+        />
+      );
     }
+
   }, [currentExerciseIndex, jsonData]);
   
 
