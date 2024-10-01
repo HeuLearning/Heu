@@ -38,15 +38,6 @@ interface ClassModeContainerProps {
   sessionId: string;
 }
 
-// const supabase = createClient();
-
-// const {
-//   data: { user },
-// } = await supabase.auth.getUser();
-
-// console.log("USER HERE");
-// console.log(user?.email);
-
 export default function ClassModeContainer({
   sessionId,
 }: ClassModeContainerProps) {
@@ -196,9 +187,26 @@ export default function ClassModeContainer({
     };
 
     if (userRole === "st") {
-      joinLearner();
+      for(let i = 0; i < 5; i++){
+        joinLearner();
+      }
     }
   }, [userRole]);
+
+  useEffect(() => {
+    const heartbeatInterval = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+
+        ws.send(JSON.stringify({ type: "heartbeat" }));
+      }
+    }, 30000); 
+
+    return () => {
+      clearInterval(heartbeatInterval);
+    };
+  }, [ws]);
+
+  
 
   useEffect(() => {
     if (moduleToSend && activeModuleIndex !== -1) {
