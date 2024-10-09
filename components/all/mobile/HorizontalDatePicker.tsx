@@ -139,6 +139,12 @@ export default function HorizontalDatePicker({
     }
   }, [currentMonth, isScrolling]);
 
+  const formatShortWeekday = (locale: string | undefined, date: Date) => {
+    const userLocale = locale || navigator.language || 'en-US'; // Fallback to default locale
+    const day = date.toLocaleDateString(userLocale, { weekday: 'long' });
+    return day.charAt(0).toUpperCase();
+  };
+
   function renderDays() {
     const dayFormat = "E";
     const dateFormat = "d";
@@ -157,12 +163,9 @@ export default function HorizontalDatePicker({
         const dateKey = `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
         days.push(
           <div className="ml-[8px]" key={format(day, "yyyy-MM-dd")}>
-            <div className={styles.dayLabel}>
-              {day
-                .toLocaleDateString("default", { weekday: "long" })
-                .charAt(0)
-                .toUpperCase()}
-            </div>
+          <div className={styles.dayLabel}>
+          {formatShortWeekday(undefined, day)}
+          </div>
             <div
               id={`${getId(day)}`}
               className={`relative ${styles.dateDayItem} ${

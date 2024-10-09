@@ -104,18 +104,20 @@ export default function Calendar({
     }
   };
 
-  const navigationLabel = ({ date, label }: { date: Date; label: any }) => {
-    return `${date.toLocaleString("default", {
-      month: "short",
-    })} ${date.getFullYear()}`;
+  const navigationLabel = ({ date }: { date: Date }) => {
+    const formatter = new Intl.DateTimeFormat(navigator.language, {
+      month: "long",
+      year: "numeric",
+    });
+    return formatter.format(date);
   };
 
-  const formatShortWeekday = (locale: any, date: Date) => {
-    const day = date
-      .toLocaleDateString(locale, { weekday: "short" })
-      .slice(0, 1); // Get first letter
-    return day;
+    const formatShortWeekday = (locale: string | undefined, date: Date) => {
+      const userLocale = locale || navigator.language || 'en-US'; // Fallback to default locale
+      const day = date.toLocaleDateString(userLocale, { weekday: 'long' });
+      return day.charAt(0).toUpperCase();
   };
+
 
   const tileContent = ({ date, view }: { date: Date; view: string }) => {
     if (view !== "month") return null;
