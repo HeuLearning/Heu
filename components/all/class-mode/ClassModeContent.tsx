@@ -64,6 +64,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   
     console.log(currentExercise);
     console.log("CURRENT EXERCISE BEING SERVED");
+
   
     if (userRole === "st"){
       switch (currentExercise.question_type) {

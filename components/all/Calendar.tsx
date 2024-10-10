@@ -105,12 +105,14 @@ export default function Calendar({
   };
 
   const navigationLabel = ({ date }: { date: Date }) => {
-    const formatter = new Intl.DateTimeFormat(navigator.language, {
-      month: "long",
-      year: "numeric",
+    const userLocale = navigator.language || 'en-US'; // Fallback to default locale
+    const formatter = new Intl.DateTimeFormat(userLocale, {
+        month: "long",
+        year: "numeric",
     });
     return formatter.format(date);
-  };
+};
+
 
     const formatShortWeekday = (locale: string | undefined, date: Date) => {
       const userLocale = locale || navigator.language || 'en-US'; // Fallback to default locale
