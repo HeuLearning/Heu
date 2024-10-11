@@ -5,7 +5,7 @@ import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { GeistSans } from "geist/font/sans";
 import Link from "next/link";
 import "./styles/globals.css";
-import { GTProvider } from "gt-next";
+import { GTProvider, getLocale } from "gt-next";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={GeistSans.className} suppressHydrationWarning>
+    <html lang={getLocale()} className={GeistSans.className} suppressHydrationWarning>
       <body>
         <GTProvider>{children}</GTProvider>
       </body>

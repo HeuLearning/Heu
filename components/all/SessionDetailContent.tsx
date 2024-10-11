@@ -49,6 +49,11 @@ export default function SessionDetailContent({
   const t = getGT();
   const { phases, getModules, phaseTimes, lessonPlan } = lessonPlanData;
 
+  console.log("SESSION ID HERE: " + activeSessionId);
+  console.log("Lesson plan data HERE:");
+  console.log(lessonPlanData);
+  console.log(lessonPlanData.error)
+
   let session: any;
   let startDate: Date = new Date();
   let endDate: Date = new Date();
@@ -421,7 +426,9 @@ export default function SessionDetailContent({
                           (isLessonPlanLoaded === "loading" ||
                             isLessonPlanLoaded === "not confirmed instructor" ||
                             isLessonPlanLoaded === "canceled session" ||
-                            isLessonPlanLoaded === "no lesson plan")),
+                            isLessonPlanLoaded === "no lesson plan" || 
+                            lessonPlanData?.error
+                          )),
                     )}
                   >
                     <svg
@@ -450,10 +457,25 @@ export default function SessionDetailContent({
                     <div className="text-typeface_primary text-body-medium">
                       This session was canceled.
                     </div>
-                  ) : isLessonPlanLoaded === "no lesson plan" ? (
-                    <div className="text-typeface_primary text-body-medium">
-                      No lesson plan yet
+                  ) : isLessonPlanLoaded === "no lesson plan" || !phases || !phaseTimes || lessonPlanData?.error? (
+                    <div className="flex flex-col gap-[26px]">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div key={index} className="flex justify-between">
+                        <Placeholder width={160} height={10} />
+                        <Placeholder width={88} height={10} />
+                      </div>
+                    ))}
+                    <div className="flex justify-between">
+                      <Placeholder width={44} height={10} />
+                      <Placeholder width={44} height={10} />
                     </div>
+                    {Array.from({ length: 2 }).map((_, index) => (
+                      <div key={index} className="flex justify-between">
+                        <Placeholder width={160} height={10} />
+                        <Placeholder width={88} height={10} />
+                      </div>
+                    ))}
+                  </div>
                   ) : (
                     <div className="flex flex-col gap-[19px]">
                       {phases.map((phase: any) => (
