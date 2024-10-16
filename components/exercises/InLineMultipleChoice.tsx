@@ -10,6 +10,9 @@ import ButtonBar from "../all/mobile/ButtonBar";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
+import posthog from 'posthog-js'
+import { createClient } from "@/utils/supabase/client";
+
 
 interface InLineMultipleChoiceProps {
   instruction: string;
@@ -32,6 +35,17 @@ export default function InLineMultipleChoice({
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const t = getGT();
+  const supabase = createClient();
+
+
+
+  useEffect(() => {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      person_profiles: 'identified_only',
+    });
+  }, []);
+  
 
   const handleComplete = () => {
     onComplete();
@@ -269,9 +283,24 @@ export default function InLineMultipleChoice({
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log(selectedOptions);
-    if (isCorrect(selectedOptions)) {
+
+    const correct = isCorrect(selectedOptions);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    posthog.capture('submissions', {
+      timestamp: new Date().toISOString(),
+      correct,
+      question: questions,
+      selectedOptions,
+    });
+
+    if (correct) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
