@@ -12,6 +12,8 @@ import MobileDetailView from "../all/mobile/MobileDetailView";
 import ButtonBar from "../all/mobile/ButtonBar";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
+import posthog from 'posthog-js'
+import { createClient } from "@/utils/supabase/client";
 
 interface MultipleChoiceExerciseProps {
   instruction: string;
@@ -32,12 +34,20 @@ export default function MultipleChoiceExercise({
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const t = getGT();
+  const supabase = createClient();
 
   const handleComplete = () => {
     onComplete();
     hidePopUp("correct-answer-popup");
     hidePopUp("incorrect-answer-popup");
   };
+
+  useEffect(() => {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      person_profiles: 'identified_only',
+    });
+  }, []);
 
   const isCorrect = (answer: string) => {
     return answer.toLowerCase().trim() === correct_answer.toLowerCase().trim();
@@ -230,9 +240,25 @@ export default function MultipleChoiceExercise({
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log(selectedOption);
-    if (selectedOption && isCorrect(selectedOption)) {
+
+    const correct = selectedOption && isCorrect(selectedOption);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    posthog.capture('submissions', {
+      timestamp: new Date().toISOString(),
+      correct,
+      question: question,
+      selectedOption,
+    });
+
+
+    if (correct) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
