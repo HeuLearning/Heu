@@ -21,6 +21,8 @@ import ButtonBar from "../all/mobile/ButtonBar";
 import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
+import { createClient } from "@/utils/supabase/client";
+import posthog from 'posthog-js'
 
 interface DragItem {
   id: string;
@@ -56,12 +58,20 @@ function MatchingExercise({
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const t = getGT();
+  const supabase = createClient();
 
   const handleComplete = () => {
     onComplete();
     hidePopUp("correct-answer-popup");
     hidePopUp("incorrect-answer-popup");
   };
+
+  useEffect(() => {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      person_profiles: 'identified_only',
+    });
+  }, []);
 
   const [dropItems, setDropItems] = useState<DropItem[]>(
     Array.from({ length: left_side.length }, (_, index) => ({
@@ -276,10 +286,25 @@ function MatchingExercise({
     }, [setHandleSubmitAnswer, userAnswers]);
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log(userAnswers);
 
-    if (isCorrect(userAnswers)) {
+    const correct = isCorrect(userAnswers);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    posthog.capture('submissions', {
+      timestamp: new Date().toISOString(),
+      correct,
+      question: instruction,
+      userAnswers,
+    });
+
+
+    if (correct) {
       showPopUp({
         id: "correct-answer-popup",
         content: (

@@ -13,6 +13,8 @@ import MobileDetailView from "../all/mobile/MobileDetailView";
 import XButton from "../all/buttons/XButton";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
+import posthog from 'posthog-js'
+import { createClient } from "@/utils/supabase/client";
 
 interface QAFillInBlankExerciseProps {
   instruction: string;
@@ -37,6 +39,14 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
   const t = getGT();
+  const supabase = createClient();
+
+  useEffect(() => {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+      person_profiles: 'identified_only',
+    });
+  }, []);
 
   const handleComplete = () => {
     onComplete();
@@ -256,9 +266,24 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log(userAnswers);
-    if (isCorrect(userAnswers)) {
+
+    const correct = isCorrect(userAnswers);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    posthog.capture('submissions', {
+      timestamp: new Date().toISOString(),
+      correct,
+      question: questions,
+      userAnswers,
+    });
+
+    if (correct) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
