@@ -4,6 +4,7 @@ import PopUpContainer from "./PopUpContainer";
 import { usePopUp } from "./PopUpContext";
 import { useLearnerSessions, useSessions } from "../data-retrieval/SessionsContext";
 import styles from "../MiniClassBlock.module.css";
+import { useResponsive } from "../ResponsiveContext";
 
 // Define the types for session and props
 interface Session {
@@ -24,6 +25,7 @@ const AttendancePopUp: React.FC<AttendancePopUpProps> = ({ session, action, popU
   const startDate = new Date(session.start_time);
   const { showPopUp, hidePopUp } = usePopUp();
   const { confirmSession, cancelSession } = useSessions();
+  const { isMobile } = useResponsive();
 
   const handleConfirmSession = (sessionId: string) => {
     confirmSession(sessionId);
@@ -40,7 +42,7 @@ const AttendancePopUp: React.FC<AttendancePopUpProps> = ({ session, action, popU
           header="Class canceled"
           primaryButtonText="Continue"
           primaryButtonOnClick={() => {
-            cancelSession(sessionId)
+            cancelSession(sessionId);
             hidePopUp("cancel-class-confirmation-popup");
             window.location.reload();
           }}
@@ -57,10 +59,6 @@ const AttendancePopUp: React.FC<AttendancePopUpProps> = ({ session, action, popU
       },
       height: "auto",
     });
-  };
-
-  const handleCancelSession = (sessionId: string) => {
-    // Implement your logic here if needed
   };
 
   if (action === "enroll" || action === "waitlist") {
@@ -93,24 +91,26 @@ const AttendancePopUp: React.FC<AttendancePopUpProps> = ({ session, action, popU
             ? "Are you sure you'd like to add this class to your schedule?"
             : "This class is currently full. Upon joining the waiting list, if a spot becomes available, we'll notify you for you to confirm your attendance."}
         </p>
-        <div className="relative pt-[32px]">
-          <div className={`${styles.confirm_class_block} flex w-full items-center rounded-[14px]`}>
-            <DateCard
-              month={startDate.toLocaleDateString("default", { month: "short" })}
-              day={startDate.toLocaleDateString("default", { day: "numeric" })}
-            />
-            <div className="flex items-center justify-between px-[8px]">
-              <div className="flex gap-[4px] pl-[4px]">
-                <h1 className="text-typeface_primary text-body-semibold">
-                  {startDate.toLocaleDateString("default", { weekday: "long" })}
-                </h1>
-                <h1 className="text-typeface_secondary text-body-medium">
-                  {`${startDate.toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })} - ${new Date(session.end_time).toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })}`}
-                </h1>
+        {!isMobile && ( // Conditionally render details for non-mobile devices
+          <div className="relative pt-[32px]">
+            <div className={`${styles.confirm_class_block} flex w-full items-center rounded-[14px]`}>
+              <DateCard
+                month={startDate.toLocaleDateString("default", { month: "short" })}
+                day={startDate.toLocaleDateString("default", { day: "numeric" })}
+              />
+              <div className="flex items-center justify-between px-[8px]">
+                <div className="flex gap-[4px] pl-[4px]">
+                  <h1 className="text-typeface_primary text-body-semibold">
+                    {startDate.toLocaleDateString("default", { weekday: "long" })}
+                  </h1>
+                  <h1 className="text-typeface_secondary text-body-medium">
+                    {`${startDate.toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })} - ${new Date(session.end_time).toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })}`}
+                  </h1>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </PopUpContainer>
     );
   }
@@ -131,24 +131,26 @@ const AttendancePopUp: React.FC<AttendancePopUpProps> = ({ session, action, popU
       <p className="text-typeface_primary text-body-regular">
         {`Would you like to ${action === "confirm" ? "confirm" : "cancel"} attendance to the following class?`}
       </p>
-      <div className="relative pt-[32px]">
-        <div className={`${styles.confirm_class_block} flex w-full items-center rounded-[14px]`}>
-          <DateCard
-            month={startDate.toLocaleDateString("default", { month: "short" })}
-            day={startDate.toLocaleDateString("default", { day: "numeric" })}
-          />
-          <div className="flex items-center justify-between px-[8px]">
-            <div className="flex gap-[4px] pl-[4px]">
-              <h1 className="text-typeface_primary text-body-semibold">
-                {startDate.toLocaleDateString("default", { weekday: "long" })}
-              </h1>
-              <h1 className="text-typeface_secondary text-body-medium">
-                {`${startDate.toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })} - ${new Date(session.end_time).toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })}`}
-              </h1>
+      {!isMobile && ( // Conditionally render details for non-mobile devices
+        <div className="relative pt-[32px]">
+          <div className={`${styles.confirm_class_block} flex w-full items-center rounded-[14px]`}>
+            <DateCard
+              month={startDate.toLocaleDateString("default", { month: "short" })}
+              day={startDate.toLocaleDateString("default", { day: "numeric" })}
+            />
+            <div className="flex items-center justify-between px-[8px]">
+              <div className="flex gap-[4px] pl-[4px]">
+                <h1 className="text-typeface_primary text-body-semibold">
+                  {startDate.toLocaleDateString("default", { weekday: "long" })}
+                </h1>
+                <h1 className="text-typeface_secondary text-body-medium">
+                  {`${startDate.toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })} - ${new Date(session.end_time).toLocaleTimeString("default", { hour: "numeric", minute: "2-digit", hour12: undefined })}`}
+                </h1>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </PopUpContainer>
   );
 };
