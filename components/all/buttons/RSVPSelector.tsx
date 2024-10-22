@@ -17,16 +17,14 @@ interface RSVPSelectorProps {
 
 export default function RSVPSelector({ session }: RSVPSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownWidth, setDropdownWidth] = useState(0);
+  const [isAttendancePopUpOpen, setIsAttendancePopUpOpen] = useState(false);
+  const [lastAction, setLastAction] = useState<"confirm" | "cantAttend" | null>(null); // New state for tracking last action
   const { confirmSession, getSessionStatus } = useSessions();
   const { userRole } = useUserRole();
-
+  
   const t = getGT();
-
   const status = getSessionStatus(session);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const shownButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: PointerEvent) => {
@@ -35,7 +33,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
         event.target instanceof Node &&
         !dropdownRef.current.contains(event.target)
       ) {
-        setIsOpen(false);
+        setIsOpen(false); // Close dropdown
       }
     };
 
@@ -45,10 +43,11 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
     };
   }, []);
 
-  const { showPopUp, hidePopUp } = usePopUp();
+  const { showPopUp } = usePopUp();
 
   const handleConfirmPopUp = () => {
-    setIsOpen(false);
+    setLastAction("confirm"); // Track the action
+    setIsAttendancePopUpOpen(true);
     showPopUp({
       id: "confirm-attendance",
       content: (
@@ -58,7 +57,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
           popUpId="confirm-attendance"
         />
       ),
-      container: null, // Ensure this ID exists in your DOM
+      container: null,
       style: {
         overlay: "overlay-high",
       },
@@ -67,7 +66,8 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
   };
 
   const handleCantAttend = () => {
-    setIsOpen(false);
+    setLastAction("cantAttend"); // Track the action
+    setIsAttendancePopUpOpen(true);
     showPopUp({
       id: "cant-attend",
       content: (
@@ -77,15 +77,13 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
           popUpId="cant-attend"
         />
       ),
-      container: null, // Ensure this ID exists in your DOM
+      container: null,
       style: {
         overlay: "overlay-high",
       },
       height: "276px",
     });
   };
-
-  console.log("status" + status);
 
   if (status === "Confirmed" || status === "Canceled") {
     return (
@@ -123,52 +121,23 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
   } else if (
     (userRole === "in" && status === "Pending") ||
     (userRole === "st" && status === "Enrolled")
-  )
+  ) {
     return (
       <div className="relative flex flex-col" ref={dropdownRef}>
-        <div className={`shown-button`} ref={shownButtonRef}>
+        <div className={`shown-button`}>
           <Button
             className={
               isOpen
                 ? "bg-action_bg_tertiary text-typeface_primary text-body-semibold-cap-height"
                 : `${styles.rsvp} rsvp-selector`
             }
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent event bubbling
+              setIsOpen(!isOpen);
+            }}
           >
             <div className="flex items-center gap-[10px]">
               RSVP
-              {isOpen ? (
-                <svg
-                  width="10"
-                  height="7"
-                  viewBox="0 0 10 7"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M8.5 5.5L5 2L1.5 5.5"
-                    stroke="var(--surface_bg_darkest)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  width="10"
-                  height="7"
-                  viewBox="0 0 10 7"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={styles.rsvp_arrow}
-                >
-                  <path
-                    d="M1.5 1.5L5 5L8.5 1.5"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
             </div>
           </Button>
         </div>
@@ -177,9 +146,16 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
             <div
               style={{ minWidth: 155, right: 0 }}
               className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] shadow-150"
+              onClick={(e) => e.stopPropagation()} // Prevent event bubbling from dropdown
             >
               <div className="w-full">
-                <MenuItem onClick={handleConfirmPopUp}>
+                <MenuItem
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent propagation for this MenuItem
+                    handleConfirmPopUp();
+                    setIsOpen(false); // Close dropdown after selection
+                  }}
+                >
                   <div
                     style={{ textAlign: "center" }}
                     className="w-full whitespace-nowrap text-center"
@@ -190,7 +166,13 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
                 <div className="px-[6px]">
                   <Divider spacing={4} />
                 </div>
-                <MenuItem onClick={handleCantAttend}>
+                <MenuItem
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent propagation for this MenuItem
+                    handleCantAttend();
+                    setIsOpen(false); // Close dropdown after selection
+                  }}
+                >
                   <div
                     style={{ textAlign: "center" }}
                     className="w-full whitespace-nowrap text-center"
@@ -204,4 +186,5 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
         </div>
       </div>
     );
+  }
 }

@@ -11,6 +11,7 @@ import AttendancePopUp from "./popups/AttendancePopUp";
 import Placeholder from "./Placeholder";
 import dictionary from "../../dictionary.js";
 import { getGT } from "gt-next";
+import RSVPSelector from "./buttons/RSVPSelector";
 
 interface MiniClassBlockProps {
   dateCard?: boolean;
@@ -73,14 +74,14 @@ export default function MiniClassBlock({
 
   const { showPopUp, hidePopUp } = usePopUp();
 
-  const handleConfirmPopUp = () => {
+  const displayRSVPOptions = () => {
     showPopUp({
-      id: "confirm-attendance",
+      id: "rsvp-selector",
       content: (
         <AttendancePopUp
           session={session}
-          action="confirm"
-          popUpId="confirm-attendance"
+          action="rsvp"
+          popUpId="rsvp-selector"
         />
       ),
       container: null, // Ensure this ID exists in your DOM
@@ -93,24 +94,6 @@ export default function MiniClassBlock({
 
   const handleEnter = () => {
     router.push(`${sessionId}`);
-  };
-
-  const handleEnroll = () => {
-    showPopUp({
-      id: "enroll-session-poup",
-      content: (
-        <AttendancePopUp
-          session={session}
-          action="enroll"
-          popUpId="enroll-session-poup"
-        />
-      ),
-      container: null, // Ensure this ID exists in your DOM
-      style: {
-        overlay: "overlay-high",
-      },
-      height: "276px",
-    });
   };
 
   const handleClick = (sessionId: string) => {
@@ -129,8 +112,8 @@ export default function MiniClassBlock({
               activeSessionId === sessionId && isDaily
                 ? "text-typeface_primary text-body-semibold"
                 : status === "Canceled"
-                  ? "text-typeface_secondary text-body-medium"
-                  : "text-typeface_primary text-body-medium"
+                ? "text-typeface_secondary text-body-medium"
+                : "text-typeface_primary text-body-medium"
             }
           >
             {dateCard || arrow
@@ -184,8 +167,8 @@ export default function MiniClassBlock({
             {status === "Enrolled"
               ? t("status.pending")
               : status === "Class full"
-                ? t("status.class_full")
-                : t(`status.${status.toLowerCase()}`)}
+              ? t("status.class_full")
+              : t(`status.${status.toLowerCase()}`)}
           </h2>
         ) : (
           <Placeholder width={60} height={10} />
@@ -196,16 +179,7 @@ export default function MiniClassBlock({
 
   const renderButton = () => {
     if (status === "Pending" || status === "Enrolled") {
-      return (
-        <div className="rounded-[10px] shadow-25">
-          <Button
-            className="bg-white text-typeface_primary text-body-semibold-cap-height"
-            onClick={handleConfirmPopUp}
-          >
-            {t("button_content.confirm")}
-          </Button>
-        </div>
-      );
+      return <RSVPSelector session={session} />;
     } else if (status === "Online") {
       return (
         <div className="rounded-[10px] shadow-25">
@@ -222,7 +196,7 @@ export default function MiniClassBlock({
         <div className="rounded-[10px] shadow-25">
           <Button
             className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
-            onClick={handleEnroll}
+            onClick={displayRSVPOptions}
           >
             {t("button_content.enroll")}
           </Button>
