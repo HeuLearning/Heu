@@ -4,6 +4,7 @@ import Button from "../all/buttons/Button";
 import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import { getGT } from "gt-next";
 import Markdown from 'react-markdown'; // Import react-markdown
+import remarkGfm from 'remark-gfm'
 
 interface InstructionProps {
   instruction: string; // Define the instruction prop as a string
@@ -17,7 +18,7 @@ export default function Instruction({
   return (
     <div>
       <h2 className="text-typeface_primary text-h3">
-        <Markdown>{instruction}</Markdown> {/* Render the instruction as Markdown */}
+        <Markdown remarkPlugins={[remarkGfm]}>{instruction}</Markdown>
       </h2>
     </div>
   );
