@@ -5,6 +5,7 @@ import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import { getGT } from "gt-next";
 import Markdown from 'react-markdown'
 import dictionary from "@/dictionary";
+import remarkGfm from "remark-gfm";
 
 interface InstructionProps {
   instruction: string;
@@ -40,7 +41,7 @@ export default function Instruction({ instruction, onComplete }: InstructionProp
   return (
     <div>
       <h2 className="text-typeface_primary text-h3">
-        <Markdown>{instruction}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{instruction}</Markdown>
       </h2>
       {!isMobile && (
         <div className="self-end">
