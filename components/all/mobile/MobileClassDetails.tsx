@@ -13,6 +13,7 @@ import { usePopUp } from "../popups/PopUpContext";
 import { useRouter } from "next/navigation";
 import dictionary from "@/dictionary";
 import { getGT } from "gt-next";
+import RSVPSelector from "../buttons/RSVPSelector";
 
 interface MobileClassDetailsProps {
   activeSessionId: string | null;
@@ -196,6 +197,7 @@ export default function MobileClassDetails({
             handleShowClassSchedule={handleShowClassSchedule}
           />
         </div>
+        <RSVPSelector session={session} />
       </MobileDetailView>
       {!session ? (
         <div>loading</div>
