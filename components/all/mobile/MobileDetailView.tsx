@@ -53,9 +53,9 @@ export default function MobileDetailView({
       style={
         buttonBar
           ? { height: height ? height : windowHeight }
-          : { height: height }
+          : { height: height || '100%' }
       }
-      className={`fixed flex flex-grow flex-col rounded-t-[20px] outline-surface_border_tertiary ${backgroundColor} ${className} ${className.includes("bottom-0") ? (buttonBar ? "bottom-[64px] left-0 right-0" : "bottom-0 left-0 right-0") : "inset-0"}`}
+      className={`fixed flex flex-col rounded-t-[20px] outline-surface_border_tertiary ${backgroundColor} ${className} ${className.includes("bottom-0") ? (buttonBar ? "bottom-[64px] left-0 right-0" : "bottom-0 left-0 right-0") : "inset-0"}`}
     >
       <div
         style={{ "--backgroundColor": backgroundColor } as React.CSSProperties}
@@ -65,7 +65,7 @@ export default function MobileDetailView({
       >
         {headerContent}
       </div>
-      <div className="flex-grow overflow-y-auto pb-[32px]" ref={scrollableRef}>
+      <div className="flex-grow overflow-y-auto" ref={scrollableRef}>
         {children}
       </div>
     </div>

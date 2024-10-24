@@ -13,12 +13,13 @@ import { getGT } from "gt-next";
 
 interface RSVPSelectorProps {
   session: any;
+  shouldSpan?: boolean;
 }
 
-export default function RSVPSelector({ session }: RSVPSelectorProps) {
+export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isAttendancePopUpOpen, setIsAttendancePopUpOpen] = useState(false);
-  const [lastAction, setLastAction] = useState<"confirm" | "cantAttend" | null>(null); // New state for tracking last action
+  const [lastAction, setLastAction] = useState<"confirm" | "cantAttend" | null>(null);
   const { confirmSession, getSessionStatus } = useSessions();
   const { userRole } = useUserRole();
   
@@ -33,7 +34,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
         event.target instanceof Node &&
         !dropdownRef.current.contains(event.target)
       ) {
-        setIsOpen(false); // Close dropdown
+        setIsOpen(false);
       }
     };
 
@@ -46,7 +47,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
   const { showPopUp } = usePopUp();
 
   const handleConfirmPopUp = () => {
-    setLastAction("confirm"); // Track the action
+    setLastAction("confirm");
     setIsAttendancePopUpOpen(true);
     showPopUp({
       id: "confirm-attendance",
@@ -66,7 +67,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
   };
 
   const handleCantAttend = () => {
-    setLastAction("cantAttend"); // Track the action
+    setLastAction("cantAttend");
     setIsAttendancePopUpOpen(true);
     showPopUp({
       id: "cant-attend",
@@ -85,9 +86,17 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
     });
   };
 
+  const rsvpButtonHeight = "h-[48px]";
+  const popupButtonClasses = `w-full ${rsvpButtonHeight} bg-white text-typeface_primary text-body-semibold-cap-height font-semibold border border-gray-200 hover:bg-gray-100 transition-colors duration-200`;
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(false);
+  };
+
   if (status === "Confirmed" || status === "Canceled") {
     return (
-      <div className="flex items-center rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height">
+      <div className={`flex items-center rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height ${shouldSpan ? 'w-full' : ''}`}>
         <Dot
           color={
             status === "Confirmed"
@@ -100,7 +109,7 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
     );
   } else if (status === "Attended") {
     return (
-      <div className="flex items-center gap-[4px] rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height">
+      <div className={`flex items-center gap-[4px] rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height ${shouldSpan ? 'w-full' : ''}`}>
         <svg
           width="16"
           height="16"
@@ -123,37 +132,63 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
     (userRole === "st" && status === "Enrolled")
   ) {
     return (
-      <div className="relative flex flex-col" ref={dropdownRef}>
-        <div className={`shown-button`}>
+      <>
+        {isOpen && shouldSpan && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
+            onClick={handleOverlayClick}
+          />
+        )}
+        <div className={`relative ${shouldSpan ? 'w-full' : ''} z-[10000]`} ref={dropdownRef}>
+          {isOpen && shouldSpan && (
+            <div className="absolute bottom-full left-0 right-0 mb-2">
+              <button
+                className={`${popupButtonClasses} rounded-t-xl`}
+                onClick={() => {
+                  handleConfirmPopUp();
+                  setIsOpen(false);
+                }}
+              >
+                Confirm attendance
+              </button>
+              <button
+                className={`${popupButtonClasses} rounded-b-xl border-t-0`}
+                onClick={() => {
+                  handleCantAttend();
+                  setIsOpen(false);
+                }}
+              >
+                I can't attend
+              </button>
+            </div>
+          )}
           <Button
-            className={
-              isOpen
+            className={`${
+              isOpen && shouldSpan
                 ? "bg-action_bg_tertiary text-typeface_primary text-body-semibold-cap-height"
                 : `${styles.rsvp} rsvp-selector`
-            }
+            } ${shouldSpan ? 'w-full' : ''} ${rsvpButtonHeight}`}
             onClick={(e) => {
-              e.stopPropagation(); // Prevent event bubbling
+              e.stopPropagation();
               setIsOpen(!isOpen);
             }}
           >
-            <div className="flex items-center gap-[10px]">
+            <div className="flex items-center justify-center gap-[10px]">
               RSVP
             </div>
           </Button>
-        </div>
-        <div className="drop-down">
-          {isOpen && (
+          {isOpen && !shouldSpan && (
             <div
               style={{ minWidth: 155, right: 0 }}
               className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] shadow-150"
-              onClick={(e) => e.stopPropagation()} // Prevent event bubbling from dropdown
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="w-full">
                 <MenuItem
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent propagation for this MenuItem
+                    e.stopPropagation();
                     handleConfirmPopUp();
-                    setIsOpen(false); // Close dropdown after selection
+                    setIsOpen(false);
                   }}
                 >
                   <div
@@ -168,9 +203,9 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
                 </div>
                 <MenuItem
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevent propagation for this MenuItem
+                    e.stopPropagation();
                     handleCantAttend();
-                    setIsOpen(false); // Close dropdown after selection
+                    setIsOpen(false);
                   }}
                 >
                   <div
@@ -184,7 +219,8 @@ export default function RSVPSelector({ session }: RSVPSelectorProps) {
             </div>
           )}
         </div>
-      </div>
+      </>
     );
   }
+  return null;
 }
