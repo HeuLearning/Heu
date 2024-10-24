@@ -71,11 +71,11 @@ export default function MobileDashboard({
           />
         </LessonPlanProvider>
       ),
-      container: null, // Ensure this ID exists in your DOM
+      container: null,
       style: {
         overlay: "overlay-high",
       },
-      height: "auto",
+      height: "100%",
     });
   };
 

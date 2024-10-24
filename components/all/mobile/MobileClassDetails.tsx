@@ -197,7 +197,8 @@ export default function MobileClassDetails({
             handleShowClassSchedule={handleShowClassSchedule}
           />
         </div>
-        <RSVPSelector session={session} />
+        
+        <RSVPSelector session={session} shouldSpan={true} />
       </MobileDetailView>
       {!session ? (
         <div>loading</div>
