@@ -13,6 +13,8 @@ import ButtonBar from "../mobile/ButtonBar";
 import { useButtonBar } from "../mobile/ButtonBarContext";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
+import MultipleChoiceWithIDK from "@/components/exercises/MultipleChoiceWithIDK";
+import TextSubmissionExercise from "@/components/exercises/TextSubmissionExercise";
 
 interface ClassModeContentProps {
   jsonData: any; // Consider defining a specific type for jsonData if possible
@@ -72,7 +74,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           setButtonBarText(t("button_content.continue"));
           return (
             <Instruction
-              key={currentExercise.id} // Assuming currentExercise has an `id` property
+              key={currentExercise.id}
               instruction={currentExercise.content.instruction}
               onComplete={handleComplete}
             />
@@ -81,7 +83,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           setButtonBarText(t("button_content.submit_answer"));
           return (
             <InLineMultipleChoice
-              key={currentExercise.id} // Add key here
+              key={currentExercise.id}
               {...currentExercise.content}
               onComplete={handleComplete}
             />
@@ -90,7 +92,16 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           setButtonBarText(t("button_content.submit_answer"));
           return (
             <MultipleChoiceExercise
-              key={currentExercise.id} // Add key here
+              key={currentExercise.id}
+              {...currentExercise.content}
+              onComplete={handleComplete}
+            />
+          );
+        case "multiplechoicewidk":
+          setButtonBarText(t("button_content.submit_answer"));
+          return (
+            <MultipleChoiceWithIDK
+              key={currentExercise.id}
               {...currentExercise.content}
               onComplete={handleComplete}
             />
@@ -99,7 +110,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           setButtonBarText(t("button_content.submit_answer"));
           return (
             <QAFillInBlankExercise
-              key={currentExercise.id} // Add key here
+              key={currentExercise.id}
               {...currentExercise.content}
               onComplete={handleComplete}
             />
@@ -108,7 +119,16 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
           setButtonBarText(t("button_content.submit_answer"));
           return (
             <MatchingExercise
-              key={currentExercise.id} // Add key here
+              key={currentExercise.id}
+              {...currentExercise.content}
+              onComplete={handleComplete}
+            />
+          );
+        case "textsubmission":
+          setButtonBarText(t("button_content.submit_answer"));
+          return (
+            <TextSubmissionExercise
+              key={currentExercise.id}
               {...currentExercise.content}
               onComplete={handleComplete}
             />

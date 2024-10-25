@@ -94,36 +94,33 @@ export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelect
     setIsOpen(false);
   };
 
-  if (status === "Confirmed" || status === "Canceled") {
+  if (status === "Confirmed" || status === "Canceled" || status === "Attended") {
     return (
       <div className={`flex items-center rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height ${shouldSpan ? 'w-full' : ''}`}>
-        <Dot
-          color={
-            status === "Confirmed"
-              ? "var(--status_fg_positive)"
-              : "var(--typeface_tertiary)"
-          }
-        />
-        {t("status." + status.toLowerCase())}
-      </div>
-    );
-  } else if (status === "Attended") {
-    return (
-      <div className={`flex items-center gap-[4px] rounded-[10px] bg-action_bg_tertiary py-[8px] pl-[8px] pr-[12px] text-typeface_primary text-body-semibold-cap-height ${shouldSpan ? 'w-full' : ''}`}>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M3.5 8L6.5 11L12.5 5"
-            stroke="var(--typeface_primary)"
-            strokeWidth="2"
-            strokeLinecap="round"
+        {status === "Attended" ? (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3.5 8L6.5 11L12.5 5"
+              stroke="var(--typeface_primary)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : (
+          <Dot
+            color={
+              status === "Confirmed"
+                ? "var(--status_fg_positive)"
+                : "var(--typeface_tertiary)"
+            }
           />
-        </svg>
+        )}
         {t("status." + status.toLowerCase())}
       </div>
     );
@@ -135,33 +132,11 @@ export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelect
       <>
         {isOpen && shouldSpan && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9998]"
             onClick={handleOverlayClick}
           />
         )}
-        <div className={`relative ${shouldSpan ? 'w-full' : ''} z-[10000]`} ref={dropdownRef}>
-          {isOpen && shouldSpan && (
-            <div className="absolute bottom-full left-0 right-0 mb-2">
-              <button
-                className={`${popupButtonClasses} rounded-t-xl`}
-                onClick={() => {
-                  handleConfirmPopUp();
-                  setIsOpen(false);
-                }}
-              >
-                Confirm attendance
-              </button>
-              <button
-                className={`${popupButtonClasses} rounded-b-xl border-t-0`}
-                onClick={() => {
-                  handleCantAttend();
-                  setIsOpen(false);
-                }}
-              >
-                I can't attend
-              </button>
-            </div>
-          )}
+        <div className={`relative ${shouldSpan ? 'w-full' : ''}`} ref={dropdownRef}>
           <Button
             className={`${
               isOpen && shouldSpan
@@ -177,10 +152,12 @@ export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelect
               RSVP
             </div>
           </Button>
-          {isOpen && !shouldSpan && (
+          {isOpen && (
             <div
-              style={{ minWidth: 155, right: 0 }}
-              className="absolute z-[100] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] shadow-150"
+              className={`absolute z-[9999] mt-[4px] flex flex-col rounded-[10px] bg-white p-[4px] shadow-150 ${
+                shouldSpan ? 'left-0 right-0' : 'right-0'
+              }`}
+              style={{ minWidth: shouldSpan ? 'auto' : 155 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-full">
@@ -191,10 +168,7 @@ export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelect
                     setIsOpen(false);
                   }}
                 >
-                  <div
-                    style={{ textAlign: "center" }}
-                    className="w-full whitespace-nowrap text-center"
-                  >
+                  <div className="w-full whitespace-nowrap text-center">
                     Confirm attendance
                   </div>
                 </MenuItem>
@@ -208,10 +182,7 @@ export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelect
                     setIsOpen(false);
                   }}
                 >
-                  <div
-                    style={{ textAlign: "center" }}
-                    className="w-full whitespace-nowrap text-center"
-                  >
+                  <div className="w-full whitespace-nowrap text-center">
                     I can't attend
                   </div>
                 </MenuItem>
