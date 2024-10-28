@@ -86,9 +86,12 @@ export default function MobileClassDetails({
     setIsClassSchedShown(false);
   };
 
-  const handleConfirmAttendance = (sessionId: string) => {
-    confirmSession(sessionId);
-    window.location.reload();
+  const handleConfirmAttendance = async (sessionId: string) => {
+    await confirmSession(sessionId);
+    // Wait for the session status to update before reloading
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   const displayMobileRSVPOptions = () => {
