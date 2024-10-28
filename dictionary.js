@@ -74,6 +74,8 @@ const dictionary = {
       "Are you sure you'd like to proceed and end the current class?",
     phase_line_up: "Modules in this phase",
     no_more_exercises: "No more exercises available.",
+    enter_text_here: "Enter Text Here",
+    confirm_submission_message: "Are you sure you want to submit your answer?",
   },
   sign_in_sign_up_content: {
     sign_in_heu: "Sign in to Heu Learning",

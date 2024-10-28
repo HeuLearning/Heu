@@ -7,6 +7,7 @@ import Textbox from "./Textbox";
 import { getGT } from "gt-next";
 import posthog from 'posthog-js';
 import { createClient } from "@/utils/supabase/client";
+import PopUpContainer from "../all/popups/PopUpContainer";
 
 interface TextSubmissionExerciseProps {
   instruction: string;
@@ -33,28 +34,32 @@ export default function TextSubmissionExercise({
     });
   }, []);
 
-  const handleSubmit = async () => {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    posthog.capture('text_submission', {
-      timestamp: new Date().toISOString(),
-      question: question,
-      answer: answer,
-    });
-
+  const handleSubmit = () => {
     showPopUp({
-      id: "submission-received",
+      id: "confirm-submission",
       content: (
-        <div className="p-4">
-          <h3 className="mb-2 text-lg font-bold">{t("class_mode_content.submission_received")}</h3>
-          <p>{t("class_mode_content.thank_you_for_submission")}</p>
-          <Button className="mt-4" onClick={() => { hidePopUp("submission-received"); onComplete(); }}>
-            {t("button_content.continue")}
-          </Button>
-        </div>
+        <PopUpContainer
+          header={t("class_mode_content.confirm_submission")}
+          primaryButtonText={t("button_content.submit_answer")}
+          secondaryButtonText={t("button_content.cancel")}
+          primaryButtonOnClick={() => {
+            hidePopUp("confirm-submission");
+            onComplete();
+          }}
+          secondaryButtonOnClick={() => {
+            hidePopUp("confirm-submission");
+          }}
+          popUpId="confirm-submission"
+        >
+          <p className="text-typeface_primary text-body-regular">
+            {t("class_mode_content.confirm_submission_message")}
+          </p>
+        </PopUpContainer>
       ),
       container: null,
-      style: { overlay: "overlay-high" },
+      style: {
+        overlay: "overlay-high",
+      },
       height: "auto",
     });
   };
@@ -71,7 +76,7 @@ export default function TextSubmissionExercise({
       <p className="text-typface_primary text-h3">{question}</p>
       <Textbox
         size="big"
-        placeholder={t("class_mode_content.enter_your_answer")}
+        placeholder={t("class_mode_content.enter_text_here")}
         width="100%"
         value={answer}
         onChange={(value) => setAnswer(value)}
