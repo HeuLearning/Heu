@@ -154,12 +154,15 @@ export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelect
           </Button>
           {isOpen && (
             <div
-              className={`absolute z-[9999] flex flex-col rounded-[10px] bg-white p-[4px] shadow-150 ${
+              className={`absolute z-[99999] flex flex-col rounded-[10px] bg-white p-[4px] shadow-150 ${
                 shouldSpan 
                   ? 'bottom-full left-0 right-0 mb-2' 
                   : 'mt-[4px] right-0'
               }`}
-              style={{ minWidth: shouldSpan ? 'auto' : 155 }}
+              style={{ 
+                minWidth: shouldSpan ? 'auto' : 155,
+                filter: 'drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.15))'
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="w-full">
