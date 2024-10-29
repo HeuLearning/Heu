@@ -12,12 +12,14 @@ import PopUpContainer from "../all/popups/PopUpContainer";
 interface TextSubmissionExerciseProps {
   instruction: string;
   question: string;
+  size: "small" | "big";
   onComplete: () => void;
 }
 
 export default function TextSubmissionExercise({
   instruction,
   question,
+  size = "big",
   onComplete,
 }: TextSubmissionExerciseProps) {
   const [answer, setAnswer] = useState("");
@@ -75,7 +77,7 @@ export default function TextSubmissionExercise({
       <p className="text-typeface_primary text-body-regular">{instruction}</p>
       <p className="text-typface_primary text-h3">{question}</p>
       <Textbox
-        size="big"
+        size={size}
         placeholder={t("class_mode_content.enter_text_here")}
         width="100%"
         value={answer}
