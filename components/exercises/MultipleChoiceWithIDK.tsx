@@ -11,8 +11,7 @@ import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import ButtonBar from "../all/mobile/ButtonBar";
 import { getGT } from "gt-next";
-import dictionary from "@/dictionary";
-import posthog from 'posthog-js'
+import posthog from 'posthog-js';
 import { createClient } from "@/utils/supabase/client";
 
 interface MultipleChoiceWithIDKProps {
@@ -60,7 +59,7 @@ export default function MultipleChoiceWithIDK({
 
   if (isMobile) {
     const { setHandleSubmitAnswer } = useButtonBar();
-
+  
     useEffect(() => {
       const handleClick = () => {
         if (isDontKnow || !selectedOption || !isCorrect(selectedOption)) {
@@ -145,9 +144,9 @@ export default function MultipleChoiceWithIDK({
           });
         }
       };
-
+  
       setHandleSubmitAnswer(() => handleClick);
-
+  
       return () => setHandleSubmitAnswer(() => () => {});
     }, [setHandleSubmitAnswer, selectedOption, isDontKnow]);
   }
@@ -333,36 +332,26 @@ export default function MultipleChoiceWithIDK({
             </div>
           </WordBankItem>
         ))}
-        <WordBankItem
-          id="idk"
-          onClick={handleDontKnow}
-        >
-          <div className="flex items-center gap-[8px]">
-            <RadioButton
-              checked={isDontKnow}
-              label=""
-              name="MultipleChoice"
-            />
-            <Badge
-              bgColor="var(--surface_bg_secondary)"
-              textColor="text-typeface_primary"
-            >
-              <p className="uppercase">? {t("button_content.i_dont_know")}</p>
-            </Badge>
-          </div>
-        </WordBankItem>
       </div>
-      {!isMobile && (
-        <div className="self-end">
+      <div className="flex justify-end gap-[8px] mt-4">
+        {!isMobile && (
+          <>
+            <Button 
+              className="button-primary" 
+              onClick={handleSubmit}
+              disabled={!selectedOption && !isDontKnow}
+            >
+              {t("button_content.submit_answer")}
+            </Button>
+          </>
+        )}
           <Button 
-            className="button-primary" 
-            onClick={handleSubmit}
-            disabled={!selectedOption && !isDontKnow}
+          className="button-primary" 
+          onClick={handleDontKnow}
           >
-            {t("button_content.submit_answer")}
-          </Button>
-        </div>
-      )}
+          I don't know
+        </Button>
+      </div>
     </div>
   );
 }
