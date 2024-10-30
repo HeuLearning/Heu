@@ -39,6 +39,7 @@ const dictionary = {
     sign_in: "Sign in",
     profile: "Profile",
     reset_password: "Reset password",
+    previous_module: "Prev Module",
   },
   info_pill_content: {
     class_started: "Your class has started",
