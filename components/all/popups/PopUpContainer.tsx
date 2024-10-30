@@ -12,8 +12,8 @@ interface PopUpContainerProps {
   primaryButtonOnClick?: () => void;
   secondaryButtonOnClick?: () => void;
   popUpId: string;
+  closeButton?: boolean;
 }
-
 
 export default function PopUpContainer({
   header,
@@ -25,6 +25,7 @@ export default function PopUpContainer({
   secondaryButtonText,
   secondaryButtonOnClick,
   popUpId,
+  closeButton = true,
 }: PopUpContainerProps) {
   const { hidePopUp } = usePopUp();
   return (
@@ -33,7 +34,7 @@ export default function PopUpContainer({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-typeface_primary text-h3">{header}</h3>
-            {secondaryButtonText !== "Cancel" && (
+            {closeButton && secondaryButtonText !== "Cancel" && (
               <IconButton onClick={() => hidePopUp(popUpId)}>
                 <svg
                   width="16"
