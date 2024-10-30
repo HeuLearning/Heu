@@ -14,6 +14,7 @@ interface ClassModeFooterProps {
   handleNextModule: (module: any, index: number) => void;
   handleNextPhase: () => void;
   handleEndClass: () => void;
+  handlePreviousModule: (module: any, index: number) => void;
 }
 
 export default function ClassModeFooter({
@@ -24,6 +25,7 @@ export default function ClassModeFooter({
   handleNextModule,
   handleNextPhase,
   handleEndClass,
+  handlePreviousModule,
 }: ClassModeFooterProps) {
   const { phases, phaseTimes, getModules } = useLessonPlan();
   const { state, controls } = useStopwatchContext();
@@ -63,28 +65,31 @@ export default function ClassModeFooter({
       <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
         {phaseTimes.get(activePhase.id)}
       </p>
-      <Button
-        className={
-          Math.min(elapsedLapTime, activeModule.suggested_duration_seconds) /
-            activeModule.suggested_duration_seconds >
-          0.05
-            ? "button-primary"
-            : "button-disabled"
-        }
-        onClick={
-          activeModuleIndex === activePhase.modules.length - 1
+      <div className="flex justify-between items-center gap-[8px]">
+        <Button
+          className={activeModuleIndex === 0 ? "button-disabled" : "button-primary"}
+          onClick={() => handlePreviousModule(activeModule, activeModuleIndex)}
+          disabled={activeModuleIndex === 0}
+        >
+          {t("button_content.previous_module")}
+        </Button>
+        <Button
+          className="button-primary"
+          onClick={() => 
+            activeModuleIndex === activePhase.modules.length - 1
+              ? phases.indexOf(activePhase) === phases.length - 1
+                ? handleEndClass()
+                : handleNextPhase()
+              : handleNextModule(activeModule, activeModuleIndex)
+          }
+        >
+          {activeModuleIndex === activePhase.modules.length - 1
             ? phases.indexOf(activePhase) === phases.length - 1
-              ? () => handleEndClass()
-              : () => handleNextPhase()
-            : () => handleNextModule(activeModule, activeModuleIndex)
-        }
-      >
-        {activeModuleIndex === activePhase.modules.length - 1
-          ? phases.indexOf(activePhase) === phases.length - 1
-            ? t("button_content.end_class")
-            : t("button_content.next_phase")
-          : t("button_content.next_module")}
-      </Button>
+              ? t("button_content.end_class")
+              : t("button_content.next_phase")
+            : t("button_content.next_module")}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -525,6 +525,35 @@ export default function ClassModeContainer({
     });
   };
 
+  const handlePreviousModule = (module: any, index: number) => {
+    if (index > 0) {
+      const previousModuleIndex = index - 1;
+      
+      // Find the index of the active phase
+      const currentPhaseIndex = phases.findIndex(
+        (phase) => phase.id === activePhaseId,
+      );
+
+      if (previousModuleIndex >= 0) {
+        setElapsedTime(totalElapsedTime[previousModuleIndex]);
+        setActiveModuleIndex(previousModuleIndex);
+
+        const previousModule = phases[currentPhaseIndex].modules[previousModuleIndex];
+        // Set the module data to be sent over WebSocket
+        setModuleToSend({
+          id: activePhaseId,
+          name: previousModule.name,
+          elapsedTime: totalElapsedTime[previousModuleIndex],
+          exercises: previousModule.exercises,
+          instructor_content: previousModule.instructor_content
+        });
+
+        startTimer();
+        lapTimer();
+      }
+    }
+  };
+
   const PhaseDetails = ({ onBack }: { onBack: () => void }) => (
     <div className="flex h-full flex-col gap-[8px]">
       <ClassModeHeaderBar
@@ -603,6 +632,7 @@ export default function ClassModeContainer({
         handleNextModule={handleNextModule}
         handleNextPhase={handleNextPhase}
         handleEndClass={handleEndClass}
+        handlePreviousModule={handlePreviousModule}
       />
     </div>
   );
