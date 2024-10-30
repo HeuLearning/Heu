@@ -233,6 +233,7 @@ export default function MultipleChoiceExercise({
           primaryButtonText={t("button_content.continue")}
           primaryButtonOnClick={handleComplete}
           popUpId="incorrect-answer-popup"
+          closeButton={false}
         >
           <IncorrectAnswerContent />
         </PopUpContainer>,

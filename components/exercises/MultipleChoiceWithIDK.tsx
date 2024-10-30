@@ -265,6 +265,7 @@ export default function MultipleChoiceWithIDK({
             primaryButtonDisabled={true}
             primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
+            closeButton={false}
           >
             <IncorrectAnswerContent />
           </PopUpContainer>
