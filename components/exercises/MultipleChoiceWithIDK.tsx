@@ -350,7 +350,7 @@ export default function MultipleChoiceWithIDK({
           className="button-primary" 
           onClick={handleDontKnow}
           >
-          I don't know
+          {t("button_content.dont_know")}
         </Button>
       </div>
     </div>
