@@ -40,6 +40,7 @@ const dictionary = {
     profile: "Profile",
     reset_password: "Reset password",
     previous_module: "Prev Module",
+    dont_know: "I don't know",
   },
   info_pill_content: {
     class_started: "Your class has started",
@@ -90,6 +91,9 @@ const dictionary = {
     forgot_password_description:
       "You will receive an email to reset your password.",
   },
+  placeholder: {
+    type_your_answer: "Type your answer here..."
+  }
 };
 
 export default dictionary;
