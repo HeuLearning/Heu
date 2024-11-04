@@ -10,32 +10,37 @@ import remarkGfm from "remark-gfm";
 interface InstructionProps {
   instruction: string;
   onComplete: () => void;
+  canContinue?: boolean;
 }
 
-export default function Instruction({ instruction, onComplete }: InstructionProps) {
+export default function Instruction({ 
+  instruction, 
+  onComplete,
+  canContinue = true
+}: InstructionProps) {
   const { isMobile } = useResponsive();
   const t = getGT();
 
   const handleComplete = () => {
-    onComplete();
+    if (canContinue) {
+      onComplete();
+    }
   };
-
-  // Log the original instruction received
-  console.log("Original Instruction:", instruction);
-
 
   if (isMobile) {
     const { setHandleSubmitAnswer } = useButtonBar();
 
     useEffect(() => {
       const handleClick = () => {
-        onComplete();
+        if (canContinue) {
+          onComplete();
+        }
       };
 
       setHandleSubmitAnswer(() => handleClick);
 
       return () => setHandleSubmitAnswer(() => () => {});
-    }, [setHandleSubmitAnswer]);
+    }, [setHandleSubmitAnswer, canContinue]);
   }
 
   return (
@@ -43,9 +48,12 @@ export default function Instruction({ instruction, onComplete }: InstructionProp
       <h2 className="text-typeface_primary text-h3">
         <Markdown remarkPlugins={[remarkGfm]}>{instruction}</Markdown>
       </h2>
-      {!isMobile && (
+      {!isMobile && canContinue && (
         <div className="self-end">
-          <Button className="button-primary" onClick={handleComplete}>
+          <Button 
+            className="button-primary" 
+            onClick={handleComplete}
+          >
             {t("button_content.continue")}
           </Button>
         </div>

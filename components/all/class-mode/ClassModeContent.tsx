@@ -77,6 +77,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
               key={currentExercise.id}
               instruction={currentExercise.content.instruction}
               onComplete={handleComplete}
+              canContinue={currentExercise.content.canContinue}
             />
           );
         case "inlinemultiplechoice":
