@@ -25,6 +25,11 @@ Create a .env.local file in the root of the project directory and add the follow
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GT_API_KEY = your_gt_api_key
+GT_PROJECT_ID = your_gt_project_key
+NEXT_PUBLIC_POSTHOG_KEY=your_public_posthog_key
+NEXT_PUBLIC_POSTHOG_HOST = public_posthog_host
+
 ```
 Replace your_supabase_url and your_supabase_anon_key with our actual Supabase credentials.
 
