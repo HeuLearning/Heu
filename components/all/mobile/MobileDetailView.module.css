@@ -1,0 +1,15 @@
+.stickyHeaderWithBorder {
+  position: relative; /* Ensure the pseudo-element is positioned relative to the parent */
+}
+
+.stickyHeaderWithBorder::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(100% + 32px);
+  margin-left: -16px;
+  height: 1px;
+  background-color: var(--surface_border_tertiary);
+  z-index: 1;
+}

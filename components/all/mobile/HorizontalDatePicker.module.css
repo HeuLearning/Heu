@@ -1,0 +1,73 @@
+.container {
+  display: flex;
+  width: 100%;
+  background: inherit;
+}
+
+.dateListScrollable {
+  display: flex;
+  overflow-x: scroll;
+  scrollbar-width: none;
+  margin: 2px 0 2px 0px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dateListScrollable::-webkit-scrollbar {
+  -webkit-appearance: none;
+  display: none;
+}
+
+.dateDayItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.daysContainer {
+  display: flex;
+  z-index: 1;
+  align-self: center;
+}
+
+/* day of the week */
+.dayLabel {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--typeface_secondary);
+  margin: 4px 0 0 0;
+  text-align: center;
+  padding-bottom: 12px;
+}
+
+/* day number */
+.dateLabel {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--typeface_primary);
+}
+
+.pastDateLabel {
+  font-size: 16px;
+  color: var(--typeface_tertiary);
+}
+
+.selectedDate {
+  font-weight: 600;
+  width: "44px";
+  height: "44px";
+  border-radius: 100%;
+  background-color: var(--surface_bg_darkest);
+  color: var(--typeface_highlight) !important;
+}
+
+.today {
+  border: 1px solid var(--surface_border_tertiary);
+  background-color: white;
+  color: var(--typeface_primary);
+  border-radius: 100%;
+}

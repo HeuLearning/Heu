@@ -1,0 +1,29 @@
+.big {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid var(--surface_border_tertiary);
+  border-radius: 10px;
+  background-color: var(--action_bg_secondary);
+  resize: none;
+}
+
+.small {
+  padding: 12px 12px;
+  border: 1px solid var(--surface_border_tertiary);
+  border-radius: 10px;
+  background-color: var(--action_bg_secondary);
+  resize: none;
+  box-sizing: border-box;
+}
+
+.big:focus,
+.small:focus {
+  outline: 2px solid var(--surface_border_tertiary);
+  border: 1px solid var(--surface_border_primary);
+}
+
+.big::placeholder,
+.small::placeholder {
+  color: var(--typeface_secondary);
+  @apply text-body-medium;
+}

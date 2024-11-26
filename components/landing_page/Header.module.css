@@ -1,0 +1,45 @@
+
+
+.header_text {
+  color: black;
+  font-size: 5vw;
+  font-weight: bold;
+  font-variation-settings: 'wght' 650;
+  text-align: left;
+  padding-bottom: 1.5vw;
+}
+
+@media only screen and (max-width: 500px) {
+  .header_text {
+    font-size: 14vw;
+    padding-top: 6vw;
+    padding-bottom: 4.5vw;
+  }
+  .line {
+    width: 18vw !important;
+    height: 5vw !important;
+    position: absolute;
+    top: 27.5vw !important;
+  }
+}
+
+@media only screen and (min-width: 501px) and (max-width: 768px) {
+  .header_text {
+    font-size: 11vw;
+    padding-top: 5vw;
+    padding-bottom: 3vw;
+  }
+  .line {
+    width: 15vw !important;
+    height: 4vw !important;
+    position: absolute;
+    top: 23vw !important;
+  }
+}
+
+.line {
+  width: 7vw;
+  height: 3vw;
+  position: absolute;
+  top: 10.3vw;
+}

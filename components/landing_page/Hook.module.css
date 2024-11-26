@@ -1,0 +1,42 @@
+
+.hook {
+    padding-top: 1vw;
+    padding-bottom: 1vw;
+}
+
+.hook_text {
+    text-align: center;
+    font-size: 4vw;
+    font-variation-settings: 'wght' 650;
+    line-height: 1.2;
+}
+
+@media only screen and (max-width: 500px) {
+    .hook_text {
+        font-size: 10vw;
+    }
+    .header_svg {
+        position: absolute;
+        width: 29.8vw !important;
+        height: 18vw !important;
+    }
+}
+
+@media only screen and (min-width: 501px) and (max-width: 768px) {
+    .hook_text {
+        font-size: 9vw;
+    }
+    .header_svg {
+        position: absolute;
+        width: 27.1vw !important;
+        height: 14vw !important;
+    }
+}
+
+.header_svg {
+    position: absolute;
+    width: 12vw;
+    height: 10vw;
+}
+
+
