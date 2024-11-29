@@ -18,6 +18,9 @@ export default function SignInRegistrationComponent() {
 
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
   useEffect(() => {
     const errorMessage = searchParams.get("error");
     if (errorMessage) {
@@ -25,6 +28,19 @@ export default function SignInRegistrationComponent() {
       setError(decodeURIComponent(errorMessage));
     }
   }, [searchParams]);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    startTransition(() => {
+      signInAction(formData);
+    });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter") {
+      handleSubmit(e); // Trigger the submit function when Enter key is pressed
+    }
+  };
 
   const renderContent = () => {
     return (
@@ -34,31 +50,26 @@ export default function SignInRegistrationComponent() {
         </h3>
         <form
           className="flex flex-col gap-[24px]"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            startTransition(() => {
-              signInAction(formData);
-            });
-          }}
+          onSubmit={handleSubmit}
+          onKeyDown={handleKeyDown}
         >
           <div className="flex flex-col gap-[12px]">
             <Textbox
               name="email"
               size="small"
               width={isMobile ? "100%" : "324"}
-              value=""
+              value={email}
               placeholder={t("sign_in_sign_up_content.email")}
               required={true}
-              onChange={() => {}}
+              onChange={(value) => setEmail(value)}
             />
             <Textbox
               name="password"
               size="small"
               width={isMobile ? "100%" : "324"}
-              value=""
+              value={password}
               placeholder={t("sign_in_sign_up_content.password")}
-              onChange={() => {}}
+              onChange={(value) => setPassword(value)}
               required={true}
               password={true}
               errorMessage={error}

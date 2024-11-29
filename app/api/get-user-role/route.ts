@@ -5,7 +5,10 @@ export async function GET() {
   const supabase = createClient();
 
   // Check for session
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
 
   // If there is no session or an error occurred, return 401
   if (sessionError || !session) {
@@ -21,7 +24,10 @@ export async function GET() {
 
   // Handle errors when fetching role
   if (rolesError) {
-    return NextResponse.json({ error: "Failed to fetch role" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch role" },
+      { status: 500 },
+    );
   }
 
   // Return the role if everything is fine
