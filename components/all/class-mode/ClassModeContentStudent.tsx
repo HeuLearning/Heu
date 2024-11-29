@@ -11,8 +11,7 @@ import { useButtonBar } from "../mobile/ButtonBarContext";
 import { getGT } from "gt-next";
 import MultipleChoiceWithIDK from "@/components/exercises/MultipleChoiceWithIDK";
 import TextSubmissionExercise from "@/components/exercises/TextSubmissionExercise";
-import Module from "module";
-import { Exercise } from "@/utils/supabase/db-types";
+import { Module, Exercise } from "@/app/types/db-types";
 
 interface ClassModeContentProps {
     module: Module;

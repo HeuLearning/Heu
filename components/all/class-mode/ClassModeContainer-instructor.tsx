@@ -24,8 +24,8 @@ import { ButtonBarProvider } from "../mobile/ButtonBarContext";
 import { createClient } from "../../../utils/supabase/client";
 import Pusher from "pusher-js";
 import ClassModeContentInstructor from "./ClassModeContentInstructor";
-import { JSONData, User } from "@/utils/supabase/db-types";
-import { UUID } from "crypto";
+import { User } from "@/app/types/db-types";
+import { LessonSummary, dummyLessonSummary } from "@/app/types/LessonSummaryType";
 
 interface ClassModeContainerProps {
     sessionId: string;
@@ -35,164 +35,201 @@ export default function ClassModeContainer({
     sessionId,
 }: ClassModeContainerProps) {
     // website navbar = 64, bottom margin = 16
-    // ##############################################################
-    ///     FRONTEND SHIT                                       //###
-    const dashboardHeight = window.innerHeight - 64 - 16;       //###
-    const { isMobile, isTablet, isDesktop } = useResponsive();  //###
-    //###
-    //###
-    const t = getGT();                                          //###
-    // ##############################################################
 
-    // #####################################################################
-    //      I don't want to use this                                    //##
-    const { phases, getModules, lessonPlan, phaseTimes, isLoading } =   //##
-        useLessonPlan();                                                //##
-    //##
-    const [activePhaseId, setActivePhaseId] = useState<string>(         //##
-        phases.length > 0 ? phases[0].id : "",                          //##
-    );                                                                  //##
-    // #####################################################################
+    const dashboardHeight = window.innerHeight - 64 - 16;
+    const { isMobile, isTablet, isDesktop } = useResponsive();
+    const t = getGT();
+
+    const lessonSummary: LessonSummary = dummyLessonSummary;
+    const { firstName, lastName, uid } = useUserRole();
+
+    const [activePhaseId, setActivePhaseId] = useState<string>('');
+
+    //################################################################
+    // HORSE PIG SHIT
+    const { phases, getModules, lessonPlan, phaseTimes, isLoading } =
+        useLessonPlan();
+    //################################################################
+
     if (isLoading) {
         return <div></div>;
     }
 
+
     const [members, setMembers] = useState<User[]>([]);
-    const [showInitialClassPage, setShowInitialClassPage] = useState(true);
-    const [activeModuleIndex, setActiveModuleIndex] = useState(0);
     const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
+
+    const [instructorContent, setInstructorContent] = useState<string>('InstructorContent defined inside ClassModeContainer');
+    const [showInitialClassPage, setShowInitialClassPage] = useState(true);
     const [classStarted, setClassStarted] = useState(false);
-    const [jsonData, setJsonData] = useState<JSONData>({ type: "student_data", student_data: { moduleId: 0, moduleName: "", elapsedTime: 0, exercises: [], instructor_content: "" } });
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    const [activeModuleID, setActiveModuleID] = useState<string>('');
+    const [activeModuleIndex, setActiveModuleIndex] = useState(0);
+    const [activeModule, setActiveModule] = useState<ModuleData>('');
+
+    const supabase = createClient();
+
+    useEffect(() => {
+        // automatic retrieval of active module ID
+        if (!lessonSummary.id) return;
+
+        const channelName = `lessons_new:lessonId-${lessonSummary.id}`; // dynamic to avoid conflict
+
+        const subscription = supabase
+            .channel(channelName)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'lessons_new',
+                    filter: `id=eq.${lessonSummary.id}`,
+                },
+                (payload) => {
+                    const newModuleId = payload.new.active_module_id;
+                    setActiveModuleID(newModuleId);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [lessonSummary.id]);
+
+
+    useEffect(() => {
+        console.log(`Retrieving module, activeModuleID is ${activeModuleID}`);
+        if (!activeModuleID) return;
+        const retrieveModuleFromID = async (moduleId: string) => {
+            const { data, error } = await supabase
+                .from('modules')
+                .select('*')
+                .eq('id', moduleId)
+                .single();
+            if (error) {
+                console.error('Error fetching module data:', error);
+                return;
+            }
+            console.log(`data is ${data}`);
+            setActiveModule(data);
+        };
+        retrieveModuleFromID(activeModuleID);
+
+    }, [activeModuleID]);
+
+    const nextModuleID = (moduleId: string, summary: LessonSummary): string | "No more modules" | null => {
+        const allModules = summary.phases
+            .flatMap((phase) => phase.modules);
+
+        const module = allModules.find((mod) => mod.id === moduleId);
+        if (!module) {
+            console.error("Current module not found");
+            return null;
+        }
+
+        // Find the next module with a greater index
+        const nextModule = allModules
+            .filter((mod) => mod.index > module.index)
+            .sort((a, b) => a.index - b.index)[0];
+
+        if (!nextModule) {
+            return "No more modules";
+        }
+
+        return nextModule.id;
+    };
+    const handleNextModule = async (currentModuleID: string, summary: LessonSummary): Promise<void> => {
+        /*totalElapsedTime.push(
+            totalElapsedTime[-1] + module.duration,
+        );
+        setElapsedTime(totalElapsedTime[index + 1]);*/
+        const nextID = nextModuleID(currentModuleID, summary);
+        if (!nextID) {
+            console.error("No next module found.");
+            return;
+        } else if (nextID === "No more modules") {
+            console.log('NO MORE MODULES TO DISPLAY');
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from("lessons_new")
+                .update({ active_module: nextID })
+                .eq("id", summary.id);
+
+            if (error) {
+                console.error("Failed to update active module:", error);
+                return;
+            }
+            console.log("Successfully updated active module:", data);
+        } catch (err) {
+            console.error("Error during handleNextModule execution:", err);
+        }
+    }; // await handleNextModule(ActiveModuleID, lessonSummary);
+
+
+
+    // retrieve module data on update of active module
+
+    /*
+    What to write:
+        - getModules
+        - phases
+        - phaseTimes (indexed by phaseId)
+            - array of Phases, including 
+        - activePhase
+        - activeModule
+        - activeModuleIndex
+        - totalElapsedTime
+    */
+
+
+
+
+
+    /*
+     PhaseLineup passes this to <ModuleDetail> [ modules={getModules(phaseId)} ]
+                         V
+     getModules(phaseId) returns Module[]. Index is inherent.
+         key={module.id}
+         active={index === activeModuleIndex}
+         number={index + 1}
+         title={module.name}
+         description={module.description}
+         done={activeModuleIndex >= index}
+     */
+
+
+
+
+
 
     const [handleSubmitAnswer, setHandleSubmitAnswer] = useState<any>(
         () => () => { },
     );
 
-    const [moduleToSend, setModuleToSend] = useState<any | null>(null);
-
-    const { firstName, lastName, uid } = useUserRole();
-
-    const { upcomingSessions } = useSessions();
-    const [session, setSession] = useState<any>(null);
     const [isSessionLoading, setIsSessionLoading] = useState(true);
 
     const { hidePopUp, showPopUp } = usePopUp();
 
     const activePhase: any = phases.find((phase) => phase.id === activePhaseId);
-    const activeModule: any = activePhase?.modules[activeModuleIndex];
 
     const dashboardContainer = document.getElementById("class-mode-container");
     let containerHeight: number | null;
-
     if (dashboardContainer) {
         containerHeight = dashboardContainer.offsetHeight;
     } else {
         console.error("Element with ID 'class-mode-container' not found");
     }
 
-    useEffect(() => {
-        console.log("Updated totalElapsedTime:", totalElapsedTime);
-    }, [totalElapsedTime]);
-
-    useEffect(() => {
-        const findSession = () => {
-            if (upcomingSessions && sessionId) {
-                const found = upcomingSessions.find((s) => String(s.id) === sessionId);
-                setSession(found || null);
-                setIsSessionLoading(false);
-            }
-        };
-        findSession();
-    }, [sessionId, upcomingSessions]);
-
-    useEffect(() => {
-        setActiveModuleIndex(0);
-    }, [activePhaseId]);
-
-
-    const controls = useStopwatchControls();
-    const { stopTimer, startTimer, lapTimer, resetTimer, setElapsedTime } =
-        controls;
-
     const router = useRouter();
     const handleBack = () => {
         router.push("dashboard");
-    };
-
-    const handleNextModule = (module: any, index: number) => {
-        totalElapsedTime.push(
-            totalElapsedTime[index] + module.suggested_duration_seconds,
-        );
-        setElapsedTime(totalElapsedTime[index + 1]);
-
-        // Find the index of the active phase by its ID
-        const currentPhaseIndex = phases.findIndex(
-            (phase) => phase.id === activePhaseId,
-        );
-
-        // Set the module data to be sent over WebSocket
-        const nextModuleIndex = index + 1;
-
-        if (nextModuleIndex < phases[currentPhaseIndex]?.modules.length) {
-            setElapsedTime(totalElapsedTime[nextModuleIndex]);
-
-            // Increment the active module index
-            setActiveModuleIndex(nextModuleIndex);
-
-            const nextModule = phases[currentPhaseIndex].modules[nextModuleIndex];
-            // Set the module data to be sent over WebSocket
-            setModuleToSend({
-                id: activePhaseId, // Still using activePhaseId here
-                name: nextModule.name,
-                elapsedTime: totalElapsedTime[nextModuleIndex],
-                exercises: nextModule.exercises,
-                instructor_content: nextModule.instructor_content
-            });
-
-            startTimer();
-            lapTimer();
-        } else {
-            console.log("No more modules in the current phase.");
-        }
-    };
-
-    const handleNextPhase = () => {
-        // Reset the elapsed time for the modules in the current phase
-        const resetElapsedTime = new Array(activePhase.modules.length).fill(0);
-        setTotalElapsedTime(resetElapsedTime);
-
-        const currentPhaseIndex = phases.findIndex(
-            (phase) => phase.id === activePhaseId,
-        );
-
-        if (currentPhaseIndex < phases.length - 1) {
-            const nextPhase = phases[currentPhaseIndex + 1];
-            setActivePhaseId(nextPhase.id);
-            setActiveModuleIndex(0); // Reset to the first module of the new phase
-            setTotalElapsedTime([0]); // Add a new elapsed time for the new phase
-            setElapsedTime(0); // Reset elapsed time for the new phase
-            resetTimer();
-            startTimer(); // Start the timer for the new phase
-
-            const nextPhaseIndex =
-                phases.findIndex((phase) => phase.id === activePhaseId) + 1;
-            if (nextPhaseIndex < phases.length) {
-                const nextPhase = phases[nextPhaseIndex];
-                // Prepare the first module data to be sent
-                const firstModule = nextPhase.modules[0];
-                setModuleToSend({
-                    id: firstModule.id,
-                    name: firstModule.name,
-                    elapsedTime: 0,
-                    exercises: firstModule.exercises,
-                    instructor_content: firstModule.instructor_content
-                });
-            } else {
-                console.log("No more phases available.");
-            }
-        }
-        resetTimer(); // Reset any previous timers
-        startTimer(); // Start the timer for the new phase
     };
 
     const handleEndClass = () => {
@@ -224,32 +261,6 @@ export default function ClassModeContainer({
         });
     };
 
-    const handleResetTimer = () => {
-        resetTimer();
-        setActiveModuleIndex(0);
-        setActivePhaseId(phases[0].id);
-        setTotalElapsedTime([0]);
-        setClassStarted(false);
-    };
-
-    const handleStartClass = () => {
-        setShowInitialClassPage(false);
-
-        // Start the class timer if it hasn't started yet
-        if (!classStarted) {
-            setClassStarted(true);
-            startTimer();
-        }
-
-        // Create a new learner object for the current user
-        const learner = {
-            id: Date.now(),
-            name: firstName + " " + lastName || "Unknown",
-            status: "In class",
-        };
-        setLearners((prev) => [...prev, learner]);
-
-    };
 
     const handleShowLearners = () => {
         showPopUp({
@@ -294,7 +305,19 @@ export default function ClassModeContainer({
                     className="absolute right-0 top-0 flex flex-col"
                     height={containerHeight}
                 >
+                    THIS IS A PHASE LINEUP
                     <PhaseLineup
+                        /*
+                        PhaseLineup passes this to <ModuleDetail>
+                                            V
+                        getModules(phaseId) returns Module[]. Index is inherent.
+                            key={module.id}
+                            active={index === activeModuleIndex}
+                            number={index + 1}
+                            title={module.name}
+                            description={module.description}
+                            done={activeModuleIndex >= index}
+                        */
                         modules={getModules(phaseId)}
                         activeModuleIndex={activeModuleIndex}
                     />
@@ -308,138 +331,13 @@ export default function ClassModeContainer({
         });
     };
 
-    const handlePreviousModule = (module: any, index: number) => {
-        if (index > 0) {
-            const previousModuleIndex = index - 1;
 
-            // Find the index of the active phase
-            const currentPhaseIndex = phases.findIndex(
-                (phase) => phase.id === activePhaseId,
-            );
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            if (previousModuleIndex >= 0) {
-                setElapsedTime(totalElapsedTime[previousModuleIndex]);
-                setActiveModuleIndex(previousModuleIndex);
-
-                const previousModule = phases[currentPhaseIndex].modules[previousModuleIndex];
-                // Set the module data to be sent over WebSocket
-                setModuleToSend({
-                    id: activePhaseId,
-                    name: previousModule.name,
-                    elapsedTime: totalElapsedTime[previousModuleIndex],
-                    exercises: previousModule.exercises,
-                    instructor_content: previousModule.instructor_content
-                });
-
-                startTimer();
-                lapTimer();
-            }
-        }
-    };
-
-    const PhaseDetails = ({ onBack }: { onBack: () => void }) => (
-        <div className="flex h-full flex-col gap-[8px]">
-            <ClassModeHeaderBar
-                onBack={onBack}
-                iconName={"practice"}
-                title={activePhase.name}
-                rightSide={
-                    <div className="flex items-center gap-[12px]">
-                        <button
-                            onClick={handleShowLearners}
-                            className="button-primary rounded-full"
-                        >
-                            <svg
-                                width="32"
-                                height="32"
-                                viewBox="0 0 32 32"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <circle cx="16" cy="16" rx="16" fill="currentBackgroundColor" />
-                                <path
-                                    d="M12.4282 20.4775C12.1274 20.4775 11.8911 20.4095 11.7192 20.2734C11.5474 20.1374 11.4614 19.9512 11.4614 19.7148C11.4614 19.3675 11.5653 19.0041 11.7729 18.6245C11.9842 18.245 12.2868 17.8887 12.6807 17.5557C13.0781 17.2227 13.5562 16.9523 14.1147 16.7446C14.6733 16.5369 15.3 16.4331 15.9946 16.4331C16.6929 16.4331 17.3213 16.5369 17.8799 16.7446C18.4385 16.9523 18.9147 17.2227 19.3086 17.5557C19.7061 17.8887 20.0104 18.245 20.2217 18.6245C20.4329 19.0041 20.5386 19.3675 20.5386 19.7148C20.5386 19.9512 20.4526 20.1374 20.2808 20.2734C20.1089 20.4095 19.8726 20.4775 19.5718 20.4775H12.4282ZM16 15.4771C15.6097 15.4771 15.2498 15.3714 14.9204 15.1602C14.5946 14.9489 14.3314 14.6642 14.1309 14.3062C13.9339 13.9481 13.8354 13.547 13.8354 13.103C13.8354 12.6662 13.9339 12.2723 14.1309 11.9214C14.3314 11.5669 14.5964 11.2858 14.9258 11.0781C15.2552 10.8704 15.6133 10.7666 16 10.7666C16.3903 10.7666 16.7502 10.8687 17.0796 11.0728C17.409 11.2769 17.6722 11.5562 17.8691 11.9106C18.0697 12.2616 18.1699 12.6554 18.1699 13.0923C18.1699 13.5399 18.0697 13.9445 17.8691 14.3062C17.6722 14.6642 17.409 14.9489 17.0796 15.1602C16.7502 15.3714 16.3903 15.4771 16 15.4771Z"
-                                    fill="currentColor"
-                                />
-                            </svg>
-                        </button>
-                        <button
-                            onClick={() => displayPhaseLineup(activePhase.id)}
-                            className="button-primary rounded-full"
-                        >
-                            <svg
-                                width="32"
-                                height="32"
-                                viewBox="0 0 32 32"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <rect
-                                    width="32"
-                                    height="32"
-                                    rx="16"
-                                    fill="currentBackgroundColor"
-                                />
-                                <path
-                                    fill-rule="evenodd"
-                                    clip-rule="evenodd"
-                                    d="M20 11C20.5523 11 21 11.4477 21 12C21 12.5523 20.5523 13 20 13L12 13C11.4477 13 11 12.5523 11 12C11 11.4477 11.4477 11 12 11H20ZM20 15C20.5523 15 21 15.4477 21 16C21 16.5523 20.5523 17 20 17H12C11.4477 17 11 16.5523 11 16C11 15.4477 11.4477 15 12 15L20 15ZM21 20C21 19.4477 20.5523 19 20 19L12 19C11.4477 19 11 19.4477 11 20C11 20.5523 11.4477 21 12 21H20C20.5523 21 21 20.5523 21 20Z"
-                                    fill="currentColor"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                }
-            />
-            <div className="flex h-full flex-col gap-[8px] rounded-[10px] outline-surface_border_tertiary">
-                <div className="flex items-center gap-[12px] p-[18px]">
-                    <Badge
-                        bgColor="var(--surface_bg_darkest)"
-                        textColor="text-typeface_highlight"
-                    >
-                        {activeModuleIndex + 1}
-                    </Badge>
-                    <p className="text-typeface_primary text-body-semibold">
-                        {activeModule.name}
-                    </p>
-                </div>
-                <ButtonBarProvider value={val}>
-                    <ClassModeContent jsonData={jsonData} />
-                </ButtonBarProvider>
-            </div>
-            <ClassModeFooter
-                totalElapsedTime={totalElapsedTime}
-                activePhase={activePhase}
-                activeModule={activeModule}
-                activeModuleIndex={activeModuleIndex}
-                handleNextModule={handleNextModule}
-                handleNextPhase={handleNextPhase}
-                handleEndClass={handleEndClass}
-                handlePreviousModule={handlePreviousModule}
-            />
-        </div>
-    );
-
-    const sharedProps = {
-        activePhase,
-        activePhaseId,
-        setActivePhaseId,
-        activeModule,
-        activeModuleIndex,
-        setActiveModuleIndex,
-        classStarted,
-        setClassStarted,
-        handleStartClass,
-        handleEndClass,
-        handleNextModule,
-        handleNextPhase,
-        totalElapsedTime,
-        learners,
-    };
 
     ////////////////////aaaaaaaaaaaaaa
-    const supabase = createClient();
-
 
     //TODO: Get current session, and then get info from module given number.
     const handleButtonClick = useCallback(async (courseId: string) => {
@@ -510,7 +408,6 @@ export default function ClassModeContainer({
         courseChannel.bind('module-index-updated', async (data: any) => {
             console.log('Received module index update:', data);
             const moduleData = await fetchModuleData(data.moduleId, session.id);
-            //setJsonData({test: 'THIS WILL BE moduleData'});
         });
 
         // Cleanup function
@@ -520,9 +417,112 @@ export default function ClassModeContainer({
         };
     }, [session]);
 
-    ///////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const val = {
+    const PhaseDetails = ({ onBack }: { onBack: () => void }) => (
+        <div className="flex h-full flex-col gap-[8px]">
+            HERE ARE THE PHASE DETAILS
+            <ClassModeHeaderBar
+                onBack={onBack}
+                iconName={"practice"}
+                title={activePhase.name}
+                rightSide={
+                    <div className="flex items-center gap-[12px]">
+                        <button
+                            onClick={handleShowLearners}
+                            className="button-primary rounded-full"
+                        >
+                            <svg
+                                width="32"
+                                height="32"
+                                viewBox="0 0 32 32"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <circle cx="16" cy="16" rx="16" fill="currentBackgroundColor" />
+                                <path
+                                    d="M12.4282 20.4775C12.1274 20.4775 11.8911 20.4095 11.7192 20.2734C11.5474 20.1374 11.4614 19.9512 11.4614 19.7148C11.4614 19.3675 11.5653 19.0041 11.7729 18.6245C11.9842 18.245 12.2868 17.8887 12.6807 17.5557C13.0781 17.2227 13.5562 16.9523 14.1147 16.7446C14.6733 16.5369 15.3 16.4331 15.9946 16.4331C16.6929 16.4331 17.3213 16.5369 17.8799 16.7446C18.4385 16.9523 18.9147 17.2227 19.3086 17.5557C19.7061 17.8887 20.0104 18.245 20.2217 18.6245C20.4329 19.0041 20.5386 19.3675 20.5386 19.7148C20.5386 19.9512 20.4526 20.1374 20.2808 20.2734C20.1089 20.4095 19.8726 20.4775 19.5718 20.4775H12.4282ZM16 15.4771C15.6097 15.4771 15.2498 15.3714 14.9204 15.1602C14.5946 14.9489 14.3314 14.6642 14.1309 14.3062C13.9339 13.9481 13.8354 13.547 13.8354 13.103C13.8354 12.6662 13.9339 12.2723 14.1309 11.9214C14.3314 11.5669 14.5964 11.2858 14.9258 11.0781C15.2552 10.8704 15.6133 10.7666 16 10.7666C16.3903 10.7666 16.7502 10.8687 17.0796 11.0728C17.409 11.2769 17.6722 11.5562 17.8691 11.9106C18.0697 12.2616 18.1699 12.6554 18.1699 13.0923C18.1699 13.5399 18.0697 13.9445 17.8691 14.3062C17.6722 14.6642 17.409 14.9489 17.0796 15.1602C16.7502 15.3714 16.3903 15.4771 16 15.4771Z"
+                                    fill="currentColor"
+                                />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => displayPhaseLineup(activePhase.id)}
+                            className="button-primary rounded-full"
+                        >
+                            <svg
+                                width="32"
+                                height="32"
+                                viewBox="0 0 32 32"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <rect
+                                    width="32"
+                                    height="32"
+                                    rx="16"
+                                    fill="currentBackgroundColor"
+                                />
+                                <path
+                                    fill-rule="evenodd"
+                                    clip-rule="evenodd"
+                                    d="M20 11C20.5523 11 21 11.4477 21 12C21 12.5523 20.5523 13 20 13L12 13C11.4477 13 11 12.5523 11 12C11 11.4477 11.4477 11 12 11H20ZM20 15C20.5523 15 21 15.4477 21 16C21 16.5523 20.5523 17 20 17H12C11.4477 17 11 16.5523 11 16C11 15.4477 11.4477 15 12 15L20 15ZM21 20C21 19.4477 20.5523 19 20 19L12 19C11.4477 19 11 19.4477 11 20C11 20.5523 11.4477 21 12 21H20C20.5523 21 21 20.5523 21 20Z"
+                                    fill="currentColor"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                }
+            />
+            <div className="flex h-full flex-col gap-[8px] rounded-[10px] outline-surface_border_tertiary">
+                <div className="flex items-center gap-[12px] p-[18px]">
+                    <Badge
+                        bgColor="var(--surface_bg_darkest)"
+                        textColor="text-typeface_highlight"
+                    >
+                        {activeModuleIndex + 1}
+                    </Badge>
+                    <p className="text-typeface_primary text-body-semibold">
+                        {activeModule.name}
+                    </p>
+                </div>
+                <ButtonBarProvider value={buttonBarContextValue}>
+                    <ClassModeContentInstructor instructor_content={instructorContent} />
+                </ButtonBarProvider>
+            </div>
+            <ClassModeFooter
+                totalElapsedTime={totalElapsedTime}
+                activePhase={activePhase}
+                activeModule={activeModule}
+                activeModuleIndex={activeModuleIndex}
+                handleNextModule={handleNextModule}
+                handleNextPhase={handleNextPhase}
+                handleEndClass={handleEndClass}
+                handlePreviousModule={handlePreviousModule}
+            />
+        </div>
+    );
+
+    const sharedProps = {
+        activePhase,
+        activePhaseId,
+        setActivePhaseId,
+        activeModule,
+        activeModuleIndex,
+        setActiveModuleIndex,
+        classStarted,
+        setClassStarted,
+        handleStartClass,
+        handleEndClass,
+        handleNextModule,
+        handleNextPhase,
+        totalElapsedTime,
+        members,
+    };
+
+    const buttonBarContextValue = {
         handleSubmitAnswer,
         setHandleSubmitAnswer,
     };
@@ -531,9 +531,9 @@ export default function ClassModeContainer({
         if (isMobile)
             return (
                 <MobileClassModeContainer {...sharedProps}>
-                    <ButtonBarProvider value={val}>
+                    <ButtonBarProvider value={buttonBarContextValue}>
                         <ClassModeContentInstructor
-                            instructor_content={jsonData.student_data?.instructor_content || ""}
+                            instructor_content={instructorContent || ""}
                         />
                     </ButtonBarProvider>
                 </MobileClassModeContainer>
@@ -546,6 +546,7 @@ export default function ClassModeContainer({
             >
                 {showInitialClassPage ? (
                     <div className="flex h-full flex-col">
+                        HERE IS SHOW_INITIAL_PAGE
                         <ClassModeHeaderBar
                             onBack={handleBack}
                             title={
@@ -611,17 +612,17 @@ export default function ClassModeContainer({
                                             : "grid-cols-3 grid-rows-2 gap-[16px]"
                                     }`}
                             >
-                                <ClassModePhases
+                                {/* <ClassModePhases
                                     phases={phases}
                                     phaseTimes={phaseTimes}
                                     activePhase={activePhase}
                                     activeModule={activeModule}
                                     activeModuleIndex={activeModuleIndex}
                                     totalElapsedTime={totalElapsedTime}
-                                />
+                                /> */}
                             </div>
-                            <ButtonBarProvider value={val}>
-                                <ClassDetailsContainer lessonPlan={lessonPlan} />
+                            <ButtonBarProvider value={buttonBarContextValue}>
+                                <ClassDetailsContainer lessonSummary={lessonSummary} />
                             </ButtonBarProvider>
                         </div>
                     </div>

@@ -26,15 +26,15 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
 
     const t = getGT();
 
-
-    const { userRole } = useUserRole();
+    const { userRole, uid } = useUserRole();
     const { isMobile } = useResponsive();
 
     const { handleSubmitAnswer } = useButtonBar();
+    const [buttonBarText, setButtonBarText] = useState("");
 
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const exercises = jsonData.student_data?.exercises || [];
-    const [buttonBarText, setButtonBarText] = useState("");
+
 
     useEffect(() => {
         setCurrentExerciseIndex(0);

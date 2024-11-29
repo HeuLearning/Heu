@@ -1,5 +1,3 @@
-import { UUID } from "crypto";
-import { eachMinuteOfInterval } from "date-fns";
 
 export type JSONData = {
 
@@ -31,16 +29,19 @@ type ExerciseContent = {
 }*/
 
 export type User = {
-    uid: UUID;
+    uid: string;
     role: string;
     first_name?: string;
     last_name?: string;
     phone_number?: string;
     email?: string;
+
+    // this prop only exists to function with old backend.
+    status?: string;
 }
 
 export type Exercise = {
-    id: UUID;
+    id: string;
     simple_id: number;
     content: any;
     tags: string;
@@ -48,7 +49,7 @@ export type Exercise = {
 }
 
 export type Module = {
-    id: UUID;
+    id: string;
     name: string;
     description: string;
     instructor_content: string;
@@ -56,14 +57,14 @@ export type Module = {
 }
 
 export type Phase = {
-    id: UUID;
+    id: string;
     name: string;
     description: string;
     type: string;
 }
 
 export type LessonPlan = {
-    id: UUID;
+    id: string;
     name: string;
     description: string;
     learner_overview: string;

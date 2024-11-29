@@ -5,10 +5,10 @@ import dictionary from "@/dictionary";
 import { LessonSummary } from "@/app/types/LessonSummaryType";
 
 interface ClassDetailsContainerProps {
-    lessonSummary: any;
+    lessonSummary: LessonSummary;
 }
 
-export default function ClassDetailsContainer({
+export default function ClassDetailsContainer_new({
     lessonSummary,
 }: ClassDetailsContainerProps) {
     const t = getGT();
@@ -20,7 +20,7 @@ export default function ClassDetailsContainer({
                     {t("class_mode_content.class_details")}
                 </h3>
                 <p className="text-typeface_primary text-body-regular">
-                    {lessonSummary.lesson_plan_description || "No description given"}
+                    {lessonSummary.description || "No description given"}
                 </p>
             </div>
             <div className="px-[4px] pb-[14px]">

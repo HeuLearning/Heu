@@ -16,22 +16,16 @@ interface UserProps {
 }
 
 interface ScheduledLesson {
-    id: string;
+    id: UUID;
+    approved: boolean;
     start_time: string;
     end_time: string;
-    max_capacity?: number; // Optional, if not returned from first structure
-    total_max_capacity?: number; // Optional, only for the first structure
-    num_enrolled: number;
-    num_waitlist: number;
-    num_confirmed: number;
-    learning_organization_name: string;
-    location_name: string;
-    isEnrolled?: boolean; // Optional for the first structure
-    isWaitlisted?: boolean; // Optional for the first structure
-    isConfirmed?: boolean; // Optional for the first structure
-    instructors?: any[]; // Optional for the first structure
-    other_instructors?: any[]; // Optional for the second structure
-    instructor_status?: string; // Optional for the second structure
+    learning_organization_location_id: number;
+    max_capacity?: number;
+    active_module?: number;
+    lesson_plan_id?: UUID;
+    admin_creator_id?: UUID;
+    simple_id: number;
 }
 
 
@@ -121,7 +115,7 @@ export const LessonScheduleProvider: React.FC<LessonScheduleProviderProps> = ({
             return location?.name || null;
         };
 
-        const fetchSessions = async (filter: any) => {
+        const fetchLessons = async (filter: any) => {
             const { data: sessions, error } = await supabase
                 .from("heu_session")
                 .select("*")
@@ -137,7 +131,7 @@ export const LessonScheduleProvider: React.FC<LessonScheduleProviderProps> = ({
         };
 
 
-        const processSessionDetails = async (session, user_id) => {
+        const processSessionDetails = async (session: ScheduledLesson, user_id) => {
             const organizationName = await fetchOrganizationName(
                 session.learning_organization_location_id,
             );

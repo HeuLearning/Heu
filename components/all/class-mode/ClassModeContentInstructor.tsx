@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useResponsive } from "../ResponsiveContext";
-import { InstructorContentJSON } from "@/utils/supabase/db-types";
+import { InstructorContentJSON } from "@/app/types/db-types";
 import InstructorContent from "@/components/exercises/InstructorContent";
 import ButtonBar from "../mobile/ButtonBar";
 import { useButtonBar } from "../mobile/ButtonBarContext";
@@ -13,18 +13,10 @@ interface ClassModeContentInstructorProps {
 function ClassModeContentInstructor({ instructor_content }: ClassModeContentInstructorProps) {
     const t = getGT();
     const { isMobile } = useResponsive();
-    const { handleSubmitAnswer } = useButtonBar();
 
-    const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+    const { handleSubmitAnswer } = useButtonBar();
     const [buttonBarText, setButtonBarText] = useState("");
 
-    useEffect(() => {
-        setCurrentExerciseIndex(0);
-    }, [instructor_content]);
-
-    console.log(currentExerciseIndex);
-
-    // Memoize the content rendering logic to avoid unnecessary re-renders
     const renderContent = useMemo(() => {
         setButtonBarText(t("button_content.continue"));
         return (
@@ -32,7 +24,7 @@ function ClassModeContentInstructor({ instructor_content }: ClassModeContentInst
                 instruction={instructor_content}
             />
         );
-    }, [currentExerciseIndex, instructor_content]);
+    }, [instructor_content]);
 
     return (
         <div>

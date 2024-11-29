@@ -24,7 +24,7 @@ import { ButtonBarProvider } from "../mobile/ButtonBarContext";
 import { createClient } from "../../../utils/supabase/client";
 import Pusher from "pusher-js";
 import ClassModeContentInstructor from "./ClassModeContentInstructor";
-import { JSONData } from "@/utils/supabase/db-types";
+import { JSONData } from "@/app/types/db-types";
 
 interface Learner {
     id: number;
