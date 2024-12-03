@@ -879,7 +879,7 @@ export default function ClassModeContainer({
                                 />
                             </div>
                             <ButtonBarProvider value={val}>
-                                <ClassDetailsContainer lessonPlan={lessonPlan} />
+                                <ClassDetailsContainer lessonSummary={lessonPlan} />
                             </ButtonBarProvider>
                         </div>
                     </div>

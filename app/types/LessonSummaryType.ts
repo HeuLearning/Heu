@@ -28,56 +28,74 @@ export interface LessonSummary {
 }
 
 
-export const dummyLessonSummary: LessonSummary = {
-    id: "123e4567-e89b-12d3-a456-426614174000", // UUID for Lesson Plan
-    name: "Introduction to TypeScript",
-    description: "A foundational lesson on TypeScript.",
-    phases: [
-      {
-        id: "phase-uuid-1",
-        name: "Phase 1: Basics",
-        description: "Learn the basics of TypeScript, including syntax and types.",
-        type: "Lecture", // Type of phase, e.g., Lecture, Practical, Review
-        index: 1, // Order of the phase
-        modules: [
-          {
-            id: "module-uuid-1",
-            name: "Introduction to Types",
-            description: "Understanding basic types in TypeScript.",
-            duration: 30, // Duration in minutes
-            index: 5, // Module order (not sequential)
-          },
-          {
-            id: "module-uuid-2",
-            name: "Variables and Constants",
-            description: "Understanding variables and constants in TypeScript.",
-            duration: 20, // Duration in minutes
-            index: 11, // Module order (not sequential)
-          },
-        ],
-      },
-      {
-        id: "phase-uuid-2",
-        name: "Phase 2: Advanced Topics",
-        description: "Dive deeper into more advanced features of TypeScript.",
-        type: "Workshop",
-        index: 2,
-        modules: [
-          {
-            id: "module-uuid-3",
-            name: "Interfaces and Types",
-            description: "Learn about defining types with interfaces.",
-            duration: 45,
-            index: 2, // Module order (not sequential)
-          },
-          {
-            id: "module-uuid-4",
-            name: "Generics in TypeScript",
-            description: "Understanding and using generics in TypeScript.",
-            duration: 60,
-            index: 8, // Module order (not sequential)
-          },
-        ],
-      },
-    ],
+export const dummyLessonSummary = {
+  id: "88f059a0-66e8-40df-bb50-70b3096df015",
+  name: "TestNewDB Lesson Plan 1",
+  description: "description of TestNewDB lesson plan 1",
+  phases: [
+    {
+      id: "7ea7d7ba-aae2-4598-a257-504103175bcf",
+      name: "TestNewDB phase 1",
+      description: "phase 1 description",
+      type: "placeholder_type",
+      index: 10,
+      modules: [
+        {
+          id: "141dfcd6-cc41-4b82-9bd6-49ffe20de191",
+          name: "TestNewDB Module 1",
+          description: "description of module 1",
+          duration: 30,
+          index: 10
+        },
+        {
+          id: "bdc85abe-e1fc-4c87-9281-a4a601eb95f6",
+          name: "TestiNewDB Module 2",
+          description: "description of module 2",
+          duration: 20,
+          index: 20
+        },
+        {
+          id: "4d978b1a-e8e1-49a9-9aec-dbe4f3635e5c",
+          name: "TestNewDB Module 3",
+          description: "description of module 3",
+          duration: 30,
+          index: 30
+        }
+      ]
+    },
+    {
+      id: "d1120706-4ae9-469b-9536-d53e52f14f2f",
+      name: "TestNewDB phase 2",
+      description: "phase 2 description",
+      type: "placeholder_type",
+      index: 20,
+      modules: [
+        {
+          id: "e574967d-486f-439a-9445-1b6a0444686c",
+          name: "TestNewDB Module 4",
+          description: "description of module 4",
+          duration: 20,
+          index: 40
+        },
+        {
+          id: "95a6dad1-1de5-4263-b7f7-5e53710e451d",
+          name: "TestNewDB Module 5",
+          description: "description of module 5",
+          duration: 20,
+          index: 50
+        }
+      ]
+    }
+  ]
 };
+
+
+export const noMoreModules: ModuleOverview[] = [
+    {
+        id: "",
+        name: "No More Modules",
+        description: "No modules remaining.",
+        duration: 20,
+        index: 0
+    },
+]

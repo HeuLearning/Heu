@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { redirect, useRouter, useParams } from "next/navigation";
 import Head from "next/head";
+import DashboardContainer from "../../../components/all/DashboardContainer";
 import { SessionsProvider } from "../../../components/all/data-retrieval/SessionsContext";
 import { UserRoleProvider } from "../../../components/all/data-retrieval/UserRoleContext";
 import { PopUpProvider } from "../../../components/all/popups/PopUpContext";
@@ -16,7 +17,6 @@ import {
 import { LessonPlanProvider } from "@/components/all/data-retrieval/LessonPlanContext";
 import { StopwatchProvider } from "@/components/all/class-mode/StopwatchContext";
 import ClassModeContainer from "@/components/all/class-mode/ClassModeContainer";
-import ClassModeContainerInstructor from "@/components/all/class-mode/ClassModeContainer-instructor";
 
 interface UserData {
     user: {
@@ -27,8 +27,11 @@ interface UserData {
 }
 
 
+
 const ClassModeDashboard = () => {
+    const { isMobile, isTablet, isDesktop } = useResponsive();
     const params = useParams();
+    // TODO: how are you supposed to rename SessionID to LessonID?
     const sessionId = Array.isArray(params?.sessionId)
         ? params.sessionId[0]
         : params?.sessionId;
@@ -85,8 +88,6 @@ const ClassModeDashboard = () => {
 
     if (!userData) return null; // or a loading state
 
-    const { isMobile, isTablet, isDesktop } = useResponsive();
-
     return (
         <>
             <Head>
@@ -104,17 +105,19 @@ const ClassModeDashboard = () => {
             </Head>
             <div>
                 <ResponsiveProvider>
-                    <SessionsProvider accessToken={""} userRole="in">
-                        <LessonPlanProvider sessionId={sessionId} accessToken={""}>
-                            <PopUpProvider>
-                                {isDesktop && <Navbar activeTab={""} />}
-                                <StopwatchProvider>
-                                    <ClassModeContainerInstructor sessionId={sessionId} />
-                                </StopwatchProvider>
-                                <EnhancedPopUp />
-                            </PopUpProvider>
-                        </LessonPlanProvider>
-                    </SessionsProvider>
+                    <UserRoleProvider accessToken={""}>
+                        <SessionsProvider accessToken={""} userRole="in">
+                            <LessonPlanProvider sessionId={sessionId} accessToken={""}>
+                                <PopUpProvider>
+                                    {isDesktop && <Navbar activeTab={""} />}
+                                    <StopwatchProvider>
+                                        <ClassModeContainer sessionId={sessionId} />
+                                    </StopwatchProvider>
+                                    <EnhancedPopUp />
+                                </PopUpProvider>
+                            </LessonPlanProvider>
+                        </SessionsProvider>
+                    </UserRoleProvider>
                 </ResponsiveProvider>
             </div>
         </>

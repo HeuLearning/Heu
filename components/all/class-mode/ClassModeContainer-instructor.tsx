@@ -4,12 +4,10 @@ import ClassModeHeaderBar from "./ClassModeHeaderBar";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import LearnerItem from "./LearnerItem";
-import { useSessions } from "../data-retrieval/SessionsContext";
 import { usePopUp } from "../popups/PopUpContext";
 import SidePopUp from "../popups/SidePopUp";
 import XButton from "../buttons/XButton";
 import PhaseLineup from "./PhaseLineup";
-import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
 import PopUpContainer from "../popups/PopUpContainer";
 import ClassModePhases from "./ClassModePhases";
 import ClassModeContent from "./ClassModeContent";
@@ -25,13 +23,13 @@ import { createClient } from "../../../utils/supabase/client";
 import Pusher from "pusher-js";
 import ClassModeContentInstructor from "./ClassModeContentInstructor";
 import { User } from "@/app/types/db-types";
-import { LessonSummary, dummyLessonSummary } from "@/app/types/LessonSummaryType";
+import { LessonSummary, dummyLessonSummary, noMoreModules } from "@/app/types/LessonSummaryType";
 
 interface ClassModeContainerProps {
     sessionId: string;
 }
 
-export default function ClassModeContainer({
+export default function ClassModeContainerInstructor({
     sessionId,
 }: ClassModeContainerProps) {
     // website navbar = 64, bottom margin = 16
@@ -45,15 +43,15 @@ export default function ClassModeContainer({
 
     const [activePhaseId, setActivePhaseId] = useState<string>('');
 
-    //################################################################
+    /*//################################################################
     // HORSE PIG SHIT
     const { phases, getModules, lessonPlan, phaseTimes, isLoading } =
         useLessonPlan();
-    //################################################################
+    //################################################################*/
 
-    if (isLoading) {
+    /*if (isLoading) {
         return <div></div>;
-    }
+    }*/
 
 
     const [members, setMembers] = useState<User[]>([]);
@@ -62,21 +60,44 @@ export default function ClassModeContainer({
     const [instructorContent, setInstructorContent] = useState<string>('InstructorContent defined inside ClassModeContainer');
     const [showInitialClassPage, setShowInitialClassPage] = useState(true);
     const [classStarted, setClassStarted] = useState(false);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const [activeModuleID, setActiveModuleID] = useState<string>('');
     const [activeModuleIndex, setActiveModuleIndex] = useState(0);
-    const [activeModule, setActiveModule] = useState<ModuleData>('');
+    const [activeModule, setActiveModule] = useState<string>('');
+
+
 
     const supabase = createClient();
 
-    useEffect(() => {
-        // automatic retrieval of active module ID
-        if (!lessonSummary.id) return;
+    /* * * * * * * * * * * * * * * THIS IS TEMPORARY * * * * * * * * * * * * * * * * * */
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-        const channelName = `lessons_new:lessonId-${lessonSummary.id}`; // dynamic to avoid conflict
+    const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae');
+
+    useEffect(() => {
+        const retrieveActiveModuleID = async () => {
+            const { data, error } = await supabase
+                .from('lessons_new')
+                .select('active_module_id')
+                .eq('id', lessonID)
+                .single();
+            if (error) {
+                console.error(`Error fetching initial module ID of ${lessonSummary.id}: ${error}`);
+                return;
+            }
+            console.log(`initial module id is ${data.active_module_id}`);
+            setActiveModuleID(data.active_module_id);
+        }
+        retrieveActiveModuleID();
+    }, [lessonID, activeModuleID]);
+
+
+    useEffect(() => {
+        // setup dynamic update of active module ID
+
+        if (!lessonID) return;
+
+        const channelName = `lessons_new:lessonId-${lessonSummary.id}`;
 
         const subscription = supabase
             .channel(channelName)
@@ -86,10 +107,11 @@ export default function ClassModeContainer({
                     event: 'UPDATE',
                     schema: 'public',
                     table: 'lessons_new',
-                    filter: `id=eq.${lessonSummary.id}`,
+                    filter: `id=eq.${lessonID}`,
                 },
                 (payload) => {
                     const newModuleId = payload.new.active_module_id;
+                    console.log(`setting new module id of ${newModuleId}`);
                     setActiveModuleID(newModuleId);
                 }
             )
@@ -98,30 +120,31 @@ export default function ClassModeContainer({
         return () => {
             subscription.unsubscribe();
         };
-    }, [lessonSummary.id]);
+    }, [lessonID]);
 
 
     useEffect(() => {
-        console.log(`Retrieving module, activeModuleID is ${activeModuleID}`);
         if (!activeModuleID) return;
-        const retrieveModuleFromID = async (moduleId: string) => {
+        const retrieveModuleFromID = async () => {
+            console.log(`retrieveModuleFromID with moduleId = ${activeModuleID}`);
             const { data, error } = await supabase
-                .from('modules')
+                .from('modules_new')
                 .select('*')
-                .eq('id', moduleId)
+                .eq('id', activeModuleID)
                 .single();
             if (error) {
                 console.error('Error fetching module data:', error);
                 return;
             }
-            console.log(`data is ${data}`);
-            setActiveModule(data);
+            console.log(`data is ${JSON.stringify(data)}`);
+            setActiveModule(data.name);
         };
-        retrieveModuleFromID(activeModuleID);
-
+        retrieveModuleFromID();
     }, [activeModuleID]);
 
+
     const nextModuleID = (moduleId: string, summary: LessonSummary): string | "No more modules" | null => {
+        /// make this also set the activePhase, and work across diff. phases
         const allModules = summary.phases
             .flatMap((phase) => phase.modules);
 
@@ -142,12 +165,20 @@ export default function ClassModeContainer({
 
         return nextModule.id;
     };
-    const handleNextModule = async (currentModuleID: string, summary: LessonSummary): Promise<void> => {
-        /*totalElapsedTime.push(
-            totalElapsedTime[-1] + module.duration,
-        );
-        setElapsedTime(totalElapsedTime[index + 1]);*/
-        const nextID = nextModuleID(currentModuleID, summary);
+
+    const handleNextModule = async (): Promise<void> => {
+        //const lessonSummary = useContext(LessonSummaryContext);
+
+        // Ensure lessonSummary exists and contains phases and modules
+        if (!lessonSummary || !lessonSummary.phases) {
+            console.error('No lesson summary found.');
+            return;
+        } else if (!activeModuleID) {
+            console.error('No active module ID found.');
+            return;
+        }
+
+        const nextID = nextModuleID(activeModuleID, lessonSummary);
         if (!nextID) {
             console.error("No next module found.");
             return;
@@ -155,24 +186,49 @@ export default function ClassModeContainer({
             console.log('NO MORE MODULES TO DISPLAY');
             return;
         }
+        console.log(`nextID is ${nextID}`);
+
 
         try {
             const { data, error } = await supabase
                 .from("lessons_new")
-                .update({ active_module: nextID })
-                .eq("id", summary.id);
+                .update({ active_module_id: nextID })
+                .eq("id", lessonID);
 
             if (error) {
-                console.error("Failed to update active module:", error);
-                return;
+                throw new Error(`Failed to update active module: ${error.message}`);
             }
+
             console.log("Successfully updated active module:", data);
         } catch (err) {
             console.error("Error during handleNextModule execution:", err);
         }
-    }; // await handleNextModule(ActiveModuleID, lessonSummary);
+    };
 
 
+    return (
+        <div>
+            <div>
+                activeModuleID is {activeModuleID}
+            </div>
+            <div>
+                activeModuleIndex is {activeModuleIndex}
+            </div>
+            <div>
+                activeModule is {activeModule}
+            </div>
+            <div>
+                <button onClick={() => {
+                    console.log(`setting next module`);
+                    handleNextModule();
+                }}>Next Module</button>
+            </div>
+        </div>
+    )
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // retrieve module data on update of active module
 
@@ -207,18 +263,15 @@ export default function ClassModeContainer({
 
 
 
-
+    /*
 
     const [handleSubmitAnswer, setHandleSubmitAnswer] = useState<any>(
         () => () => { },
     );
 
-    const [isSessionLoading, setIsSessionLoading] = useState(true);
-
     const { hidePopUp, showPopUp } = usePopUp();
 
-    const activePhase: any = phases.find((phase) => phase.id === activePhaseId);
-
+    //// wtf does this do
     const dashboardContainer = document.getElementById("class-mode-container");
     let containerHeight: number | null;
     if (dashboardContainer) {
@@ -226,6 +279,7 @@ export default function ClassModeContainer({
     } else {
         console.error("Element with ID 'class-mode-container' not found");
     }
+    /////
 
     const router = useRouter();
     const handleBack = () => {
@@ -307,17 +361,7 @@ export default function ClassModeContainer({
                 >
                     THIS IS A PHASE LINEUP
                     <PhaseLineup
-                        /*
-                        PhaseLineup passes this to <ModuleDetail>
-                                            V
-                        getModules(phaseId) returns Module[]. Index is inherent.
-                            key={module.id}
-                            active={index === activeModuleIndex}
-                            number={index + 1}
-                            title={module.name}
-                            description={module.description}
-                            done={activeModuleIndex >= index}
-                        */
+
                         modules={getModules(phaseId)}
                         activeModuleIndex={activeModuleIndex}
                     />
@@ -332,6 +376,16 @@ export default function ClassModeContainer({
     };
 
 
+    //PhaseLineup passes this to <ModuleDetail>
+    //                    V
+    //getModules(phaseId) returns Module[]. Index is inherent.
+    //    key={module.id}
+     //   active={index === activeModuleIndex}
+    //    number={index + 1}
+    //    title={module.name}
+    //    description={module.description}
+    //    done={activeModuleIndex >= index}
+    
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -371,10 +425,7 @@ export default function ClassModeContainer({
         console.log(`handle button click pressed for course ${courseId}, returned module is ${mod}`);
     }, [session]);
 
-    /*
-    What I've done: set up supabase trigger
-    TODO: From a moduleID and sessionID, get the module data and return it. From there, 
-    */
+
     const fetchModuleData = useCallback(async (moduleId: string, sessionId: string) => {
         const supabase = createClient();
         const { data, error } = await supabase
@@ -612,14 +663,7 @@ export default function ClassModeContainer({
                                             : "grid-cols-3 grid-rows-2 gap-[16px]"
                                     }`}
                             >
-                                {/* <ClassModePhases
-                                    phases={phases}
-                                    phaseTimes={phaseTimes}
-                                    activePhase={activePhase}
-                                    activeModule={activeModule}
-                                    activeModuleIndex={activeModuleIndex}
-                                    totalElapsedTime={totalElapsedTime}
-                                /> */}
+
                             </div>
                             <ButtonBarProvider value={buttonBarContextValue}>
                                 <ClassDetailsContainer lessonSummary={lessonSummary} />
@@ -631,5 +675,13 @@ export default function ClassModeContainer({
                 )}
             </div>
         );
-    }
+    }*/
 }
+{/* <ClassModePhases
+                                    phases={phases}
+                                    phaseTimes={phaseTimes}
+                                    activePhase={activePhase}
+                                    activeModule={activeModule}
+                                    activeModuleIndex={activeModuleIndex}
+                                    totalElapsedTime={totalElapsedTime}
+                                /> */}

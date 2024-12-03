@@ -1,371 +1,139 @@
-import React, {
-    createContext,
-    useContext,
-    useState,
-    useEffect,
-    ReactNode,
-} from "react";
-import { useSessions } from "./SessionsContext";
+
 import { createClient } from "@/utils/supabase/client";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface LessonPlan {
-    session_id: string;
-    lesson_plan_id: number;
-    lesson_plan_name: string;
-    lesson_plan_description: string;
-    phases: Phase[];
+
+const supabase = createClient();
+
+
+// Define the context types
+interface ModuleOverview {
+    id: string;
+    name?: string;
+    description?: string;
+    duration: number;
+    index: number;
 }
 
-interface Phase {
+interface PhaseOverview {
     id: string;
-    name: string;
+    name?: string;
+    description?: string;
     type: string;
-    description: string;
-    phase_duration_seconds: number;
-    modules: Module[];
+    index: number;
+    modules: ModuleOverview[];
 }
 
-interface Module {
-    instructor_content: any;
-    exercises: any;
+export interface LessonSummary {
     id: string;
-    name: string;
-    description: string;
-    suggested_duration_seconds: number;
+    name?: string;
+    description?: string;
+    phases: PhaseOverview[];
 }
 
-// context type
-interface LessonPlanContextType {
-    lessonPlan: LessonPlan;
-    phases: Phase[];
-    getModules: (phaseId: string) => Module[] | undefined;
-    phaseTimes: Map<string, string>;
-    isLoading: boolean;
-    error: any;
+interface LessonSummaryContextType {
+    lessonSummary: LessonSummary | null;
+    loading: boolean;
+    error: string | null;
 }
 
-// create context with initial undefined value
-const LessonPlanContext = createContext<LessonPlanContextType | undefined>(
-    undefined,
-);
+const LessonSummaryContext = createContext<LessonSummaryContextType | undefined>(undefined);
 
-// props for provider
-interface LessonPlanProviderProps {
+export const useLessonSummary = (): LessonSummaryContextType => {
+    const context = useContext(LessonSummaryContext);
+    if (!context) {
+        throw new Error('useLessonSummary must be used within a LessonSummaryProvider');
+    }
+    return context;
+};
+
+interface LessonSummaryProviderProps {
     children: ReactNode;
-    sessionId: string | null;
-    accessToken: string;
+    lessonPlanID: string;
 }
 
-export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
-    children,
-    sessionId,
-    accessToken,
-}) => {
-    const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+// Provider component
+export const LessonSummaryProvider: React.FC<LessonSummaryProviderProps> = ({ children, lessonPlanID }) => {
+    const [lessonSummary, setLessonSummary] = useState<LessonSummary | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const { upcomingSessions } = useSessions();
-    const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
-
-    const supabase = createClient();
 
     useEffect(() => {
-        const fetchPhases = async () => {
-            console.log("FETCHING PHASES:");
-
-            if (!sessionId) {
-                setLessonPlan(null);
-                setIsLoading(false);
-                setError("No session ID provided");
-                return;
-            }
-
-            setIsLoading(true);
+        const fetchLessonSummary = async () => {
+            setLoading(true);
             setError(null);
 
             try {
-                // Fetch session data
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession();
-                const user_id = session?.user.id;
+                const { data: phaseData, error: phaseError } = await supabase
+                    .from('lesson_plan_phases')
+                    .select(`
+            phase_id,
+            phase_order,
+            phases_new(id, name, description, type)
+          `)
+                    .eq('lesson_plan_id', lessonPlanID)
+                    .order('phase_order', { ascending: true });
 
-                // GET SESSIONS ASSOCIATED WITH INSTRUCTOR
-                const { data: sessions, error: sessionError } = await supabase
-                    .from("heu_session")
-                    .select("lesson_id")
-                    .eq("approved", true)
-                    .eq("id", sessionId)
-                    .or(
-                        `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
-                    );
+                if (phaseError) throw phaseError;
 
+                const phaseOverviewPromises = phaseData.map(async (phase) => {
+                    const { data: moduleData, error: moduleError } = await supabase
+                        .from('phase_modules')
+                        .select(`
+      module_id,
+      module_order,
+      modules_new(id, name, description, duration)
+    `)
+                        .eq('phase_id', phase.phase_id)
+                        .order('module_order', { ascending: true });
 
-                if (sessionError || !sessions || sessions.length === 0) {
-                    throw new Error("Session not found or invalid session data.");
-                }
+                    if (moduleError) throw moduleError;
 
+                    // Now checking if moduleData contains an array and we need to map through it
+                    const modules: ModuleOverview[] = moduleData.map((module) => {
+                        const modulesNew = module.modules_new; // module.modules_new is an object, not an array
+                        return {
+                            id: modulesNew.id, // Now safely access the 'id' property of the modules_new object
+                            name: modulesNew.name,
+                            description: modulesNew.description,
+                            duration: modulesNew.duration,
+                            index: module.module_order,
+                        };
+                    });
 
-                const sessionData = sessions[0];
-
-                const { data: sesh, error: session2 } = await supabase
-                    .from("heu_session")
-                    .select("*")
-                    .eq("approved", true)
-                    .eq("id", sessionId)
-                    .or(
-                        `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
-                    );
-
-                if (!sesh || sesh.length === 0) {
-                    console.error("No session data found.");
-                    setIsLoading(false);
-                    return;
-                }
-
-                if (sesh[0].full_session) {
-                    console.log("Using cached full_session data");
-
-                    setLessonPlan(sesh[0].full_session); // Set the lesson plan directly from full_session
-                    setIsLoading(false); // Stop loading
-                    return; // Exit early, no need to make further API calls
-                }
-
-                // GET LESSON IDS FROM ARRAY IN SESSIONS
-                const lessonId = sessions[0].lesson_id;
-                const { data: lessons, error: lessonError } = await supabase
-                    .from("heu_lesson")
-                    .select("*")
-                    .eq("id", lessonId);
-
-                if (lessonError || !lessons || lessons.length === 0) {
-                    throw new Error("No lessons found for the session.");
-                }
-
-                // GET THE LESSON PLAN
-                const lessonPlanId = lessons[0].lessonplan_id;
-                const { data: lessonPlan, error: lessonPlanError } = await supabase
-                    .from("heu_lessonplan")
-                    .select("*")
-                    .eq("id", lessonPlanId)
-                    .single();
-
-                if (lessonPlanError || !lessonPlan) {
-                    throw new Error("Lesson plan not found.");
-                }
-
-                // GET PHASE IDS
-                const phaseIds = lessonPlan.phase_ids;
-                let phasesData = [];
-
-                // Iterate over phaseIds to fetch phase details
-                for (const phaseId of phaseIds) {
-                    const { data: phaseData, error: phaseError } = await supabase
-                        .from("heu_phase")
-                        .select("*")
-                        .eq("id", phaseId)
-                        .single();
-
-                    if (phaseError || !phaseData) {
-                        console.error(`Error fetching phase ${phaseId}:`, phaseError);
-                        continue; // Skip this phase if there's an error
-                    }
-
-                    // Fetch modules for each phase based on module_ids
-                    const modulesData = [];
-                    for (const moduleId of phaseData.module_ids) {
-                        const { data: moduleData, error: moduleError } = await supabase
-                            .from("heu_module")
-                            .select("*")
-                            .eq("id", moduleId)
-                            .single();
-
-                        if (moduleError || !moduleData) {
-                            console.error(`Error fetching module ${moduleId}:`, moduleError);
-                            continue; // Skip this module if there's an error
-                        }
-
-                        // Fetch associated algorithm data to get exercise IDs
-                        const { data: algorithmData, error: algoError } = await supabase
-                            .from("heu_algorithms")
-                            .select("exercise_ids")
-                            .eq("id", moduleData.algo_id) // Use algo_id from moduleData
-                            .single();
-
-                        const exerciseIds = algorithmData?.exercise_ids || [];
-                        const exercisesData = [];
-
-                        if (exerciseIds.length > 0) {
-                            const { data: exercises, error: exercisesError } = await supabase
-                                .from("heu_exercises")
-                                .select("*")
-                                .in("id", exerciseIds);
-
-                            if (exercisesError) {
-                                console.error(
-                                    `Error fetching exercises for module ${moduleId}:`,
-                                    exercisesError,
-                                );
-                            } else {
-                                exercisesData.push(...exercises); // Collect all exercises
-                            }
-                        }
-
-                        console.log("here is the module data...")
-                        console.log(moduleData)
-
-                        // Push module into array
-                        modulesData.push({
-                            id: moduleData.id,
-                            name: moduleData.name,
-                            description: moduleData.description,
-                            instructor_content: moduleData.instructor_content,
-                            suggested_duration_seconds: moduleData.suggested_duration_seconds,
-                            exercises: exercisesData, // Include exercises in module
-                        });
-                    }
-
-                    // Calculate total phase duration
-                    const phaseDuration = modulesData.reduce(
-                        (total, module) => total + module.suggested_duration_seconds,
-                        0,
-                    );
-
-                    // Structure the phase object
-                    const phase = {
-                        id: phaseData.id,
-                        name: phaseData.name,
-                        type: phaseData.type,
-                        description: phaseData.description,
-                        phase_duration_seconds: phaseDuration,
-                        modules: modulesData,
-                        order: phaseData.order, // Assuming 'order' exists in phaseData
+                    return {
+                        id: phase.phases_new.id,
+                        name: phase.phases_new.name,
+                        description: phase.phases_new.description,
+                        type: phase.phases_new.type,
+                        index: phase.phase_order,
+                        modules, // Now modules are correctly mapped
                     };
-
-                    // Add the phase to phasesData array
-                    phasesData.push(phase);
-                }
-
-                // Filter and sort the phases by their order
-                const validPhasesData = phasesData.filter((phase) => phase !== null);
-                validPhasesData.sort((a, b) => a.order - b.order);
-
-                console.log("FINAL SESSION DATA:", {
-                    session_id: sessionId,
-                    lesson_plan_id: lessonPlan.id,
-                    lesson_plan_name: lessonPlan.name,
-                    lesson_plan_description: lessonPlan.description,
-                    phases: validPhasesData,
                 });
 
-                const finalSessionData = {
-                    session_id: sessionId,
-                    lesson_plan_id: lessonPlan.id,
-                    lesson_plan_name: lessonPlan.name,
-                    lesson_plan_description: lessonPlan.description,
-                    phases: validPhasesData,
-                };
-
-                // Set the final lesson plan state
-                setLessonPlan(finalSessionData);
-
-                const { error: updateError } = await supabase
-                    .from("heu_session")
-                    .update({ full_session: finalSessionData })
-                    .eq("id", sessionId);
-
-                if (updateError) {
-                    console.error("Error updating full_session:", updateError);
-                }
 
 
-            } catch (e) {
-                setError(`Failed to fetch phases: ${e}`);
+                const phases: PhaseOverview[] = await Promise.all(phaseOverviewPromises);
+
+                setLessonSummary({
+                    id: lessonPlanID,
+                    name: null, // If `name` and `description` are stored in `lesson_plans_new`, include them here.
+                    description: null,
+                    phases,
+                });
+            } catch (err: any) {
+                setError(err.message || 'An error occurred while fetching the lesson summary.');
             } finally {
-                setIsLoading(false);
+                setLoading(false);
             }
         };
 
-        fetchPhases();
-    }, [accessToken, sessionId]);
-
-    useEffect(() => {
-        console.log("Upcoming Sessions:", upcomingSessions); // Log upcoming sessions
-        if (upcomingSessions && upcomingSessions.length > 0 && sessionId) {
-            const session = upcomingSessions.find(
-                (session) => String(session.id) === sessionId,
-            );
-
-            if (session && session.start_time) {
-                setSessionStartTime(session.start_time);
-            } else {
-                setSessionStartTime(null);
-            }
-        } else {
-            console.log(
-                "upcomingSessions not available or empty, or sessionId not provided",
-            );
-        }
-    }, [upcomingSessions, sessionId]);
-
-    const phases = lessonPlan?.phases || [];
-
-    const phaseTimes = new Map();
-    // @ts-ignore: Ignore implicit 'any' type here
-    let prevStartTime = new Date(sessionStartTime);
-
-    for (let i = 0; i < phases.length; i++) {
-        const phase = phases[i];
-        const phaseDuration = phase.phase_duration_seconds;
-        const phaseEndTime = new Date(
-            new Date(prevStartTime).getTime() + phaseDuration * 1000,
-        );
-        const timeString =
-            new Date(prevStartTime).toLocaleTimeString("default", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: undefined,
-            }) +
-            " - " +
-            phaseEndTime.toLocaleTimeString("default", {
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: undefined,
-            });
-        phaseTimes.set(phase.id, timeString);
-        prevStartTime = phaseEndTime;
-    }
-
-    const getModules = (phaseId: string): Module[] | undefined => {
-        return lessonPlan?.phases.find((phase) => phase.id === phaseId)?.modules;
-    };
+        fetchLessonSummary();
+    }, [lessonPlanID]);
 
     return (
-        <LessonPlanContext.Provider
-            value={{
-                lessonPlan: lessonPlan || {
-                    session_id: "",
-                    lesson_plan_id: 0,
-                    lesson_plan_name: "",
-                    lesson_plan_description: "",
-                    phases: [],
-                }, // Provide a default value when lessonPlan is null
-                phases: phases,
-                getModules,
-                phaseTimes: phaseTimes,
-                isLoading,
-                error,
-            }}
-        >
+        <LessonSummaryContext.Provider value={{ lessonSummary, loading, error }}>
             {children}
-        </LessonPlanContext.Provider>
+        </LessonSummaryContext.Provider>
     );
-};
-
-export const useLessonPlan = (): LessonPlanContextType => {
-    const context = useContext(LessonPlanContext);
-    if (context === undefined) {
-        throw new Error("useLessonPlan must be used within a LessonPlanProvider");
-    }
-    return context;
 };
