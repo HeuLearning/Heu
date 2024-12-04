@@ -70,3 +70,11 @@ export type LessonPlan = {
     learner_overview: string;
     instructor_overview: string;
 }
+
+export const emptyDBModule = {
+    id: '',
+    name: '',
+    description: '',
+    instructor_content: '',
+    suggested_duration_seconds: 0,
+}
