@@ -85,12 +85,9 @@ export default function MobileClassModeContainer(
     setIsClassScheduleShown(true);
   };
 
-  const hideClassSchedule = () => {
-    setIsClassScheduleShown(false);
-  };
-
-  console.log("class STARTEDDDDDDDDDDDDDD???");
-  console.log(classStarted);
+    const hideClassSchedule = () => {
+        setIsClassScheduleShown(false);
+    };
 
   if (userRole === "st")
     return (
