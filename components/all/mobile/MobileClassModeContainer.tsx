@@ -12,7 +12,6 @@ import HamburgerButton from "./HamburgerButton";
 import MobileClassModeNotebook from "./MobileClassModeNotebook";
 import { useStopwatchState } from "../class-mode/StopwatchContext";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
-import ClassSchedulePopUpContainer from "../popups/ClassSchedulePopUpContent";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
 

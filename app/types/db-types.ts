@@ -42,7 +42,7 @@ export type User = {
 
 export type Exercise = {
     id: string;
-    simple_id: number;
+    simple_id?: number;
     content: any;
     tags: string;
     question_type: string;
