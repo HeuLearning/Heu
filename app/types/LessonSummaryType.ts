@@ -113,7 +113,7 @@ const emptyPhase: PhaseOverview =
     }
     */
 
-interface LessonModule {
+export interface LessonModule {
   id: string; // UUID of the module
   name?: string;
   description?: string;
@@ -122,14 +122,14 @@ interface LessonModule {
   moduleIndex: number;
 }
 
-interface LessonPhase {
+export interface LessonPhase {
   id: string; // UUID of the phase
   name?: string;
   description?: string;
   type: string;
 }
 
-const lessonModules: LessonModule[] = [
+export const dummyLessonModules: LessonModule[] = [
   {
     id: "141dfcd6-cc41-4b82-9bd6-49ffe20de191",
     name: "TestNewDB Module 1",
@@ -173,113 +173,18 @@ const lessonModules: LessonModule[] = [
 ];
 
 
-const lessonPhases: LessonPhase[] = [
+export const dummyLessonPhases: LessonPhase[] = [
   {
     id: "7ea7d7ba-aae2-4598-a257-504103175bcf",
     name: "TestNewDB phase 1",
     description: "phase 1 description",
     type: "placeholder_type",
-    phaseIndex: 0
   },
   {
     id: "d1120706-4ae9-469b-9536-d53e52f14f2f",
     name: "TestNewDB phase 2", 
     description: "phase 2 description",
     type: "placeholder_type",
-    phaseIndex: 1
   }
 ];
 
-
-
-
-
-export function findNextModule(
-    lessonSummary: LessonSummary, 
-    currentModuleId: string, 
-    direction: "next" | "previous" = "next"
-): ModuleOverview {
-    let currentPhase: PhaseOverview | undefined;
-    let currentModule: ModuleOverview | undefined;
-
-    for (const phase of lessonSummary.phases) {
-        currentModule = phase.modules.find(module => module.id === currentModuleId);
-        if (currentModule) {
-            currentPhase = phase;
-            break;
-        }
-    }
-
-    if (!currentPhase || !currentModule) {
-        return noMoreModules;
-    }
-
-    const sortedCurrentPhaseModules = [...currentPhase.modules].sort((a, b) => a.index - b.index);
-    const sortedPhases = [...lessonSummary.phases].sort((a, b) => a.index - b.index);
-    const currentPhaseIndex = sortedPhases.findIndex(phase => phase.id === currentPhase!.id);
-
-    if (direction === "next") {
-        const nextModuleInCurrentPhase = sortedCurrentPhaseModules.find(
-            module => module.index > currentModule!.index
-        );
-
-        if (nextModuleInCurrentPhase) {
-            return nextModuleInCurrentPhase;
-        }
-
-        // If no next module in current phase, look for modules in subsequent phases
-        for (let i = currentPhaseIndex + 1; i < sortedPhases.length; i++) {
-            const phase = sortedPhases[i];
-            if (phase.modules.length > 0) {
-                return phase.modules.sort((a, b) => a.index - b.index)[0];
-            }
-        }
-
-        return noMoreModules;
-    } else {
-        const previousModuleInCurrentPhase = [...sortedCurrentPhaseModules]
-            .reverse()
-            .find(module => module.index < currentModule!.index);
-
-        if (previousModuleInCurrentPhase) {
-            return previousModuleInCurrentPhase;
-        }
-
-        // If no previous module in current phase, look for modules in preceding phases
-        for (let i = currentPhaseIndex - 1; i >= 0; i--) {
-            const phase = sortedPhases[i];
-            if (phase.modules.length > 0) {
-                return phase.modules.sort((a, b) => b.index - a.index)[0];
-            }
-        }
-
-        return noMoreModules;
-    }
-}
-
-export function findPhaseMatchingModuleID(lessonSummary: LessonSummary, moduleID: string): PhaseOverview {
-    for (const phase of lessonSummary.phases) {
-        const moduleFound = phase.modules.find(module => module.id === moduleID);
-        
-        if (moduleFound) {
-            return phase;
-        }
-    }
-    
-    return emptyPhase;
-}
-
-
-export function findModuleSpecialIndex(lessonSummary: LessonSummary, moduleID: string): number {
-  for (const phase of lessonSummary.phases) {
-    const targetModule = phase.modules.find(module => module.id === moduleID);
-    
-    if (targetModule) {
-      const sortedModules = [...phase.modules].sort((a, b) => a.index - b.index);
-
-      return sortedModules.findIndex(module => module.id === moduleID) + 1;
-    }
-  }
-  
-  return -1;
-}

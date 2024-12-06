@@ -7,11 +7,14 @@ import { useResponsive } from "../ResponsiveContext";
 import Badge from "../Badge";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
 import { getGT } from "gt-next";
-import { ButtonBarProvider } from "../mobile/ButtonBarContext";
 import { createClient } from "../../../utils/supabase/client";
+
 import ClassModeContentInstructor from "./ClassModeContentInstructor";
-import { LessonSummary, dummyLessonSummary, findPhaseMatchingModuleID, findModuleSpecialIndex, findNextModule } from "@/app/types/LessonSummaryType";
+import { dummyLessonModules, dummyLessonPhases, LessonModule, LessonPhase } from "@/app/types/LessonSummaryType";
 import { emptyDBModule, Module } from "@/app/types/db-types";
+import Button from "../buttons/Button";
+import { usePopUp } from "../popups/PopUpContext";
+import PopUpContainer from "../popups/PopUpContainer";
 
 interface ClassModeContainerProps {
     sessionId: string;
@@ -20,15 +23,12 @@ interface ClassModeContainerProps {
 export default function ClassModeContainerInstructor({
     sessionId,
 }: ClassModeContainerProps) {
-
-    const dashboardHeight = window.innerHeight - 64 - 16;
     const { isMobile, isTablet, isDesktop } = useResponsive();
+    const { firstName, lastName, uid } = useUserRole();
+    const { hidePopUp, showPopUp } = usePopUp();
+    const dashboardHeight = window.innerHeight - 64 - 16;
     const t = getGT();
 
-    const lessonSummary: LessonSummary = dummyLessonSummary;
-    const { firstName, lastName, uid } = useUserRole();
-
-    const [activePhaseId, setActivePhaseId] = useState<string>('');
 
     /*//################################################################
     // HORSE PIG SHIT
@@ -36,52 +36,53 @@ export default function ClassModeContainerInstructor({
         useLessonPlan();
     //################################################################*/
 
-
-    const [totalElapsedTime, setTotalElapsedTime] = useState([0]);
-
-    const [instructorContent, setInstructorContent] = useState<string>('InstructorContent defined inside ClassModeContainer');
     const [showInitialClassPage, setShowInitialClassPage] = useState(true);
-    const [classStarted, setClassStarted] = useState(false);
+    const [lessonInProgress, setLessonInProgress] = useState<boolean>(true);
 
     const [activeModuleID, setActiveModuleID] = useState<string>('');
-    const [activeModule, setActiveModule] = useState<Module>(emptyDBModule);
-    const [activePhaseID, setActivePhaseID] = useState<string>('');
+    const [moduleChangeInProgress, setModuleChangeInProgress] = useState(false); // may not be needed. Please let me know where it would be, and delete it otherwise.
+    const [activeDBModule, setActiveDBModule] = useState<Module>(emptyDBModule);
 
-    const [moduleChangeInProgress, setModuleChangeInProgress] = useState(false);
+
+    const [lessonModuleIndex, setLessonModuleIndex] = useState<number>(0);
+    const [lessonPhaseIndex, setLessonPhaseIndex] = useState<number>(0);
 
     const supabase = createClient();
 
     /* * * * * * * * * * * * * * * THIS IS TEMPORARY * * * * * * * * * * * * * * * * * */
     // in the future, this will come from a provider
+    const lessonModules: LessonModule[] = dummyLessonModules;
+    const lessonPhases: LessonPhase[] = dummyLessonPhases;
     const { lessonStartTime, lessonEndTime } = {
         lessonStartTime: new Date("2023-01-01T09:00:00Z"),
         lessonEndTime: new Date("2023-01-01T10:00:00Z")
     };
+    const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae');
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-    const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae');
 
     useEffect(() => {
+        // initial moduleID, lessonInProgress DB retrieval
+        if (!lessonID) return;
         const retrieveActiveModuleID = async () => {
             const { data, error } = await supabase
                 .from('lessons_new')
-                .select('active_module_id')
+                .select('active_module_id, in_progress')
                 .eq('id', lessonID)
                 .single();
             if (error) {
                 console.error(`Error fetching initial module ID of ${lessonID}: ${error}`);
                 return;
             }
-            console.log(`initial module id is ${data.active_module_id}`);
             setActiveModuleID(data.active_module_id);
-            setActivePhaseID(findPhaseMatchingModuleID(lessonSummary, data.active_module_id).id);
+            setLessonInProgress(data.in_progress);
         }
         retrieveActiveModuleID();
     }, [lessonID]);
 
     useEffect(() => {
+        // module content DB retrieval
         if (!activeModuleID) return;
-
         const retrieveActiveModule = async () => {
             const { data, error } = await supabase
                 .from('modules_new')
@@ -92,16 +93,14 @@ export default function ClassModeContainerInstructor({
                 console.error(`Error fetching module data: ${error}`);
                 return;
             }
-            console.log(`retrieved active module ${JSON.stringify(data)}`);
-            setActiveModule(data);
+            setActiveDBModule(data);
         }
         retrieveActiveModule();
     }, [activeModuleID]);
 
 
     useEffect(() => {
-        // setup dynamic update of active module ID
-
+        // setup dynamic DB update of activeModuleID, lessonInProgress
         if (!lessonID) return;
 
         const channelName = `lessons_new:lessonId-${lessonID}`;
@@ -118,9 +117,9 @@ export default function ClassModeContainerInstructor({
                 },
                 (payload) => {
                     const newModuleID = payload.new.active_module_id;
-                    console.log(`setting new module id of ${newModuleID}`);
+                    const newLessonInProgress = payload.new.in_progress;
                     setActiveModuleID(newModuleID);
-                    setActivePhaseID(findPhaseMatchingModuleID(lessonSummary, newModuleID).id);
+                    setLessonInProgress(newLessonInProgress);
                 }
             )
             .subscribe();
@@ -132,84 +131,54 @@ export default function ClassModeContainerInstructor({
 
 
     useEffect(() => {
-        if (!activeModuleID) return;
-        const retrieveModuleFromID = async () => {
-            const { data, error } = await supabase
-                .from('modules_new')
-                .select('*')
-                .eq('id', activeModuleID)
-                .single();
-            if (error) {
-                console.error('Error fetching module data:', error);
-                return;
+        // lessonModuleIndex and lessonPhaseIndex update
+        if (!activeModuleID || !lessonModules || !lessonPhases) { return };
+
+        for (let i = 0; i < lessonModules.length; i++) {
+            if (lessonModules[i].id === activeModuleID) {
+                //       – if you need to keep activePhaseID, update it here
+                setLessonModuleIndex(i);
+                setLessonPhaseIndex(lessonModules[i].phaseIndex);
+                break;
             }
-
-        };
-        retrieveModuleFromID();
-    }, [activeModuleID]);
-
-
-    const getModuleID = (moduleId: string, summary: LessonSummary, direction: string = 'next'): string | "No more modules" | null => {
-        /// make this also set the activePhase, and work across diff. phases
-        const allModules = summary.phases
-            .flatMap((phase) => phase.modules);
-
-        const module = allModules.find((mod) => mod.id === moduleId);
-        if (!module) {
-            console.error("Current module not found");
-            return null;
         }
+    }, [activeModuleID, lessonModules, lessonPhases]);
 
-        const nextModule = direction === 'next'
-            ? allModules
-                .filter((mod) => mod.index > module.index)
-                .sort((a, b) => a.index - b.index)[0]
-            : allModules
-                .filter((mod) => mod.index < module.index)
-                .sort((a, b) => a.index - b.index)[0];
-
-        if (!nextModule) {
-            return "No more modules";
-        }
-
-        return nextModule.id;
-    };
 
     const handleChangeModule = async (direction: string = 'next'): Promise<void> => {
-        // used when a user hits the next or previous button
+        // updates active_module_id in DB
 
         setModuleChangeInProgress(true);
-        //const lessonSummary = useContext(LessonSummaryContext);
 
-        if (!lessonSummary || !lessonSummary.phases) {
-            console.error('No lesson summary found.');
-            return;
-        } else if (!activeModuleID) {
-            console.error('No active module ID found.');
+        if (!lessonModules) {
+            console.error('No lesson modules found.');
             return;
         }
 
-        const nextModule = direction === 'next' ? findNextModule(lessonSummary, activeModuleID) : findNextModule(lessonSummary, activeModuleID, 'previous');
-        if (!nextModule) {
-            console.error("No next module found.");
-            return;
-        } else if (nextModule.name === "No More Modules") {
-            console.log('NO MORE MODULES TO DISPLAY');
-            return;
+        let nextModuleID = null;
+        if (direction === 'next') {
+            if (lessonModuleIndex === lessonModules.length - 1) {
+                console.error('NO MORE MODULES TO DISPLAY');
+                return;
+            }
+            nextModuleID = lessonModules[lessonModuleIndex + 1].id;
+        } else {
+            if (lessonModuleIndex === 0) {
+                console.error('NO MORE MODULES TO DISPLAY');
+                return;
+            }
+            nextModuleID = lessonModules[lessonModuleIndex - 1].id;
         }
-
 
         try {
             const { data, error } = await supabase
                 .from("lessons_new")
-                .update({ active_module_id: nextModule.id })
+                .update({ active_module_id: nextModuleID })
                 .eq("id", lessonID);
 
             if (error) {
                 throw new Error(`Failed to update active module: ${error.message}`);
             }
-
-            console.log("Successfully updated active module:", data);
             setModuleChangeInProgress(false);
         } catch (err) {
             console.error("Error during handleNextModule execution:", err);
@@ -222,43 +191,95 @@ export default function ClassModeContainerInstructor({
         router.push("dashboard");
     };
 
+    const handleStartClass = async () => {
+        const { data, error } = await supabase
+            .from('lessons_new')
+            .update({ in_progress: 'TRUE', active_module_id: lessonModules[0].id })
+            .eq('id', lessonID);
+        if (error) {
+            console.error(`Error starting class: ${error}`);
+            return;
+        }
+    }
+
+    const handleEndClass = async () => {
+        const { data, error } = await supabase
+            .from('lessons_new')
+            .update({ in_progress: 'FALSE', active_module_id: lessonModules[0].id })
+            .eq('id', lessonID);
+        if (error) {
+            console.error(`Error ending class: ${error}`);
+            return;
+        }
+        router.push("dashboard");
+    }
+
+    const handleEndClassPopUp = () => {
+        showPopUp({
+            id: "end-class-popup",
+            content: (
+                <PopUpContainer
+                    header={t("button_content.end_class")}
+                    primaryButtonText={t("button_content.end_class")}
+                    secondaryButtonText="Cancel"
+                    primaryButtonOnClick={handleEndClass}
+                    secondaryButtonOnClick={() => hidePopUp("end-class-popup")}
+                    popUpId="end-class-popup"
+                >
+                    <p className="text-typeface_primary text-body-regular">
+                        {t("class_mode_content.end_class_confirm_message")}
+                    </p>
+                </PopUpContainer>
+            ),
+            container: null,
+            style: {
+                overlay: "overlay-high",
+            },
+            height: "auto",
+        });
+    };
+
 
     const PhaseDetails = ({ onBack }: { onBack: () => void }) => (
-        <div className="flex h-full flex-col gap-[8px]">
-            HERE ARE THE PHASE DETAILS
+        <div className="flex h-full flex-col">
             <ClassModeHeaderBar
                 onBack={onBack}
                 iconName={"practice"}
-                title={findPhaseMatchingModuleID(lessonSummary, activeModuleID).name || ""}
+                title={lessonPhases[lessonPhaseIndex].name || ''}
                 rightSide={
                     <div className="flex items-center gap-[12px]">
                         RIGHT SIDE (todo: handle show learners and phases)
                     </div>
                 }
             />
-            <div className="flex h-full flex-col gap-[8px] rounded-[10px] outline-surface_border_tertiary">
+            <div className="flex-1 flex flex-col gap-[8px] rounded-[10px] outline-surface_border_tertiary">
                 <div className="flex items-center gap-[12px] p-[18px]">
                     <Badge
                         bgColor="var(--surface_bg_darkest)"
                         textColor="text-typeface_highlight"
                     >
-                        {findModuleSpecialIndex(lessonSummary, activeModuleID)}
+                        {lessonModules[lessonModuleIndex].moduleIndex + 1}
                     </Badge>
                     <p className="text-typeface_primary text-body-semibold">
-                        "activemodule.name"
+                        {lessonModules[lessonModuleIndex].name}
                     </p>
                 </div>
-                <ClassModeContentInstructor instructor_content={activeModule?.instructor_content} />
+
+
+                <div className="flex-1">
+                    <ClassModeContentInstructor instructor_content={activeDBModule?.instructor_content} />
+                </div>
             </div>
             <ClassModeFooter
-                lessonSummary={lessonSummary}
-                activeModuleID={activeModuleID}
+                lessonModules={lessonModules}
+                lessonPhases={lessonPhases}
+                lessonModuleIndex={lessonModuleIndex}
                 handleNextModule={async () => { handleChangeModule("next") }}
                 handlePreviousModule={async () => { handleChangeModule("previous") }}
+                handleEndClass={handleEndClassPopUp}
             />
         </div>
     );
-
 
     if (activeModuleID != '') {
         /*if (isMobile)
@@ -315,27 +336,42 @@ export default function ClassModeContainerInstructor({
 
                         <div className="flex flex-grow justify-between gap-[24px]">
                             <div
-                                className={`grid flex-grow ${lessonSummary.phases.length === 1
+                                className={`grid flex-grow ${lessonPhases?.length === 1
                                     ? "grid-cols-1 grid-rows-1 gap-[16px]"
-                                    : lessonSummary.phases.length === 2
+                                    : lessonPhases?.length === 2
                                         ? "grid-cols-2 grid-rows-1 gap-[16px]"
-                                        : lessonSummary.phases.length === 3
+                                        : lessonPhases?.length === 3
                                             ? "grid-cols-3 grid-rows-1 gap-[16px]"
                                             : "grid-cols-3 grid-rows-2 gap-[16px]"
                                     }`}
                             >
 
                             </div>
-                            <ClassDetailsContainer lessonSummary={lessonSummary} />
+                            <ClassDetailsContainer lessonDescription={activeDBModule.instructor_content} />
 
                         </div>
-                        <button onClick={() => setShowInitialClassPage(false)}>I starta the class-a</button>
+                        {lessonInProgress && (
+                            <Button
+                                className="button-tertiary"
+                                onClick={handleEndClassPopUp}
+                            >
+                                {t("button_content.end_class")}
+                            </Button>
+                        )}
+                        <Button
+                            className="button-primary"
+                            onClick={() => {
+                                if (!lessonInProgress) {
+                                    handleStartClass()
+                                }
+                                setShowInitialClassPage(false)
+                            }}
+                        >
+                            {lessonInProgress ? "Continue class" : "Start class"}
+                        </Button>
                     </div>
                 ) : (
-                    <div>
-                        <PhaseDetails onBack={() => setShowInitialClassPage(true)} />
-                    </div>
-
+                    <PhaseDetails onBack={() => setShowInitialClassPage(true)} />
                 )}
             </div>
         );

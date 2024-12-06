@@ -32,7 +32,7 @@ interface MobileClassModeContainerProps {
     children: JSX.Element;
 }
 
-export default function MobileClassModeContainer(
+export default function MobileClassModeContainerInstructor(
     props: MobileClassModeContainerProps,
 ) {
     const [activeTab, setActiveTab] = useState("Phases");

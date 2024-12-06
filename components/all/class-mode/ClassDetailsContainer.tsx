@@ -2,14 +2,13 @@ import ClassStats from "../ClassStats";
 import SideBar from "../SideBar";
 import { getGT } from "gt-next";
 import dictionary from "@/dictionary";
-import { LessonSummary } from "@/app/types/LessonSummaryType";
 
 interface ClassDetailsContainerProps {
-    lessonSummary: LessonSummary;
+    lessonDescription: string;
 }
 
 export default function ClassDetailsContainer({
-    lessonSummary,
+    lessonDescription,
 }: ClassDetailsContainerProps) {
     const t = getGT();
 
@@ -20,7 +19,7 @@ export default function ClassDetailsContainer({
                     {t("class_mode_content.class_details")}
                 </h3>
                 <p className="text-typeface_primary text-body-regular">
-                    {lessonSummary.description || "No description given"}
+                    {lessonDescription || "No description given"}
                 </p>
             </div>
             <div className="px-[4px] pb-[14px]">

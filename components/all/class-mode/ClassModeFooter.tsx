@@ -3,30 +3,26 @@ import Button from "../buttons/Button";
 import CompletionBar from "./CompletionBar";
 import { getGT } from "gt-next";
 import { LessonSummary } from "../data-retrieval/LessonPlanContext_new";
-import { findModuleSpecialIndex } from "@/app/types/LessonSummaryType";
+import { LessonModule, LessonPhase } from "@/app/types/LessonSummaryType";
 
 interface ClassModeFooterProps {
-    lessonSummary: LessonSummary;
-    activeModuleID: string;
+    lessonModules: LessonModule[];
+    lessonPhases: LessonPhase[];
+    lessonModuleIndex: number;
     handleNextModule: () => Promise<void>
     handlePreviousModule: () => Promise<void>
+    handleEndClass: () => void
 }
 
 export default function ClassModeFooter({
-    lessonSummary,
-    activeModuleID,
+    lessonModules,
+    lessonPhases,
+    lessonModuleIndex,
     handleNextModule,
     handlePreviousModule,
+    handleEndClass,
 }: ClassModeFooterProps) {
     const t = getGT();
-
-
-    const [activeModuleIndex, setActiveModuleIndex] = useState(0);
-    useEffect(() => {
-        console.log(`active module id is ${activeModuleID}`);
-        setActiveModuleIndex(findModuleSpecialIndex(lessonSummary, activeModuleID));
-        console.log(`active module index is ${activeModuleIndex}`);
-    }, [activeModuleID]);
 
     return (
         <div className="flex items-center justify-between gap-[24px] px-[24px] pb-[10px] pt-[12px]">
@@ -49,28 +45,23 @@ export default function ClassModeFooter({
             </p>
             <div className="flex justify-between items-center gap-[8px]">
                 <Button
-                    className={activeModuleIndex === 0 ? "button-disabled" : "button-primary"}
+                    className={lessonModules[lessonModuleIndex].moduleIndex === 0 ? "button-disabled" : "button-primary"}
                     onClick={() => handlePreviousModule()}
-                    disabled={activeModuleIndex === 0}
+                    disabled={lessonModules[lessonModuleIndex].moduleIndex === 0}
                 >
                     {t("button_content.previous_module")}
                 </Button>
                 <Button
                     className="button-primary"
-                    onClick={() => handleNextModule()
-                        /*activeModuleIndex === activePhase.modules.length - 1
-                            ? phases.indexOf(activePhase) === phases.length - 1
-                                ? handleEndClass()
-                                : handleNextPhase()
-                            : handleNextModule(activeModule, activeModuleIndex)*/
+                    onClick={() => lessonModuleIndex === lessonModules.length - 1 ?
+                        handleEndClass() :
+                        handleNextModule()
                     }
                 >
-                    {/*activeModuleIndex === activePhase.modules.length - 1
-                        ? phases.indexOf(activePhase) === phases.length - 1
-                            ? t("button_content.end_class")
-                            : t("button_content.next_phase")
-                        : t("button_content.next_module")*/}
-                    {t("button_content.next_module")}
+                    {lessonModuleIndex === lessonModules.length - 1 ?
+                        t("button_content.end_class") :
+                        t("button_content.next_module")
+                    }
                 </Button>
             </div>
         </div>

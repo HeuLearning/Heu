@@ -1,46 +1,34 @@
 import React, { useEffect, useState } from "react";
 import MatchingExercise from "../../../components/exercises/MatchingExercise";
 import QAFillInBlankExercise from "../../../components/exercises/QAFillInTheBlankExercise";
-// import { useStopwatchState } from "./StopwatchContext";
 import { useResponsive } from "../ResponsiveContext";
 import InLineMultipleChoice from "@/components/exercises/InLineMultipleChoice";
 import MultipleChoiceExercise from "@/components/exercises/MultipleChoiceExercise";
 import { useMemo } from "react";
 import ButtonBar from "../mobile/ButtonBar";
-import { useButtonBar } from "../mobile/ButtonBarContext";
 import { getGT } from "gt-next";
 import MultipleChoiceWithIDK from "@/components/exercises/MultipleChoiceWithIDK";
 import TextSubmissionExercise from "@/components/exercises/TextSubmissionExercise";
-import { Module, Exercise } from "@/app/types/db-types";
+import { Exercise } from "@/app/types/db-types";
 
 interface ClassModeContentProps {
-    module: Module;
     exercises: Exercise[];
 }
 
-function ClassModeContent(student_content: ClassModeContentProps) {
-    // const state = useStopwatchState();
-    // const { elapsedTime, elapsedLapTime } = state;
-
+function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
     const t = getGT();
     const { isMobile } = useResponsive();
-
-    const { handleSubmitAnswer } = useButtonBar();
 
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [buttonBarText, setButtonBarText] = useState("");
 
     useEffect(() => {
         setCurrentExerciseIndex(0);
-    }, [student_content]);
-
-    console.log("render called ok?");
-    console.log(currentExerciseIndex);
+    }, [exercises]);
 
     // Memoize the content rendering logic to avoid unnecessary re-renders
     const renderContent = useMemo(() => {
-        console.log(`exercises are ${JSON.stringify(student_content.exercises)}`);
-        if (currentExerciseIndex >= student_content.exercises.length) {
+        if (currentExerciseIndex >= exercises.length) {
             console.log("NO MORE EXERCISES");
             return (
                 <p className="text-typeface_primary text-body-regular">
@@ -49,15 +37,27 @@ function ClassModeContent(student_content: ClassModeContentProps) {
             );
         }
 
-        const currentExercise = student_content.exercises[currentExerciseIndex];
+        const currentExercise = exercises[currentExerciseIndex];
 
         const handleComplete = () => {
             setCurrentExerciseIndex((prevIndex) =>
-                Math.min(prevIndex + 1, student_content.exercises.length),
+                Math.min(prevIndex + 1, exercises.length),
             );
         };
 
-        console.log(`current exercise is ${JSON.stringify(currentExercise)}`);
+        return (
+            <div>
+                Frontend here
+                <br />
+                <br />
+                The content passed is {JSON.stringify(currentExercise.content)}.
+                <br />
+                <br />
+                <button onClick={handleComplete}>
+                    {"[ Click This to complete exercise ]"}
+                </button>
+            </div>
+        )
         switch (currentExercise.question_type) {
             case "instruction":
                 setButtonBarText(t("button_content.continue"));
@@ -126,7 +126,7 @@ function ClassModeContent(student_content: ClassModeContentProps) {
                 return <div>Unknown exercise type.</div>;
         }
 
-    }, [currentExerciseIndex, student_content]);
+    }, [currentExerciseIndex, exercises]);
 
 
     return (
@@ -142,7 +142,7 @@ function ClassModeContent(student_content: ClassModeContentProps) {
                         <ButtonBar
                             primaryButtonText={buttonBarText}
                             primaryButtonClassName="button-primary"
-                            primaryButtonOnClick={handleSubmitAnswer}
+                            primaryButtonOnClick={() => { }}
                             secondaryContent={
                                 <div className="flex items-center gap-[4px] pl-[8px]">
                                     <svg
@@ -172,4 +172,4 @@ function ClassModeContent(student_content: ClassModeContentProps) {
     );
 }
 
-export default React.memo(ClassModeContent);
+export default React.memo(ClassModeContentStudent);
