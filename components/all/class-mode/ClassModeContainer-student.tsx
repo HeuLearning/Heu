@@ -26,7 +26,7 @@ export default function ClassModeContainerStudent({
     // in the future, this will come from a provider
     //const lessonModules: LessonModule[] = dummyLessonModules;
     //const lessonPhases: LessonPhase[] = dummyLessonPhases;
-    const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae');
+    const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae'); // Elijah replace from lessons_new
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
     const [lessonInProgress, setLessonInProgress] = useState<boolean>(true);
@@ -159,11 +159,9 @@ export default function ClassModeContainerStudent({
     if (activeModuleID != '') {
         /*if (isMobile) {
             return (
-                <MobileClassModeContainer {...sharedProps}>
+                <MobileClassModeContainer {exercises=exercises, activeModuleID= }>
                     <div className="items-center">
-                        <ButtonBarProvider value={val}>
-                            <ClassModeContent jsonData={jsonData} />
-                        </ButtonBarProvider>
+                        <ClassModeContent jsonData={jsonData} />
                     </div>
                 </MobileClassModeContainer>
             );

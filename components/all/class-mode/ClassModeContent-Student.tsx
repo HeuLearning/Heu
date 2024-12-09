@@ -64,7 +64,7 @@ function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
                 return (
                     <InLineMultipleChoice
                         key={currentExercise.id}
-                        {...currentExercise.content}
+                        {...currentExercise.content} //column from DB (exercises_new table)
                         onComplete={handleComplete}
                     />
                 );
