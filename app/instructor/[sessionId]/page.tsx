@@ -16,7 +16,7 @@ import {
 } from "@/components/all/ResponsiveContext";
 import { LessonPlanProvider } from "@/components/all/data-retrieval/LessonPlanContext";
 import { StopwatchProvider } from "@/components/all/class-mode/StopwatchContext";
-import ClassModeContainer from "@/components/all/class-mode/ClassModeContainer";
+import ClassModeContainerInstructor from "@/components/all/class-mode/ClassModeContainer-instructor";
 
 interface UserData {
   user: {

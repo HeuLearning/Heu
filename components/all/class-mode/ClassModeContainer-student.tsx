@@ -6,7 +6,7 @@ import { createClient } from "../../../utils/supabase/client";
 import { Exercise } from "@/app/types/db-types";
 import { json } from "stream/consumers";
 import { useRouter } from "next/navigation";
-import ClassModeContentStudent from "./ClassModeContentStudent";
+import ClassModeContentStudent from "./ClassModeContent-Student";
 import { dummyLessonModules, dummyLessonPhases, LessonModule, LessonPhase } from "@/app/types/LessonSummaryType";
 
 
@@ -143,19 +143,16 @@ export default function ClassModeContainerStudent({
         try {
             console.log(`testing redis`);
             const response = await fetch('/api/completeExercise', {
-                method: 'POST',  // Use POST method
+                method: 'POST',
             });
-
-            // Check if the response is successful
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-
-            const data = await response.json();  // Parse the JSON response
-            console.log('Response from API:', data);  // Log the response to the console
+            const data = await response.json();
+            console.log('Response from API:', data);
 
         } catch (error) {
-            console.error('Error:', error);  // Log any errors
+            console.error('Error:', error);
         }
     };
 

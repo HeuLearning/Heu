@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import MatchingExercise from "../../../components/exercises/MatchingExercise";
-import QAFillInBlankExercise from "../../../components/exercises/QAFillInTheBlankExercise";
+import MatchingExercise from "../../exercises/MatchingExercise";
+import QAFillInBlankExercise from "../../exercises/QAFillInTheBlankExercise";
 import { useResponsive } from "../ResponsiveContext";
 import InLineMultipleChoice from "@/components/exercises/InLineMultipleChoice";
 import MultipleChoiceExercise from "@/components/exercises/MultipleChoiceExercise";
