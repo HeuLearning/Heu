@@ -24,7 +24,6 @@ export default function ClassModeContainerInstructor({
     sessionId,
 }: ClassModeContainerProps) {
     const { isMobile, isTablet, isDesktop } = useResponsive();
-    const { firstName, lastName, uid } = useUserRole();
     const { hidePopUp, showPopUp } = usePopUp();
     const dashboardHeight = window.innerHeight - 64 - 16;
     const t = getGT();
@@ -36,6 +35,7 @@ export default function ClassModeContainerInstructor({
         useLessonPlan();
     //################################################################*/
 
+    const [isLoading, setIsLoading] = useState(true);
     const [showInitialClassPage, setShowInitialClassPage] = useState(true);
     const [lessonInProgress, setLessonInProgress] = useState<boolean>(true);
 
@@ -51,14 +51,30 @@ export default function ClassModeContainerInstructor({
 
     /* * * * * * * * * * * * * * * THIS IS TEMPORARY * * * * * * * * * * * * * * * * * */
     // in the future, this will come from a provider
+    const [lessonPhases, setLessonPhases] = useState<LessonPhase[]>([]);
     const lessonModules: LessonModule[] = dummyLessonModules;
-    const lessonPhases: LessonPhase[] = dummyLessonPhases;
+    //const lessonPhases: LessonPhase[] = dummyLessonPhases;
     const { lessonStartTime, lessonEndTime } = {
         lessonStartTime: new Date("2023-01-01T09:00:00Z"),
         lessonEndTime: new Date("2023-01-01T10:00:00Z")
     };
     const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae');
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+
+    useEffect(() => {
+        if (!lessonID) return;
+        const retrieveLessonPhases = async () => {
+            const { data, error } = await supabase.rpc('get_phases_from_lessonid', { lessonid: lessonID });
+            if (error) {
+                console.error(`Error fetching lesson phases: ${JSON.stringify(error)}`);
+                return;
+            }
+            setLessonPhases(data);
+            setIsLoading(false);
+        }
+        retrieveLessonPhases();
+    }, [lessonID]);
 
 
     useEffect(() => {
@@ -71,7 +87,7 @@ export default function ClassModeContainerInstructor({
                 .eq('id', lessonID)
                 .single();
             if (error) {
-                console.error(`Error fetching initial module ID of ${lessonID}: ${error}`);
+                console.error(`Error fetching initial module ID of ${lessonID}: ${JSON.stringify(error)}`);
                 return;
             }
             setActiveModuleID(data.active_module_id);
@@ -90,7 +106,7 @@ export default function ClassModeContainerInstructor({
                 .eq('id', activeModuleID)
                 .single();
             if (error) {
-                console.error(`Error fetching module data: ${error}`);
+                console.error(`Error fetching module data: ${JSON.stringify(error)}`);
                 return;
             }
             setActiveDBModule(data);
@@ -280,6 +296,15 @@ export default function ClassModeContainerInstructor({
             />
         </div>
     );
+
+
+    if (isLoading) {
+        return (
+            <div>
+                Loading...
+            </div>
+        )
+    }
 
     if (activeModuleID != '') {
         /*if (isMobile)

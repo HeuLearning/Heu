@@ -7,7 +7,6 @@ import { Exercise } from "@/app/types/db-types";
 import { json } from "stream/consumers";
 import { useRouter } from "next/navigation";
 import ClassModeContentStudent from "./ClassModeContent-Student";
-import { dummyLessonModules, dummyLessonPhases, LessonModule, LessonPhase } from "@/app/types/LessonSummaryType";
 
 
 interface ClassModeContainerProps {
@@ -24,8 +23,6 @@ export default function ClassModeContainerStudent({
 
     /* * * * * * * * * * * * * * * THIS IS TEMPORARY * * * * * * * * * * * * * * * * * */
     // in the future, this will come from a provider
-    //const lessonModules: LessonModule[] = dummyLessonModules;
-    //const lessonPhases: LessonPhase[] = dummyLessonPhases;
     const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae'); // Elijah replace from lessons_new
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -89,6 +86,8 @@ export default function ClassModeContainerStudent({
                 .eq('module_exercises.module_id', activeModuleID); // Supabase, annoyingly, returns a nested structure when you do a join query.
             //                                                        I filter after the join because I don't want to flatmap the exercises.
             //                                                                      (I'm praying SQL optimizes the query on the backend)
+
+            //                                                          TODO: Can change this to a Supabase RPC (postgres function)
             if (exercisesError) {
                 console.error(`Error fetching exercises: ${exercisesError.message}`);
                 return;

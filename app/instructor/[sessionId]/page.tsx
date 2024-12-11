@@ -34,6 +34,9 @@ const ClassModeDashboard = () => {
     const [userData, setUserData] = useState<UserData | null>(null);
     const router = useRouter();
 
+
+    const { isMobile, isTablet, isDesktop } = useResponsive();
+
     useEffect(() => {
         const fetchUserData = async () => {
             const supabase = createClient();
@@ -84,7 +87,6 @@ const ClassModeDashboard = () => {
 
     if (!userData) return null; // or a loading state
 
-    const { isMobile, isTablet, isDesktop } = useResponsive();
 
     return (
         <>

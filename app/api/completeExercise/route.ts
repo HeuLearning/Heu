@@ -8,7 +8,7 @@ const redis = new Redis({
 });
 
 
-/*export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     // Set a key in Redis
     console.log('POST CALLED');
@@ -29,12 +29,12 @@ const redis = new Redis({
       { status: 500 }
     );
   }
-}*/
+}
 
-export async function POST(req: NextRequest) {
+/*export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { lessonID, userID, moduleID, exerciseID, index, name } = body;
+        const { lessonID, userID, moduleID, exerciseID, index, name } = body; // timestamp too
 
         if (!lessonID || !userID || !moduleID || !exerciseID || index === undefined || !name) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -51,4 +51,4 @@ export async function POST(req: NextRequest) {
         console.error('Error writing to Redis:', error);
         return NextResponse.json({ error: 'Failed to record exercise' }, { status: 500 });
     }
-}
+}*/

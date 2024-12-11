@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Button from "../buttons/Button";
 import CompletionBar from "./CompletionBar";
 import { getGT } from "gt-next";
-import { LessonSummary } from "../data-retrieval/LessonPlanContext_new";
 import { LessonModule, LessonPhase } from "@/app/types/LessonSummaryType";
 
 interface ClassModeFooterProps {
