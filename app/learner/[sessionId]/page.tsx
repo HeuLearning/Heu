@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { redirect, useRouter, useParams } from "next/navigation";
 import Head from "next/head";
-import DashboardContainer from "../../../components/all/DashboardContainer";
-import { SessionsProvider } from "../../../components/all/data-retrieval/SessionsContext";
 import { UserRoleProvider } from "../../../components/all/data-retrieval/UserRoleContext";
 import { PopUpProvider } from "../../../components/all/popups/PopUpContext";
 import Navbar from "../../../components/all/Navbar";
@@ -14,9 +12,6 @@ import {
     ResponsiveProvider,
     useResponsive,
 } from "@/components/all/ResponsiveContext";
-import { LessonPlanProvider } from "@/components/all/data-retrieval/LessonPlanContext";
-import { StopwatchProvider } from "@/components/all/class-mode/StopwatchContext";
-import ClassModeContainer from "@/components/all/class-mode/ClassModeContainer";
 import ClassModeContainerStudent from "@/components/all/class-mode/ClassModeContainer-student";
 
 interface UserData {
@@ -108,9 +103,7 @@ const ClassModeDashboard = () => {
                     <UserRoleProvider accessToken={""}>
                         <PopUpProvider>
                             {isDesktop && <Navbar activeTab={""} />}
-                            <StopwatchProvider>
-                                <ClassModeContainerStudent sessionId={sessionId} />
-                            </StopwatchProvider>
+                            <ClassModeContainerStudent sessionId={sessionId} />
                             <EnhancedPopUp />
                         </PopUpProvider>
                     </UserRoleProvider>

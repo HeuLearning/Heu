@@ -26,11 +26,10 @@ export default function ClassModeContainerStudent({
     // in the future, this will come from a provider
     const [lessonID, setLessonID] = useState<string>('fbd0f0af-da43-4d1c-a0d6-c85ba18d07b0'); // Elijah replace from lessons_new
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    const [lessonModules, setLessonModules] = useState<LessonModule[]>([]);
 
     const [activeModuleID, setActiveModuleID] = useState<string>('');
     const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [moduleInfo, setModuleInfo] = useState<{ name: string; description: string; id: string }>({ name: '', description: '', id: '' });
+    const [activeModuleInfo, setActiveModuleInfo] = useState<{ name: string; description: string; id: string }>({ name: '', description: '', id: '' });
 
     const [lessonModuleIndex, setLessonModuleIndex] = useState<number>(0);
     const [lessonPhaseIndex, setLessonPhaseIndex] = useState<number>(0);
@@ -61,23 +60,6 @@ export default function ClassModeContainerStudent({
     }, [lessonID]);
 
     useEffect(() => {
-        // retrieval of lessonModules
-        if (!lessonID) return;
-        const retrieveLessonModules = async () => {
-            const { data, error } = await supabase.rpc('get_modules_from_lessonid', { lessonid: lessonID });
-            if (error) {
-                console.error(`Error fetching lesson modules: ${JSON.stringify(error)}`);
-                return;
-            }
-            setLessonModules(data);
-            setIsLoading(false);
-
-        }
-        retrieveLessonModules();
-    }, [lessonID]);
-
-
-    useEffect(() => {
         // module content DB retrieval
         //if algorithms are module-to=module, algorithm processing happens in this step, between exercise retrieval and setExercises().
         if (!activeModuleID) return;
@@ -93,7 +75,7 @@ export default function ClassModeContainerStudent({
                 return;
             }
             console.log(`retrieved module details of ${JSON.stringify(moduleData)}`);
-            setModuleInfo(moduleData);
+            setActiveModuleInfo(moduleData);
         }
 
         const retrieveActiveModuleExercises = async () => {
@@ -174,7 +156,10 @@ export default function ClassModeContainerStudent({
     if (!isLoading) {
         return (
             <div>
-                <MobileClassModeContainer exercises={exercises} lessonModules={lessonModules} router={router} />
+                name is {activeModuleInfo.name}
+                Hello World
+                <button onClick={handleBack}>{'[ go back ]'}</button>
+                <ClassModeContentStudent exercises={exercises} />
             </div>
         )
     } else {
