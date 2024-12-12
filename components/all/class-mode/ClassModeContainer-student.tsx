@@ -31,9 +31,6 @@ export default function ClassModeContainerStudent({
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [activeModuleInfo, setActiveModuleInfo] = useState<{ name: string; description: string; id: string }>({ name: '', description: '', id: '' });
 
-    const [lessonModuleIndex, setLessonModuleIndex] = useState<number>(0);
-    const [lessonPhaseIndex, setLessonPhaseIndex] = useState<number>(0);
-
 
     useEffect(() => {
         // initial moduleID retrieval and updating connected_members
