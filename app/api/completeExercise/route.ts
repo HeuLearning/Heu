@@ -31,6 +31,9 @@ export async function POST(req: NextRequest) {
   }
 }
 
+
+// What is actually being stored here? Value submitted?
+
 /*export async function POST(req: NextRequest) {
     try {
         const body = await req.json();

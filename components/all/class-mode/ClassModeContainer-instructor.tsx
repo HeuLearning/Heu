@@ -52,7 +52,7 @@ export default function ClassModeContainerInstructor({
     /* * * * * * * * * * * * * * * THIS IS TEMPORARY * * * * * * * * * * * * * * * * * */
     // in the future, this will come from a provider
     const [lessonPhases, setLessonPhases] = useState<LessonPhase[]>([]);
-    const lessonModules: LessonModule[] = dummyLessonModules;
+    const [lessonModules, setLessonModules] = useState<LessonModule[]>([]);
     //const lessonPhases: LessonPhase[] = dummyLessonPhases;
     const { lessonStartTime, lessonEndTime } = {
         lessonStartTime: new Date("2023-01-01T09:00:00Z"),
@@ -60,22 +60,6 @@ export default function ClassModeContainerInstructor({
     };
     const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae');
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-
-    useEffect(() => {
-        if (!lessonID) return;
-        const retrieveLessonPhases = async () => {
-            const { data, error } = await supabase.rpc('get_phases_from_lessonid', { lessonid: lessonID });
-            if (error) {
-                console.error(`Error fetching lesson phases: ${JSON.stringify(error)}`);
-                return;
-            }
-            setLessonPhases(data);
-            setIsLoading(false);
-        }
-        retrieveLessonPhases();
-    }, [lessonID]);
-
 
     useEffect(() => {
         // initial moduleID, lessonInProgress DB retrieval
@@ -94,6 +78,34 @@ export default function ClassModeContainerInstructor({
             setLessonInProgress(data.in_progress);
         }
         retrieveActiveModuleID();
+    }, [lessonID]);
+
+    useEffect(() => {
+        // retrieval of lessonPhases and lessonModules
+        if (!lessonID) return;
+        const retrieveData = async () => {
+            const retrieveLessonPhases = async () => {
+                const { data, error } = await supabase.rpc('get_phases_from_lesson_id', { lessonid: lessonID });
+                if (error) {
+                    console.error(`Error fetching lesson phases: ${JSON.stringify(error)}`);
+                    return;
+                }
+                setLessonPhases(data);
+            }
+            const retrieveLessonModules = async () => {
+                const { data, error } = await supabase.rpc('get_modules_from_lesson_id', { lessonid: lessonID });
+                if (error) {
+                    console.error(`Error fetching lesson modules: ${JSON.stringify(error)}`);
+                    return;
+                }
+                setLessonModules(data);
+
+            }
+            await retrieveLessonPhases();
+            await retrieveLessonModules();
+            setIsLoading(false);
+        }
+        retrieveData();
     }, [lessonID]);
 
     useEffect(() => {

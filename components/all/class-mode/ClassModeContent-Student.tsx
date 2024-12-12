@@ -39,7 +39,7 @@ function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
 
         const currentExercise = exercises[currentExerciseIndex];
 
-        const handleComplete = () => {
+        const handleComplete = () => { //TODO how to pass submission info
             setCurrentExerciseIndex((prevIndex) =>
                 Math.min(prevIndex + 1, exercises.length),
             );

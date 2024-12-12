@@ -127,6 +127,7 @@ export interface LessonPhase {
   name?: string;
   description?: string;
   type: string;
+  phaseIndex: number;
 }
 
 export const dummyLessonModules: LessonModule[] = [
@@ -179,12 +180,14 @@ export const dummyLessonPhases: LessonPhase[] = [
     name: "TestNewDB phase 1",
     description: "phase 1 description",
     type: "placeholder_type",
+    phaseIndex: 1
   },
   {
     id: "d1120706-4ae9-469b-9536-d53e52f14f2f",
     name: "TestNewDB phase 2", 
     description: "phase 2 description",
     type: "placeholder_type",
+    phaseIndex: 2
   }
 ];
 
