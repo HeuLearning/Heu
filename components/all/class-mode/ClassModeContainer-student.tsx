@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import ClassModeContentStudent from "./ClassModeContent-Student";
 import MobileClassModeContainer from "../mobile/MobileClassModeContainer";
 import { LessonModule } from "@/app/types/LessonSummaryType";
+import BackButton from "../buttons/BackButton";
+import MobileDetailView from "../mobile/MobileDetailView";
 
 
 interface ClassModeContainerProps {
@@ -97,6 +99,7 @@ export default function ClassModeContainerStudent({
         }
         retrieveActiveModuleDetails();
         retrieveActiveModuleExercises();
+        setIsLoading(false)
     }, [activeModuleID]);
 
     useEffect(() => {
@@ -153,10 +156,29 @@ export default function ClassModeContainerStudent({
     if (!isLoading) {
         return (
             <div>
-                name is {activeModuleInfo.name}
-                Hello World
-                <button onClick={handleBack}>{'[ go back ]'}</button>
-                <ClassModeContentStudent exercises={exercises} />
+                <div className="relative">
+                    <MobileDetailView
+                        buttonBar={true} // ideally = classStarted
+                        headerContent={
+                            <div className="relative flex w-full flex-col gap-[16px]">
+                                <div className="flex h-[44px] w-full items-center justify-center">
+                                    <h3 className="text-typeface_primary text-body-medium">
+                                        {activeModuleInfo.name}
+                                    </h3>
+                                    <BackButton
+                                        variation="button-secondary"
+                                        onClick={handleBack}
+                                        className="absolute left-0"
+                                    />
+                                </div>
+                            </div>
+                        }
+                        backgroundColor="bg-surface_bg_highlight"
+                        className="px-[16px] pt-[16px]"
+                    >
+                        <ClassModeContentStudent exercises={exercises} />
+                    </MobileDetailView>
+                </div>
             </div>
         )
     } else {
