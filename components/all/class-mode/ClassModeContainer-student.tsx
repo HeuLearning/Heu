@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { getGT } from "gt-next";
 import { createClient } from "../../../utils/supabase/client";
 import { Exercise } from "@/app/types/db-types";
-import { json } from "stream/consumers";
 import { useRouter } from "next/navigation";
 import ClassModeContentStudent from "./ClassModeContent-Student";
+import MobileClassModeContainer from "../mobile/MobileClassModeContainer";
+import { LessonModule } from "@/app/types/LessonSummaryType";
 
 
 interface ClassModeContainerProps {
@@ -20,13 +21,13 @@ export default function ClassModeContainerStudent({
     const t = getGT();
     const supabase = createClient();
 
-
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     /* * * * * * * * * * * * * * * THIS IS TEMPORARY * * * * * * * * * * * * * * * * * */
     // in the future, this will come from a provider
-    const [lessonID, setLessonID] = useState<string>('7dd187ee-7bd7-4d6a-b161-0ce45b79bfae'); // Elijah replace from lessons_new
+    const [lessonID, setLessonID] = useState<string>('fbd0f0af-da43-4d1c-a0d6-c85ba18d07b0'); // Elijah replace from lessons_new
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    const [lessonModules, setLessonModules] = useState<LessonModule[]>([]);
 
-    const [lessonInProgress, setLessonInProgress] = useState<boolean>(true);
     const [activeModuleID, setActiveModuleID] = useState<string>('');
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [moduleInfo, setModuleInfo] = useState<{ name: string; description: string; id: string }>({ name: '', description: '', id: '' });
@@ -58,6 +59,23 @@ export default function ClassModeContainerStudent({
 
         retrieveActiveModuleID();
     }, [lessonID]);
+
+    useEffect(() => {
+        // retrieval of lessonModules
+        if (!lessonID) return;
+        const retrieveLessonModules = async () => {
+            const { data, error } = await supabase.rpc('get_modules_from_lessonid', { lessonid: lessonID });
+            if (error) {
+                console.error(`Error fetching lesson modules: ${JSON.stringify(error)}`);
+                return;
+            }
+            setLessonModules(data);
+            setIsLoading(false);
+
+        }
+        retrieveLessonModules();
+    }, [lessonID]);
+
 
     useEffect(() => {
         // module content DB retrieval
@@ -103,7 +121,7 @@ export default function ClassModeContainerStudent({
     }, [activeModuleID]);
 
     useEffect(() => {
-        // setup dynamic DB update of activeModuleID, lessonInProgress
+        // setup dynamic DB update of activeModuleID
         if (!lessonID) return;
 
         const channelName = `lessons_new:lessonId-${lessonID}`;
@@ -120,9 +138,7 @@ export default function ClassModeContainerStudent({
                 },
                 (payload) => {
                     const newModuleID = payload.new.active_module_id;
-                    const newLessonInProgress = payload.new.in_progress;
                     setActiveModuleID(newModuleID);
-                    setLessonInProgress(newLessonInProgress);
                 }
             )
             .subscribe();
@@ -155,33 +171,12 @@ export default function ClassModeContainerStudent({
         }
     };
 
-    if (activeModuleID != '') {
-        /*if (isMobile) {
-            return (
-                <MobileClassModeContainer {exercises=exercises, activeModuleID= }>
-                    <div className="items-center">
-                        <ClassModeContent jsonData={jsonData} />
-                    </div>
-                </MobileClassModeContainer>
-            );
-        }*/
+    if (!isLoading) {
         return (
-            <div
-                id="class-mode-container"
-                style={{ height: dashboardHeight }}
-                className="relative mb-4 ml-4 mr-4 flex flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
-            >
-                <button onClick={redisTest}>{'[ Click me to test redis ]'} </button>
-                <ClassModeHeaderBar
-                    onBack={handleBack}
-                    title={t("class_mode_content.classroom")}
-                    rightSide={'nothing in the right side for now'
-                    }
-                />
-                <ClassModeContentStudent exercises={exercises} />
+            <div>
+                <MobileClassModeContainer exercises={exercises} lessonModules={lessonModules} router={router} />
             </div>
-        );
-
+        )
     } else {
         return (
             <div>
@@ -189,4 +184,26 @@ export default function ClassModeContainerStudent({
             </div>
         )
     }
+    /*if (isMobile) {
+        return (
+            <MobileClassModeContainer {exercises=exercises, lessonModules = lessonModules}/>
+        );
+    }*/
+
+    /*return (
+        <div
+            id="class-mode-container"
+            style={{ height: dashboardHeight }}
+            className="relative mb-4 ml-4 mr-4 flex flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
+        >
+            <button onClick={redisTest}>{'[ Click me to test redis ]'} </button>
+            <ClassModeHeaderBar
+                onBack={handleBack}
+                title={t("class_mode_content.classroom")}
+                rightSide={'nothing in the right side for now'
+                }
+            />
+            <ClassModeContentStudent exercises={exercises} />
+        </div>
+    );*/
 };
