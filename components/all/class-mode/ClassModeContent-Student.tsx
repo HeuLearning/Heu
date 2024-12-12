@@ -10,6 +10,8 @@ import { getGT } from "gt-next";
 import MultipleChoiceWithIDK from "@/components/exercises/MultipleChoiceWithIDK";
 import TextSubmissionExercise from "@/components/exercises/TextSubmissionExercise";
 import { Exercise } from "@/app/types/db-types";
+import Instruction from "@/components/exercises/Instruction";
+import Button from "../buttons/Button";
 
 interface ClassModeContentProps {
     exercises: Exercise[];
@@ -39,43 +41,79 @@ function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
 
         const currentExercise = exercises[currentExerciseIndex];
 
-        const handleComplete = () => {
+        const handleComplete = () => { // Possibly add back button?
             setCurrentExerciseIndex((prevIndex) =>
+           
                 Math.min(prevIndex + 1, exercises.length),
+            
             );
         };
+       const handleBack = () => { //just for testing purposes
+           return( currentExerciseIndex != 0 &&
+            setCurrentExerciseIndex((prevIndex) =>
+                Math.max(prevIndex - 1, 0),
+            )
+           )
+        };
 
-        return (
-            <div>
-                Frontend here
-                <br />
-                <br />
-                The content passed is {JSON.stringify(currentExercise.content)}.
-                <br />
-                <br />
-                <button onClick={handleComplete}>
-                    {"[ Click This to complete exercise ]"}
-                </button>
-            </div>
-        )
+//             return(
+//                <div>
+             
+//                 <Instruction
+//                 key={currentExercise.id}
+//                 content = {currentExercise.content}
+//                 onComplete={handleComplete}               
+//                 />              
+// <h1>exercise id is {currentExercise.simple_id}</h1>
+// <Button 
+//           className="button-primary" 
+//           onClick={handleBack}
+//         >
+//           {"back"}
+//         </Button>   
+// </div>
+                    
+                
+//             )
+
         switch (currentExercise.question_type) {
             case "instruction":
                 setButtonBarText(t("button_content.continue"));
                 return (
-                    <InLineMultipleChoice
-                        key={currentExercise.id}
-                        {...currentExercise.content} //column from DB (exercises_new table)
-                        onComplete={handleComplete}
-                    />
+                    <div>
+             
+                <Instruction
+                    key={currentExercise.id}
+                    content = {currentExercise.content}
+                    onComplete={handleComplete}               
+                />              
+<h1>exercise id is {currentExercise.simple_id}</h1>
+<Button 
+          className="button-primary" 
+          onClick={handleBack}
+        >
+          {"back"}
+        </Button>   
+</div>
                 );
             case "inlinemultiplechoice":
                 setButtonBarText(t("button_content.submit_answer"));
                 return (
-                    <InLineMultipleChoice
+                    <div>
+             
+                    <Instruction
                         key={currentExercise.id}
-                        {...currentExercise.content}
-                        onComplete={handleComplete}
-                    />
+                        content = {currentExercise.content}
+                        onComplete={handleComplete}               
+                    />              
+    <h1>exercise id is {currentExercise.simple_id}</h1>
+    <Button 
+              className="button-primary" 
+              onClick={handleBack}
+            >
+              {"back"}
+            </Button>   
+    </div>
                 );
             case "multiplechoice":
                 setButtonBarText(t("button_content.submit_answer"));
@@ -113,12 +151,12 @@ function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
                         onComplete={handleComplete}
                     />
                 );
-            case "textsubmission":
+            case "textsubmission": 
                 setButtonBarText(t("button_content.submit_answer"));
                 return (
                     <TextSubmissionExercise
                         key={currentExercise.id}
-                        {...currentExercise.content}
+                        content = {currentExercise.content}
                         onComplete={handleComplete}
                     />
                 );
