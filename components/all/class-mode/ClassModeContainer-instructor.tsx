@@ -5,12 +5,10 @@ import { useRouter } from "next/navigation";
 import ClassModeFooter from "./ClassModeFooter";
 import { useResponsive } from "../ResponsiveContext";
 import Badge from "../Badge";
-import { useUserRole } from "../data-retrieval/UserRoleContext";
 import { getGT } from "gt-next";
 import { createClient } from "../../../utils/supabase/client";
 
 import ClassModeContentInstructor from "./ClassModeContent-Instructor";
-import { dummyLessonModules, dummyLessonPhases, LessonModule, LessonPhase } from "@/app/types/LessonSummaryType";
 import { emptyDBModule, Module } from "@/app/types/db-types";
 import Button from "../buttons/Button";
 import { usePopUp } from "../popups/PopUpContext";

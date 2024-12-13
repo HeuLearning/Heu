@@ -6,8 +6,6 @@ import { createClient } from "../../../utils/supabase/client";
 import { Exercise } from "@/app/types/db-types";
 import { useRouter } from "next/navigation";
 import ClassModeContentStudent from "./ClassModeContent-Student";
-import MobileClassModeContainer from "../mobile/MobileClassModeContainer";
-import { LessonModule } from "@/app/types/LessonSummaryType";
 
 
 interface ClassModeContainerProps {
@@ -24,7 +22,7 @@ export default function ClassModeContainerStudent({
     const [isLoading, setIsLoading] = useState<boolean>(true);
     /* * * * * * * * * * * * * * * THIS IS TEMPORARY * * * * * * * * * * * * * * * * * */
     // in the future, this will come from a provider
-    const [lessonID, setLessonID] = useState<string>('fbd0f0af-da43-4d1c-a0d6-c85ba18d07b0'); // Elijah replace from lessons_new
+    const [lessonID, setLessonID] = useState<string>('fbd0f0af-da43-4d1c-a0d6-c85ba18d07b0');
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
     const [activeModuleID, setActiveModuleID] = useState<string>('');
@@ -60,43 +58,48 @@ export default function ClassModeContainerStudent({
         // module content DB retrieval
         //if algorithms are module-to=module, algorithm processing happens in this step, between exercise retrieval and setExercises().
         if (!activeModuleID) return;
-        const retrieveActiveModuleDetails = async () => {
-            const { data: moduleData, error: moduleError } = await supabase
-                .from('modules_new')
-                .select('id, name, description')
-                .eq('id', activeModuleID)
-                .single();
+        const retrieveActiveModule = async () => {
+            const retrieveActiveModuleDetails = async () => {
+                const { data: moduleData, error: moduleError } = await supabase
+                    .from('modules_new')
+                    .select('id, name, description')
+                    .eq('id', activeModuleID)
+                    .single();
 
-            if (moduleError) {
-                console.error(`Error fetching module details: ${moduleError}`);
-                return;
+                if (moduleError) {
+                    console.error(`Error fetching module details: ${moduleError}`);
+                    return;
+                }
+                console.log(`retrieved module details of ${JSON.stringify(moduleData)}`);
+                setActiveModuleInfo(moduleData);
             }
-            console.log(`retrieved module details of ${JSON.stringify(moduleData)}`);
-            setActiveModuleInfo(moduleData);
+
+            const retrieveActiveModuleExercises = async () => {
+                console.log(`activeModuleID is ${activeModuleID}`);
+                const { data: exercises, error: exercisesError } = await supabase
+                    .from('exercises_new')
+                    .select('id, simple_id, content, tags, question_type, module_exercises!inner(module_id)')
+                    .eq('module_exercises.module_id', activeModuleID); // Supabase, annoyingly, returns a nested structure when you do a join query.
+                //                                                        I filter after the join because I don't want to flatmap the exercises.
+                //                                                                      (I'm praying SQL optimizes the query on the backend)
+
+                //                                                          TODO: Can change this to a Supabase RPC (postgres function)
+                if (exercisesError) {
+                    console.error(`Error fetching exercises: ${exercisesError.message}`);
+                    return;
+                }
+                console.log(`return value of exercises is ${JSON.stringify(exercises)}`)
+                setExercises(exercises.map(({ module_exercises, ...exerciseWithoutModuleExercises }) => exerciseWithoutModuleExercises));
+                // [ only important for nerds ]
+                //      If you setExercises(exercises), TypeScript will actually keep you from accessing exercises.module_exercises.
+                //      However, the excess information will still be stored in exercises. This is excess stored info, so I remove it here.
+            }
+            await retrieveActiveModuleDetails();
+            await retrieveActiveModuleExercises();
+            setIsLoading(false);
         }
 
-        const retrieveActiveModuleExercises = async () => {
-            console.log(`activeModuleID is ${activeModuleID}`);
-            const { data: exercises, error: exercisesError } = await supabase
-                .from('exercises_new')
-                .select('id, simple_id, content, tags, question_type, module_exercises!inner(module_id)')
-                .eq('module_exercises.module_id', activeModuleID); // Supabase, annoyingly, returns a nested structure when you do a join query.
-            //                                                        I filter after the join because I don't want to flatmap the exercises.
-            //                                                                      (I'm praying SQL optimizes the query on the backend)
 
-            //                                                          TODO: Can change this to a Supabase RPC (postgres function)
-            if (exercisesError) {
-                console.error(`Error fetching exercises: ${exercisesError.message}`);
-                return;
-            }
-            console.log(`return value of exercises is ${JSON.stringify(exercises)}`)
-            setExercises(exercises.map(({ module_exercises, ...exerciseWithoutModuleExercises }) => exerciseWithoutModuleExercises));
-            // [ only important for nerds ]
-            //      If you setExercises(exercises), TypeScript will actually keep you from accessing exercises.module_exercises.
-            //      However, the excess information will still be stored in exercises. This is excess stored info, so I remove it here.
-        }
-        retrieveActiveModuleDetails();
-        retrieveActiveModuleExercises();
     }, [activeModuleID]);
 
     useEffect(() => {

@@ -1,0 +1,93 @@
+'use client'
+import MobileNavbar from "@/components/all/MobileNavbar";
+import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
+import { createClient } from "@/utils/supabase/client";
+import { getGT } from "gt-next";
+import Head from "next/head";
+import { useEffect, useState } from "react";
+
+const LearnerDashboard = () => {
+    const t = getGT();
+
+
+    const supabase = createClient();
+    const [isLoading, setIsLoading] = useState(true);
+    const [UID, setUID] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<"ad" | "in" | "st" | null>(null);
+    const [preferredName, setPreferredName] = useState<string | null>(null);
+
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+
+
+    useEffect(() => {
+        // REFACTOR: it's weird how we have to fetch user data here, and then fetch it again from userRoleProvider.
+        const fetchUserData = async () => {
+            try {
+                const { data: session, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError) {
+                    console.error("Error fetching session:", sessionError);
+                    setIsLoading(false);
+                    return;
+                }
+
+                const userId = session.session?.user.id;
+                setAccessToken(session.session?.access_token);
+
+                if (!userId) {
+                    setIsLoading(false);
+                    return;
+                }
+                setUID(userId);
+
+
+                const { data, error } = await supabase
+                    .from("users_new")
+                    .select("role, preferred_name")
+                    .eq("uid", userId)
+                    .single();
+
+                if (error) {
+                    console.error("Error fetching user data:", error);
+                    setIsLoading(false);
+                    return;
+                }
+
+                setUserRole(data?.role || null);
+                setPreferredName(data?.preferred_name || null);
+                setIsLoading(false);
+
+            } catch (error) {
+                console.error("Unexpected error:", error);
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="text-xl">Loading...</div>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div>
+                <ResponsiveProvider>
+                    <UserRoleProvider accessToken={userData.accessToken}>
+                        <MobileNavbar activeTab={t("button_content.dashboard")} />
+                        <h1>Name: {preferredName}</h1>
+                        <h1>Learner Dashboard</h1>
+                    </UserRoleProvider>
+                </ResponsiveProvider>
+
+            </div>
+        </>
+    );
+};
+
+export default LearnerDashboard;
