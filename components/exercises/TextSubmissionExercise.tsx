@@ -36,8 +36,13 @@ export default function TextSubmissionExercise({
   const t = getGT();
   const [answer, setAnswer] = useState("");
   const handleComplete = () => {
+
       onComplete(); 
   };
+  const isCorrect = (userAnswer: string): boolean => {
+         return userAnswer.toLowerCase().trim() === content.correctAnswer.toLowerCase().trim();
+     };
+  
   return (
     <div>
     
@@ -54,16 +59,17 @@ export default function TextSubmissionExercise({
                  }} 
     ></Textbox>
 
-    { (
-      <div className="self-end">
-        <Button 
-          className="button-primary" 
-          onClick={handleComplete}
-        >
-          {t("button_content.continue")}
-        </Button>
-      </div>
-    )}
+    {  isCorrect(answer) &&
+     <div className="self-end">
+     <Button 
+       className="button-primary" 
+       onClick={handleComplete}
+     >
+       {t("button_content.continue")}
+     </Button>
+   </div>
+     
+    }
   </div>
   )
 
