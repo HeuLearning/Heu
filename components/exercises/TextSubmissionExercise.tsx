@@ -35,6 +35,7 @@ export default function TextSubmissionExercise({
   const { isMobile } = useResponsive();
   const t = getGT();
   const [answer, setAnswer] = useState("");
+  const [cleared, setCleared] = useState(false);
   const handleComplete = () => {
 
       onComplete(); 
@@ -42,6 +43,7 @@ export default function TextSubmissionExercise({
   const isCorrect = (userAnswer: string): boolean => {
          return userAnswer.toLowerCase().trim() === content.correctAnswer.toLowerCase().trim();
      };
+  
   
   return (
     <div>
@@ -56,20 +58,36 @@ export default function TextSubmissionExercise({
     value={answer}
     onChange= {(value) => {
                   setAnswer(value);
+                  setCleared(false);
                  }} 
     ></Textbox>
 
-    {  isCorrect(answer) &&
+   
      <div className="self-end">
      <Button 
        className="button-primary" 
-       onClick={handleComplete}
+       onClick={() => {
+        if (isCorrect(answer)) 
+          onComplete();
+        else{
+
+        setCleared(true);
+        setAnswer("");
+        
+        }     
+      }}
      >
-       {t("button_content.continue")}
+       {"Submit"}
      </Button>
    </div>
+   
+    <div>
+      {cleared &&(<h1>Try again</h1>)}
+    </div>
+
+   
      
-    }
+    
   </div>
   )
 
