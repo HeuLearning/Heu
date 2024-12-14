@@ -120,7 +120,7 @@ function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
                 return (
                     <MultipleChoiceExercise
                         key={currentExercise.id}
-                        {...currentExercise.content}
+                        content = {currentExercise.content}
                         onComplete={handleComplete}
                     />
                 );
