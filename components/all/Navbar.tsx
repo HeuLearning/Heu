@@ -27,7 +27,7 @@ interface NavbarProps {
 
 export default function Navbar({ activeTab }: NavbarProps) {
     const { isMobile, isTablet, isDesktop } = useResponsive();
-    const { userRole, firstName, lastName, email } = useUserRole();
+    const { userRole, preferredName, legalName, email } = useUserRole();
     const [selectedButton, setSelectedButton] = useState(activeTab);
     const [isMobileNavMenuShown, setIsMobileNavMenuShown] = useState(false);
     const [activeNotifTab, setActiveNotifTab] = useState("New");
@@ -292,7 +292,7 @@ export default function Navbar({ activeTab }: NavbarProps) {
                                     <div>
                                         <div className="flex">
                                             <p className="text-typeface_primary text-body-semibold">
-                                                {firstName + " " + lastName}
+                                                {preferredName}
                                             </p>
                                             <Dot color="var(--typeface_primary)" />
                                             <p className="text-typeface_primary text-body-medium">
