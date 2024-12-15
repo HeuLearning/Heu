@@ -147,7 +147,7 @@ function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
                 return (
                     <MatchingExercise
                         key={currentExercise.id}
-                        {...currentExercise.content}
+                        content={currentExercise.content}
                         onComplete={handleComplete}
                     />
                 );
