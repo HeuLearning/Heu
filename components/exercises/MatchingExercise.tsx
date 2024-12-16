@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import WordBankItem from "../../components/exercises/WordBankItem";
 import {
   DndContext,
   closestCenter,
@@ -9,38 +8,13 @@ import {
   MouseSensor,
   TouchSensor,
   DragEndEvent,
+  useDraggable,
+  useDroppable,
 } from "@dnd-kit/core";
 import Badge from "../all/Badge";
-import Button from "../all/buttons/Button";
-import { useResponsive } from "../all/ResponsiveContext";
-import { usePopUp } from "../all/popups/PopUpContext";
-import PopUpContainer from "../all/popups/PopUpContainer";
-import Textbox from "./Textbox";
-import MobileDetailView from "../all/mobile/MobileDetailView";
-import ButtonBar from "../all/mobile/ButtonBar";
-import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import { getGT } from "gt-next";
-import dictionary from "@/dictionary";
-import { createClient } from "@/utils/supabase/client";
-import posthog from 'posthog-js'
 
-interface DragItem {
-  id: string;
-  content: JSX.Element;
-  draggable: boolean;
-  droppable: boolean;
-  x: boolean;
-}
-
-interface DropItem {
-  id: string;
-  content: JSX.Element;
-  droppable: boolean;
-  draggable: boolean;
-  x: boolean;
-}
-
-interface MatchingExerciseContent{
+interface MatchingExerciseContent {
   instruction: string;
   left_side: string[];
   right_side: string[];
@@ -52,234 +26,156 @@ interface MatchingExerciseProps {
   onComplete: () => void;
 }
 
-function MatchingExercise({
-  content,
-  onComplete,
-}: MatchingExerciseProps) {
-  const { isMobile, isTablet, isDesktop } = useResponsive();
-  const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
+function MatchingExercise({ content, onComplete }: MatchingExerciseProps) {
   const t = getGT();
-  const supabase = createClient();
-
+  
   const handleComplete = () => {
     onComplete();
-    
   };
 
-  
-
-  const [dropItems, setDropItems] = useState<DropItem[]>(
-    Array.from({ length: content.left_side.length }, (_, index) => ({
-      id: `drop${index + 1}`,
-      content: <></>,
-      droppable: true,
-      draggable: false,
-      x: false,
-    })),
+  // Create state for draggable and droppable items
+  const [dropItems, setDropItems] = useState<string[]>(
+    Array.from({ length: content.left_side.length }, () => "")
+  );
+  const [dragItems, setDragItems] = useState<string[]>(
+    Array.from({ length: content.right_side.length }, () => "")
   );
 
-  const [dragItems, setDragItems] = useState<DragItem[]>(
-    Array.from({ length: content.right_side.length }, (_, index) => ({
-      id: `drag${index + 1}`,
-      content: (
-        <div className="flex items-center gap-[8px]">
-          <Badge
-            bgColor="var(--surface_bg_secondary)"
-            textColor="text-typeface_primary"
-          >
-            <p className="uppercase">{String.fromCharCode(65 + index)}</p>
-          </Badge>
-          {content.right_side[index]}
-        </div>
-      ),
-      droppable: false,
-      draggable: true,
-      x: false,
-    })),
-  );
-
-  const [userAnswers, setUserAnswers] = useState<string[]>(
-    Array.from({ length: content.left_side.length }, () => ""),
-  );
-
-  const [originalDragItems, setOriginalDragItems] = useState<DragItem[]>([]);
-
-  useEffect(() => {
-    setOriginalDragItems([...dragItems]);
-  }, []);
-
-  const [placeholders, setPlaceholders] = useState(
-    Array.from({ length: content.left_side.length }, (_, index) => ({
-      id: `placeholder${index + 1}`,
-      droppable: true,
-      placeholder: true,
-    })),
-  );
-
+  // Initialize sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(MouseSensor),
-    useSensor(TouchSensor),
+    useSensor(TouchSensor)
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (over && active) {
-      const overItem = dropItems.find((item) => item.id === over.id);
-      const activeItem = dragItems.find((item) => item.id === active.id);
+    if (over && active.id !== over.id) {
+      // Find the index of the dropped element
+      const dropItemIndex = content.left_side.indexOf(over.id as string);
 
-      if (overItem && activeItem) {
-        setDropItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === over.id ? { ...activeItem, x: true } : item,
-          ),
-        );
-        setDragItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === active.id ? { ...overItem } : item,
-          ),
-        );
-        setPlaceholders((prevItems) =>
-          prevItems.map((item) =>
-            item.id ===
-            `placeholder${activeItem.id.charAt(activeItem.id.length - 1)}`
-              ? { ...item, droppable: false }
-              : item,
-          ),
-        );
-        setUserAnswers((prevAnswers) => {
-          const newAnswers = [...prevAnswers];
-          newAnswers[Number(overItem.id.charAt(overItem.id.length - 1)) - 1] =
-            content.right_side[
-              Number(activeItem.id.charAt(activeItem.id.length - 1)) - 1
-            ];
-          return newAnswers;
-        });
-      }
+      // Set the dropped item in the corresponding drop position
+      const updatedDropItems = [...dropItems];
+      updatedDropItems[dropItemIndex] = active.id as string;
+
+      setDropItems(updatedDropItems);
     }
   };
 
-  const handleDragDropReset = (id: string) => {
-    const oldIndex = originalDragItems.findIndex((item) => item.id === id);
-    const originalDragItem = dropItems.find((item) => item.id === id);
-    const otherIndex = dropItems.findIndex((item) => item.id === id);
-    const originalDropItem = dragItems[oldIndex];
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter} // Detect closest center for matching
+      onDragEnd={handleDragEnd} // Handle when the drag ends
+    >
+      <div style={{ display: "flex", alignItems: "flex-start" }}>
+        {/* Draggable Items */}
+        <div style={{ marginRight: "20px" }}>
+          {content.right_side.map((item, index) => {
+            const { attributes, listeners, setNodeRef } = useDraggable({
+              id: item, // Unique ID for each draggable item
+            });
 
-    setDragItems((prevItems: any) =>
-      prevItems.map((item: any, index: any) =>
-        index === oldIndex ? { ...originalDragItem, x: false } : item,
-      ),
-    );
-    setDropItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...originalDropItem } : item,
-      ),
-    );
-    setUserAnswers((prevAnswers) => {
-      const newAnswers = [...prevAnswers];
-      newAnswers[otherIndex] = "";
-      return newAnswers;
-    });
-  };
-
- 
-
-return(
-  <DndContext
-  sensors={sensors}
-  collisionDetection={closestCenter}  // Use closestCenter to detect which item to move
-  onDragEnd={handleDragEnd}  // Listen for drag end event
->
-
-
-
-
-
-
-
-
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-{content.right_side.map((item,index) =>(
-<div
-key = {item}
-style ={{
-  backgroundColor: "black",
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '10px',
-          padding: '5px',
-          border: '1px solid #ddd',
-          borderRadius: '5px',
-          width: '300px',
-          }}
->
-
-
-</div>
-
-
-))}
-
-
-
-    {content.left_side.map((item, index) => (
-      <div
-        key={item}
-        style={{
-          backgroundColor: "black",
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '10px',
-          padding: '5px',
-          border: '1px solid #ddd',
-          borderRadius: '5px',
-          width: '300px',
-        }}
-      >
-        {/* Drop zone (target) to the left of the item */}
-        <div
-          id={item}  // Each drop zone needs an id to be used as a drag target
-          style={{
-            width: '30px',
-            height: '30px',
-            marginRight: '10px',
-            backgroundColor: '#f0f0f0',
-            borderRadius: '5px',
-            border: '1px solid #ddd',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            cursor: 'pointer',  // Make it draggable
-          }}
-        >
-          {/* Drop target area */}
-          <span>drag items here</span> {/* This symbol is for the drop target */}
+            return (
+              <div
+                ref={setNodeRef}
+                key={item}
+                style={{
+                  padding: "8px",
+                  backgroundColor: "#f0f0f0",
+                  border: "1px solid #ddd",
+                  borderRadius: "5px",
+                  marginBottom: "10px",
+                  cursor: "move",
+                }}
+              >
+                <div className="flex items-center gap-[8px]">
+                  <Badge
+                    bgColor="var(--surface_bg_secondary)"
+                    textColor="text-typeface_primary"
+                  >
+                    <p className="uppercase">{String.fromCharCode(65 + index)}</p>
+                  </Badge>
+                  {item}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Static text to the right of the drop zone */}
-        <div
-          style={{
-            padding: '8px',
-            backgroundColor: '#fff',
-            border: '1px solid #ddd',
-            borderRadius: '5px',
-            width: '100%',
-          }}
-        >
-          {item}
+        {/* Drop Zones */}
+        <div>
+          {content.left_side.map((item, index) => {
+            const { setNodeRef } = useDroppable({
+              id: item,
+            });
+
+            return (
+              <div
+                key={item}
+                ref={setNodeRef}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                  padding: "5px",
+                  border: "1px solid #ddd",
+                  borderRadius: "5px",
+                  width: "300px",
+                  backgroundColor: dropItems[index] ? "#e0f7fa" : "#fff",
+                }}
+              >
+                {/* Drop Zone */}
+                <div
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    marginRight: "10px",
+                    backgroundColor: "#e0e0e0",
+                    borderRadius: "5px",
+                    border: "1px solid #ddd",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span>+</span>
+                </div>
+
+                {/* Placeholder or Dropped Item */}
+                <div
+                  style={{
+                    padding: "8px",
+                    backgroundColor: "#fff",
+                    border: "1px solid #ddd",
+                    borderRadius: "5px",
+                    width: "100%",
+                  }}
+                >
+                  {dropItems[index] ? (
+                    content.right_side[content.right_side.indexOf(dropItems[index])]
+                  ) : (
+                    "Drag item here"
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
-    ))}
-    
-  </div>
-</DndContext>
 
-);
-
-
+      {/* Completion Button */}
+      <button onClick={handleComplete} style={{ marginTop: "20px" }}>
+        {t("button_content.continue")}
+      </button>
+    </DndContext>
+  );
 }
+
 export default MatchingExercise;
+
 
 //   const CorrectAnswerContent = () => {
 //     return (
