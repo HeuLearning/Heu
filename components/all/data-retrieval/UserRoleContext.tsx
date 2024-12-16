@@ -13,8 +13,8 @@ const supabase = createClient();
 interface UserRoleContextType {
     UID: string | null;
     userRole: "ad" | "in" | "st" | null; // Include null for loading state
-    firstName: string | null;
-    lastName: string | null;
+    preferredName: string | null;
+    legalName: string | null;
     email: string | null;
 }
 
@@ -26,7 +26,7 @@ const UserRoleContext = createContext<UserRoleContextType | undefined>(
 // Props for provider
 interface UserRoleProviderProps {
     children: ReactNode;
-    accessToken: string;
+    accessToken: string | null;
 }
 
 export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({
@@ -35,8 +35,8 @@ export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({
 }) => {
     const [UID, setUID] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<"ad" | "in" | "st" | null>(null);
-    const [firstName, setFirstName] = useState<string | null>(null);
-    const [lastName, setLastName] = useState<string | null>(null);
+    const [preferredName, setPreferredName] = useState<string | null>(null);
+    const [legalName, setLegalName] = useState<string | null>(null);
     const [email, setEmail] = useState<string | null>(null);
 
     useEffect(() => {
@@ -51,8 +51,8 @@ export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({
             const userID = session.session?.user.id;
 
             const { data: roleType, error: rolesError } = await supabase
-                .from("user_roles")
-                .select("role, first_name, last_name, email")
+                .from("users_new")
+                .select("role, preferred_name, legal_name, email")
                 .eq("user_id", userID)
                 .single();
 
@@ -63,8 +63,8 @@ export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({
 
             setUID(userID || null);
             setUserRole(roleType?.role || null);
-            setFirstName(roleType?.first_name || null);
-            setLastName(roleType?.last_name || null);
+            setPreferredName(roleType?.preferred_name || null);
+            setLegalName(roleType?.legal_name || null);
             setEmail(roleType?.email || null);
         };
 
@@ -72,7 +72,7 @@ export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({
     }, [accessToken]);
 
     return (
-        <UserRoleContext.Provider value={{ UID, userRole, firstName, lastName, email }}>
+        <UserRoleContext.Provider value={{ UID, userRole, preferredName, legalName, email }}>
             {children}
         </UserRoleContext.Provider>
     );
