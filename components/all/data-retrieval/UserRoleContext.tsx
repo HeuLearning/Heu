@@ -26,7 +26,7 @@ const UserRoleContext = createContext<UserRoleContextType | undefined>(
 // Props for provider
 interface UserRoleProviderProps {
     children: ReactNode;
-    accessToken: string;
+    accessToken: string | null;
 }
 
 export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({

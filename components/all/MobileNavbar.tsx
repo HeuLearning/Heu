@@ -10,13 +10,9 @@ import { signOutAction } from "@/app/actions";
 import { usePathname } from "next/navigation";
 import { getGT } from "gt-next";
 
-interface NavbarProps {
-    activeTab: string;
-}
 
-export default function MobileNavbar({ activeTab }: NavbarProps) {
+export default function MobileNavbar() {
     const { isMobile, isTablet, isDesktop } = useResponsive();
-    const [selectedButton, setSelectedButton] = useState(activeTab);
     const [isMobileNavMenuShown, setIsMobileNavMenuShown] = useState(false);
     const [isSettingsShown, setIsSettingsShown] = useState(false);
 

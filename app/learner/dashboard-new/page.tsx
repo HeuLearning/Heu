@@ -1,4 +1,5 @@
 'use client'
+import { UserRoleProvider } from "@/components/all/data-retrieval/UserRoleContext";
 import MobileNavbar from "@/components/all/MobileNavbar";
 import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
 import { createClient } from "@/utils/supabase/client";
@@ -32,7 +33,7 @@ const LearnerDashboard = () => {
                 }
 
                 const userId = session.session?.user.id;
-                setAccessToken(session.session?.access_token);
+                setAccessToken(session.session?.access_token ?? null);
 
                 if (!userId) {
                     setIsLoading(false);
@@ -78,8 +79,8 @@ const LearnerDashboard = () => {
         <>
             <div>
                 <ResponsiveProvider>
-                    <UserRoleProvider accessToken={userData.accessToken}>
-                        <MobileNavbar activeTab={t("button_content.dashboard")} />
+                    <UserRoleProvider accessToken={accessToken}>
+                        <MobileNavbar />  {/* When switching to learner desktop, make a single navbar component that functions for both role types and platforms. */}
                         <h1>Name: {preferredName}</h1>
                         <h1>Learner Dashboard</h1>
                     </UserRoleProvider>
