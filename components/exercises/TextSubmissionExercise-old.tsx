@@ -28,7 +28,7 @@ export default function TextSubmissionExercise({
 }: TextSubmissionExerciseProps) {
   const [answer, setAnswer] = useState("");
   const { showPopUp, hidePopUp, updatePopUp } = usePopUp();
-
+  const { isMobile } = useResponsive();
   const { setHandleSubmitAnswer } = useButtonBar();
   const t = getGT();
   const supabase = createClient();
@@ -69,7 +69,7 @@ export default function TextSubmissionExercise({
           <p className="text-typeface_primary text-body-medium">
             {t("class_mode_content.please_type_answers")}
           </p>
-          <div className={`rounded-[14px] bg-surface_bg_tertiary p-[8px] flex flex-col gap-[24px]`}>
+          <div className={`rounded-[14px] bg-surface_bg_tertiary p-[8px] ${isMobile ? "flex flex-col gap-[24px]" : ""}`}>
             <Textbox
               size="small"
               placeholder={correctAnswer}
@@ -88,7 +88,7 @@ export default function TextSubmissionExercise({
   };
 
   const checkAnswers = (clearedAnswer: string) => {
-    if (isCorrect(clearedAnswer)) {
+    if (isCorrect(clearedAnswer) && isMobile) {
       updatePopUp(
         "incorrect-answer-popup",
         <div>
@@ -120,6 +120,18 @@ export default function TextSubmissionExercise({
             </div>
           </MobileDetailView>
         </div>,
+      );
+    } else if (isCorrect(clearedAnswer)) {
+      updatePopUp(
+        "incorrect-answer-popup",
+        <PopUpContainer
+          header={t("class_mode_content.well_done")}
+          primaryButtonText={t("button_content.continue")}
+          primaryButtonOnClick={handleComplete}
+          popUpId="incorrect-answer-popup"
+        >
+          <CorrectAnswerContent />
+        </PopUpContainer>,
       );
     }
   };
@@ -182,9 +194,10 @@ export default function TextSubmissionExercise({
   };
 
   useEffect(() => {
-    setHandleSubmitAnswer(() => handleSubmit);
-
-  }, [answer]);
+    if (isMobile) {
+      setHandleSubmitAnswer(() => handleSubmit);
+    }
+  }, [answer, isMobile]);
 
   return (
     <div className="flex flex-col gap-[32px]">
@@ -201,6 +214,17 @@ export default function TextSubmissionExercise({
           }}
         />
       </div>
+      {!isMobile && (
+        <div className="self-end">
+          <Button
+            className="button-primary"
+            onClick={handleSubmit}
+            disabled={!answer}
+          >
+            {t("button_content.submit_answer")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

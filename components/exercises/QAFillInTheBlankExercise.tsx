@@ -66,100 +66,60 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     return formattedAnswer === formattedCorrectAnswer;
   };
 
-  if (isMobile) {
-    const { setHandleSubmitAnswer } = useButtonBar();
 
-    useEffect(() => {
-      const handleClick = () => {
-        console.log(userAnswers);
-        if (isCorrect(userAnswers)) {
-          showPopUp({
-            id: "correct-answer-popup",
-            content: (
-              <div>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => {
-                    hidePopUp("correct-answer-popup");
-                  }}
-                />
-                <MobileDetailView
-                  buttonBar={true}
-                  backgroundColor="bg-surface_bg_highlight"
-                  className="bottom-0 z-50 max-h-[216px] px-[16px] pt-[16px]"
-                  headerContent={
-                    <div className="flex h-[40px] w-full flex-col justify-center">
-                      <h3 className="text-typeface_primary text-h3">
-                        {t("class_mode_content.well_done")}
-                      </h3>
-                    </div>
-                  }
-                >
-                  <CorrectAnswerContent />
-                  <div className="-ml-[16px]">
-                    <ButtonBar
-                      primaryButtonText={t("button_content.continue")}
-                      primaryButtonOnClick={handleComplete}
-                    />
-                  </div>
-                </MobileDetailView>
-              </div>
-            ),
-            container: null, // Ensure this ID exists in your DOM
-            style: {
-              overlay: "overlay-high",
-            },
-            height: "auto",
-          });
-        } else {
-          showPopUp({
-            id: "incorrect-answer-popup",
-            content: (
-              <div>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => {
-                    hidePopUp("incorrect-answer-popup");
-                  }}
-                />
-                <MobileDetailView
-                  buttonBar={true}
-                  height={500}
-                  backgroundColor="bg-surface_bg_highlight"
-                  className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
-                  headerContent={
-                    <div className="flex h-[40px] w-full flex-col justify-center">
-                      <h3 className="text-typeface_primary text-h3">
-                        {t("class_mode_content.oops")}
-                      </h3>
-                    </div>
-                  }
-                >
-                  <IncorrectAnswerContent />
-                  <div className="-ml-[16px]">
-                    <ButtonBar
-                      primaryButtonText={t("button_content.continue")}
-                      primaryButtonOnClick={handleComplete}
-                      primaryButtonDisabled={true}
-                    />
-                  </div>
-                </MobileDetailView>
-              </div>
-            ),
-            container: null, // Ensure this ID exists in your DOM
-            style: {
-              overlay: "overlay-high",
-            },
-            height: "auto",
-          });
-        }
-      };
+  const { setHandleSubmitAnswer } = useButtonBar();
 
-      setHandleSubmitAnswer(() => handleClick);
+  useEffect(() => {
+    const handleClick = () => {
+      console.log(userAnswers);
+      if (isCorrect(userAnswers)) {
+        showPopUp({
+          id: "correct-answer-popup",
+          content: (
+            <PopUpContainer
+              header={t("class_mode_content.well_done")}
+              primaryButtonText={t("button_content.continue")}
+              primaryButtonOnClick={handleComplete}
+              popUpId="correct-answer-popup"
+            >
+              <CorrectAnswerContent />
+            </PopUpContainer>
+          ),
+          container: null,
+          style: {
+            overlay: "overlay-high",
+          },
+          height: "auto",
+        });
+      } else {
+        showPopUp({
+          id: "incorrect-answer-popup",
+          content: (
+            <PopUpContainer
+              header={t("class_mode_content.try_again")}
+              primaryButtonText={t("button_content.continue")}
+              primaryButtonDisabled={true}
+              primaryButtonOnClick={handleComplete}
+              popUpId="incorrect-answer-popup"
+              closeButton={false}
+            >
+              <IncorrectAnswerContent />
+            </PopUpContainer>
+          ),
+          container: null,
+          style: {
+            overlay: "overlay-high",
+          },
+          height: "auto",
+        });
+      }
+    };
 
-      return () => setHandleSubmitAnswer(() => () => {});
-    }, [setHandleSubmitAnswer, userAnswers]);
-  }
+    setHandleSubmitAnswer(() => handleClick);
+
+    return () => setHandleSubmitAnswer(() => () => { });
+  }, [setHandleSubmitAnswer, userAnswers]);
+
 
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
 
@@ -199,6 +159,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         clearedAnswers[index] = ""; // Clear the answer locally
       }
     });
+
     return (
       <div className="space-y-[32px]">
         <p className="text-typeface_primary text-body-regular">
@@ -208,20 +169,13 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           <p className="text-typeface_primary text-body-medium">
             {t("class_mode_content.please_type_answers")}
           </p>
-          <div
-            className={`rounded-[14px] bg-surface_bg_tertiary p-[8px] ${isMobile ? "flex flex-col gap-[24px]" : ""}`}
-          >
+          <div className="rounded-[14px] bg-surface_bg_tertiary py-[16px] flex flex-col gap-[24px]">
             {wrongAnswers.map((index) => {
               const question = questions[index];
               const parts = question.split("[__]");
               return (
-                <div
-                  className={`${isMobile ? "flex flex-col gap-[16px]" : ""}`}
-                >
-                  <div
-                    key={question}
-                    className="flex h-[32px] w-fit items-center"
-                  >
+                <div key={question} className="flex flex-col gap-[16px]">
+                  <div className="flex items-center">
                     <div className="flex items-center px-[10px]">
                       <Badge
                         bgColor="var(--surface_bg_secondary)"
@@ -232,30 +186,24 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
                     </div>
                     <div className="flex items-center">
                       {parts[0] && (
-                        <span className="px-[10px] text-typeface_primary text-body-semibold">
+                        <span className="text-typeface_primary text-body-semibold">
                           {parts[0]}
-                        </span>
-                      )}
-                      <Textbox
-                        size="small"
-                        placeholder={correct_answer[index]}
-                        width={largestWordWidth}
-                        value={clearedAnswers[index]}
-                        onChange={(value) => {
-                          handleAnswerChange(index, value);
-                          clearedAnswers[index] = value;
-                          checkAnswers(clearedAnswers);
-                        }}
-                      />
-                      {parts[1] && (
-                        <span className="px-[10px] text-typeface_primary text-body-semibold">
-                          {parts[1]}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex h-[32px] items-center pl-[8px]">
-                    <InfoPill text={answers[index]} />
+                  <div className="w-full px-[10px]">
+                    <Textbox
+                      size="small"
+                      placeholder={correct_answer[index]}
+                      width="100%"
+                      value={clearedAnswers[index]}
+                      onChange={(value) => {
+                        handleAnswerChange(index, value);
+                        clearedAnswers[index] = value;
+                        checkAnswers(clearedAnswers);
+                      }}
+                    />
                   </div>
                 </div>
               );
@@ -326,7 +274,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   };
 
   const checkAnswers = (clearedAnswers: string[]) => {
-    if (isCorrect(clearedAnswers) && isMobile) {
+    if (isCorrect(clearedAnswers)) {
       updatePopUp(
         "incorrect-answer-popup",
         <div>
@@ -339,16 +287,16 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           <MobileDetailView
             buttonBar={true}
             backgroundColor="bg-surface_bg_highlight"
-            className="bottom-0 z-50 max-h-[570px] overflow-y-auto px-[16px] pb-[32px] pt-[16px]"
+            className="bottom-0 z-50 max-h-[216px] px-[16px] pt-[16px]"
             headerContent={
               <div className="flex h-[40px] w-full flex-col justify-center">
                 <h3 className="text-typeface_primary text-h3">
-                  {t("class_mode_content.oops")}
+                  {t("class_mode_content.well_done")}
                 </h3>
               </div>
             }
           >
-            <IncorrectAnswerContent />
+            <CorrectAnswerContent />
             <div className="-ml-[16px]">
               <ButtonBar
                 primaryButtonText={t("button_content.continue")}
@@ -359,172 +307,133 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
           </MobileDetailView>
         </div>,
       );
-    } else if (isCorrect(clearedAnswers)) {
-      updatePopUp(
-        "incorrect-answer-popup",
-        <PopUpContainer
-          header={t("class_mode_content.try_again")}
-          primaryButtonText={t("button_content.continue")}
-          primaryButtonOnClick={handleComplete}
-          popUpId="incorrect-answer-popup"
-        >
-          <IncorrectAnswerContent />
-        </PopUpContainer>,
-      );
     }
   };
 
-  if (isMobile)
+  const showWordBankPopUp = (index: number) => {
+    showPopUp({
+      id: "word-bank-popup",
+      content: (
+        <WordBankOptionsContent
+          clickedIndex={index}
+          userAnswers={userAnswers}
+        />
+      ),
+      container: null,
+      style: {
+        overlay: "overlay-medium",
+      },
+      height: "auto",
+    });
+  };
+
+  const WordBankOptionsContent = ({
+    clickedIndex,
+    userAnswers,
+  }: {
+    clickedIndex: number;
+    userAnswers: string[];
+  }) => {
     return (
-      <>
-        <div className="flex flex-col gap-[32px]">
-          <p className="text-typeface_primary text-body-regular">
-            {instruction}
-          </p>
-          {questions.map((question, index) => {
-            const parts = question.split("[__]");
-            return (
-              <div className="flex flex-col rounded-[14px] bg-surface_bg_tertiary pt-[4px]">
-                <div key={index} className="mb-[16px] flex w-fit items-center">
-                  <div className="flex items-center px-[10px]">
-                    <Badge
-                      bgColor="var(--surface_bg_secondary)"
-                      textColor="text-typeface_primary"
-                    >
-                      {index + 1}
-                    </Badge>
-                  </div>
-                  <div className="flex w-fit flex-wrap items-center">
-                    {parts[0] && (
-                      <span className="px-[10px] text-typeface_primary text-body-semibold">
-                        {parts[0]}
-                      </span>
-                    )}
-                    <Textbox
-                      size="small"
-                      placeholder="Type here"
-                      width={largestWordWidth}
-                      value={userAnswers[index]}
-                      onChange={(value) => handleAnswerChange(index, value)}
-                    />
-                    {parts[1] && (
-                      <span className="px-[10px] text-typeface_primary text-body-semibold">
-                        {parts[1]}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div
-                  key={index}
-                  className="mb-[16px] flex h-[32px] items-center pl-[4px]"
-                >
-                  <InfoPill text={answers[index]} />
-                </div>
-                <div className="flex gap-[4px] rounded-[14px] bg-surface_bg_secondary p-[4px]">
-                  {word_bank.map((word, index) => (
-                    <div className="w-1/3">
-                      <WordBankItem id={String(index)}>{word}</WordBankItem>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </>
+      <div>
+        <div
+          className="fixed inset-0 z-10"
+          onClick={() => {
+            hidePopUp("word-bank-popup");
+          }}
+        />
+        <MobileDetailView
+          backgroundColor="bg-surface_bg_highlight"
+          className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
+          height={380}
+          headerContent={
+            <div className="flex h-[40px] w-full flex-col items-center justify-center">
+              <h3 className="text-typeface_primary text-body-medium">
+                {t("class_mode_content.pick_a_word")}
+              </h3>
+            </div>
+          }
+        >
+          <div className="flex flex-col gap-[8px] rounded-[14px] bg-surface_bg_tertiary p-[8px]">
+            {word_bank.map((word, index) => (
+              <WordBankItem
+                key={index}
+                id={String(index)}
+                onClick={() => handleSelectWord(clickedIndex, word)}
+              >
+                {word}
+              </WordBankItem>
+            ))}
+          </div>
+        </MobileDetailView>
+      </div>
     );
+  };
+
+  const handleSelectWord = (index: number, word: string) => {
+    handleAnswerChange(index, word);
+    hidePopUp("word-bank-popup");
+  };
+
 
   return (
-    <div className="flex flex-col">
-      <p className="pb-[32px] text-typeface_primary text-body-regular">
-        {instruction}
-      </p>
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="flex items-start gap-[128px]">
-          {/* Questions Container */}
-          <div className="flex flex-col">
-            <h2 className="mb-4 pl-3 text-typeface_primary text-body-regular">
-              {t("class_mode_content.questions")}
-            </h2>
-            {questions.map((question, index) => {
-              const parts = question.split("[__]");
-              return (
-                <div
-                  key={index}
-                  className="mb-[16px] flex h-[32px] w-fit items-center"
-                >
-                  <div className="flex items-center px-[10px]">
-                    <Badge
-                      bgColor="var(--surface_bg_secondary)"
-                      textColor="text-typeface_primary"
-                    >
-                      {index + 1}
-                    </Badge>
-                  </div>
+    <>
+      <div className="flex flex-col gap-[32px]">
+        <p className="text-typeface_primary text-body-regular">
+          {instruction}
+        </p>
+        {questions.map((question, index) => {
+          const parts = question.split("[__]");
+          return (
+            <div className="flex flex-col rounded-[14px] bg-surface_bg_tertiary p-[4px]">
+              <div key={index} className="flex flex-col gap-[16px]">
+                <div className="flex items-center gap-[8px] px-[4px] mt-[10px]">
+                  <Badge
+                    bgColor="var(--surface_bg_secondary)"
+                    textColor="text-typeface_primary"
+                  >
+                    {index + 1}
+                  </Badge>
                   <div className="flex items-center">
                     {parts[0] && (
-                      <span className="px-[10px] text-typeface_primary text-body-semibold">
+                      <span className="text-typeface_primary text-body-semibold">
                         {parts[0]}
                       </span>
                     )}
-                    <Textbox
-                      size="small"
-                      placeholder="Type here"
-                      width={largestWordWidth}
-                      value={userAnswers[index]}
-                      onChange={(value) => handleAnswerChange(index, value)}
-                    />
-                    {parts[1] && (
-                      <span className="px-[10px] text-typeface_primary text-body-semibold">
-                        {parts[1]}
-                      </span>
-                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Answers Container */}
-          <div className="flex flex-col">
-            <h2 className="mb-[16px] pl-[10px] text-typeface_primary text-body-regular">
-              {t("class_mode_content.answers")}
-            </h2>
-            <div className="flex flex-col">
-              {answers.map((answer, index) => (
-                <div
-                  key={index}
-                  className="mb-[16px] flex h-[32px] items-center pl-[4px]"
-                >
-                  <InfoPill text={answer} />
+                <div className="w-full">
+                  {userAnswers[index] === "" ? (
+                    <div
+                      className="border-1px min-h-[44px] w-full cursor-pointer rounded-[10px] bg-surface_bg_highlight outline-dashed-surface_border_primary px-[16px] flex items-center"
+                      onClick={() => showWordBankPopUp(index)}
+                    >
+                      <span className="text-typeface_tertiary">
+                        {t("class_mode_content.tap_to_select")}
+                      </span>
+                    </div>
+                  ) : (
+                    <WordBankItem
+                      id={String(index)}
+                      x={true}
+                      xButtonOnClick={() => handleAnswerChange(index, "")}
+                      onClick={() => showWordBankPopUp(index)}
+                    >
+                      {userAnswers[index]}
+                    </WordBankItem>
+                  )}
+                  {parts[1] && (
+                    <span className="text-typeface_primary text-body-semibold">
+                      {parts[1]}
+                    </span>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-
-          {/* Word Bank Container */}
-          <div
-            className="self-center rounded-[14px] bg-surface_bg_secondary p-[4px]"
-            style={{ display: "inline-block" }}
-          >
-            <div className="flex flex-col gap-[4px]">
-              {word_bank.map((word, index) => (
-                <WordBankItem id={String(index)}>{word}</WordBankItem>
-              ))}
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
-      <div className="self-end">
-        <Button
-          className="button-primary"
-          onClick={handleSubmit}
-          disabled={userAnswers.some((item) => item.trim() === "")}
-        >
-          {t("button_content.submit_answer")}
-        </Button>
-      </div>
-    </div>
+    </>
   );
 };
 
