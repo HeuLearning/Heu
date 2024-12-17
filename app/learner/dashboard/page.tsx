@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { redirect, useRouter } from "next/navigation";
 import Head from "next/head";
 import DashboardContainer from "../../../components/all/DashboardContainer";
-import { SessionsProvider } from "../../../components/all/data-retrieval/SessionsContext";
+import { LessonsProvider } from "../../../components/all/data-retrieval/LessonsContext";
 import { UserRoleProvider } from "../../../components/all/data-retrieval/UserRoleContext";
 import { PopUpProvider } from "../../../components/all/popups/PopUpContext";
 import Navbar from "../../../components/all/Navbar";
@@ -98,13 +98,13 @@ const LearnerDashboard = () => {
             <div>
                 <ResponsiveProvider>
                     <UserRoleProvider accessToken={userData.accessToken}>
-                        <SessionsProvider accessToken={userData.accessToken} userRole="st">
+                        <LessonsProvider accessToken={userData.accessToken} userRole="st">
                             <PopUpProvider>
                                 <Navbar activeTab={t("button_content.dashboard")} />
                                 <DashboardContainer accessToken={userData.accessToken} />
                                 <EnhancedPopUp />
                             </PopUpProvider>
-                        </SessionsProvider>
+                        </LessonsProvider>
                     </UserRoleProvider>
                 </ResponsiveProvider>
             </div>

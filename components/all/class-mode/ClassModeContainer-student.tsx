@@ -60,7 +60,7 @@ export default function ClassModeContainerStudent({
 
     useEffect(() => {
         // module content DB retrieval
-        //if algorithms are module-to=module, algorithm processing happens in this step, between exercise retrieval and setExercises().
+        //if algorithms are module-to-module, algorithm processing happens in this step, between exercise retrieval and setExercises().
         if (!activeModuleID) return;
         const retrieveActiveModule = async () => {
             const retrieveActiveModuleDetails = async () => {
@@ -103,6 +103,8 @@ export default function ClassModeContainerStudent({
             setIsLoading(false);
         }
 
+        retrieveActiveModule();
+
 
     }, [activeModuleID]);
 
@@ -140,11 +142,15 @@ export default function ClassModeContainerStudent({
         router.push("dashboard");
     };
 
+
     const redisTest = async () => {
         try {
             console.log(`testing redis`);
             const response = await fetch('/api/completeExercise', {
                 method: 'POST',
+                body: JSON.stringify({
+                    value_1: 'value_1',
+                })
             });
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -180,6 +186,7 @@ export default function ClassModeContainerStudent({
                         backgroundColor="bg-surface_bg_highlight"
                         className="px-[16px] pt-[16px]"
                     >
+                        <button onClick={redisTest}>{'[ Click me to test redis ]'} </button>
                         <ClassModeContentStudent exercises={exercises} />
                     </MobileDetailView>
                 </div>
@@ -188,6 +195,7 @@ export default function ClassModeContainerStudent({
     } else {
         return (
             <div>
+                classmodecontainer student
                 Loading...
             </div>
         )

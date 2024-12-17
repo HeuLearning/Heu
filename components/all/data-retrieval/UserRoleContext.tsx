@@ -53,7 +53,7 @@ export const UserRoleProvider: React.FC<UserRoleProviderProps> = ({
             const { data: roleType, error: rolesError } = await supabase
                 .from("users_new")
                 .select("role, preferred_name, legal_name, email")
-                .eq("user_id", userID)
+                .eq("uid", userID)
                 .single();
 
             if (rolesError) {
