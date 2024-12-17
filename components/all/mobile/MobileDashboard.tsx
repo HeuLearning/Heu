@@ -4,33 +4,30 @@ import { useResponsive } from "../ResponsiveContext";
 import HorizontalDatePicker from "./HorizontalDatePicker";
 import { usePopUp } from "../popups/PopUpContext";
 import MobileClassDetails from "./MobileClassDetails";
-import { useSessions } from "../data-retrieval/SessionsContext";
+import { useLessons } from "../data-retrieval/LessonsContext";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { LessonPlanProvider } from "../data-retrieval/LessonPlanContext";
 import { isSameDay } from "date-fns";
 
 interface MobileDashboardProps {
-    activeSessionId: string | null;
-    setActiveSessionId: (id: string | null) => void;
     accessToken: string;
 }
 
 // this is equivalent to the web DashboardContainer + CalendarContainer, since the dashboard is simply the calendar
 export default function MobileDashboard({
-    activeSessionId,
-    setActiveSessionId,
     accessToken,
 }: MobileDashboardProps) {
     const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
     const [isPopUpVisible, setIsPopUpVisible] = useState(false);
     const { isMobile, isTablet, isDesktop } = useResponsive();
-    const { allSessions, upcomingSessions, getSessionStatus } = useSessions();
+    const { allLessons, upcomingLessons, getLessonStatus } = useLessons();
     const horizontalDatePickerRef = useRef<HTMLDivElement>(null);
     const [containerHeight, setContainerHeight] = useState(0);
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
     let session;
     if (activeSessionId) {
-        session = allSessions.find((session) => session.id === activeSessionId);
+        session = allLessons.find((session) => session.id === activeSessionId);
     }
 
     const closeClassDetails = () => {
@@ -90,10 +87,10 @@ export default function MobileDashboard({
     const renderSessions = () => {
         let sessions;
         if (selectedDate)
-            sessions = allSessions.filter((session) =>
+            sessions = allLessons.filter((session) =>
                 isSameDay(selectedDate, new Date(session.start_time)),
             );
-        else sessions = upcomingSessions;
+        else sessions = upcomingLessons;
         return sessions?.map((session, index, filteredSessions) => {
             const currentDate = new Date(session.start_time);
             const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
@@ -111,8 +108,8 @@ export default function MobileDashboard({
                         <MiniClassBlock
                             dateCard={
                                 index === 0 &&
-                                upcomingSessions.length > 0 &&
-                                filteredSessions[0].id === upcomingSessions[0].id
+                                upcomingLessons.length > 0 &&
+                                filteredSessions[0].id === upcomingLessons[0].id
                             }
                             sessionId={session.id}
                             activeSessionId={activeSessionId}
@@ -124,8 +121,8 @@ export default function MobileDashboard({
                         <MiniClassBlock
                             dateCard={
                                 index === 0 &&
-                                upcomingSessions.length > 0 &&
-                                filteredSessions[0].id === upcomingSessions[0].id
+                                upcomingLessons.length > 0 &&
+                                filteredSessions[0].id === upcomingLessons[0].id
                             }
                             sessionId={session.id}
                             activeSessionId={activeSessionId}
@@ -143,14 +140,14 @@ export default function MobileDashboard({
 
     const createSessionMap = () => {
         const sessionMap = new Map();
-        allSessions.forEach((session) => {
+        allLessons.forEach((session) => {
             const startDate = new Date(session.start_time);
             const year = startDate.getFullYear();
             const month = startDate.getMonth();
             const day = startDate.getDate();
             // key in the map based on the session day online, not time
             const dateKey = `${year}-${month}-${day}`;
-            const status = getSessionStatus(session);
+            const status = getLessonStatus(session);
             // circle color
             let color;
             if (status === "Canceled" || status === "Attended")
@@ -167,7 +164,7 @@ export default function MobileDashboard({
         return sessionMap;
     };
 
-    const sessionMap = useMemo(() => createSessionMap(), [allSessions]);
+    const sessionMap = useMemo(() => createSessionMap(), [allLessons]);
 
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 

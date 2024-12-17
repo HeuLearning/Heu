@@ -13,6 +13,7 @@ import { emptyDBModule, Module } from "@/app/types/db-types";
 import Button from "../buttons/Button";
 import { usePopUp } from "../popups/PopUpContext";
 import PopUpContainer from "../popups/PopUpContainer";
+import { LessonModule, LessonPhase } from "@/app/types/LessonSummaryType";
 
 interface ClassModeContainerProps {
     sessionId: string;

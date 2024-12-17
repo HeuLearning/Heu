@@ -12,11 +12,14 @@ export async function POST(req: NextRequest) {
   try {
     // Set a key in Redis
     console.log('POST CALLED');
+    const body = await req.json();
+    console.log(`retriving the value "value_1" from body: ${body.value_1}`);
+
+
     await redis.set('mykeyhi', 'Hello from Next.js API!');
 
-    // Get the key from Redis
     const value = await redis.get('mykeyhi');
-    
+
     // Send the Redis value as a response
     return new NextResponse(
       JSON.stringify({ message: 'Connected to Redis', value }),
