@@ -3,16 +3,16 @@ import Button from "./Button";
 import Divider from "../Divider";
 import styles from "./RSVPSelector.module.css";
 import MenuItem from "./MenuItem";
-import { useLessons } from "../data-retrieval/LessonsContext";
 import Dot from "../Dot";
 import { usePopUp } from "../popups/PopUpContext";
 import AttendancePopUp from "../popups/AttendancePopUp";
 import { useUserRole } from "../data-retrieval/UserRoleContext";
-import dictionary from "@/dictionary.js";
+import { createClient } from "@/utils/supabase/client";
 import { getGT } from "gt-next";
+import { Lesson } from "@/types/lessons";
 
 interface RSVPSelectorProps {
-    session: any;
+    session: Lesson;
     shouldSpan?: boolean;
 }
 
@@ -20,29 +20,45 @@ export default function RSVPSelector({ session, shouldSpan = false }: RSVPSelect
     const [isOpen, setIsOpen] = useState(false);
     const [isAttendancePopUpOpen, setIsAttendancePopUpOpen] = useState(false);
     const [lastAction, setLastAction] = useState<"confirm" | "cantAttend" | null>(null);
-    const { confirmLesson, getLessonStatus } = useLessons();
+    const [status, setStatus] = useState<string>("Pending");
     const { userRole } = useUserRole();
-
+    const supabase = createClient();
     const t = getGT();
-    const status = getLessonStatus(session);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: PointerEvent) => {
-            if (
-                dropdownRef.current &&
-                event.target instanceof Node &&
-                !dropdownRef.current.contains(event.target)
-            ) {
-                setIsOpen(false);
-            }
-        };
+    const getLessonStatus = async () => {
+        if (!session) return "Pending";
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id;
 
-        document.addEventListener("pointerdown", handleClickOutside);
-        return () => {
-            document.removeEventListener("pointerdown", handleClickOutside);
-        };
-    }, []);
+        const now = new Date();
+        const startTime = new Date(session.start_time);
+        const endTime = new Date(session.end_time);
+
+        if (now >= startTime && now <= endTime) return "Online";
+        /*     if (session.confirmed_students?.includes(userId)) return "Confirmed";
+            if (session.enrolled_students?.includes(userId)) return "Enrolled";
+            if (session.attended_students?.includes(userId)) return "Attended";
+            if (session.canceled_students?.includes(userId)) return "Canceled"; */
+        return "Pending";
+    };
+
+    const confirmLesson = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user?.id) return;
+
+        // Temporary no-op
+        const error = null;
+
+        if (!error) {
+            // Update local status
+            setStatus("Confirmed");
+        }
+    };
+
+    useEffect(() => {
+        getLessonStatus().then(setStatus);
+    }, [session]);
 
     const { showPopUp } = usePopUp();
 

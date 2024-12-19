@@ -4,10 +4,10 @@ import { useResponsive } from "../ResponsiveContext";
 import HorizontalDatePicker from "./HorizontalDatePicker";
 import { usePopUp } from "../popups/PopUpContext";
 import MobileClassDetails from "./MobileClassDetails";
-import { useLessons } from "../data-retrieval/LessonsContext";
 import { useState, useEffect, useRef, useMemo } from "react";
-import { LessonPlanProvider } from "../data-retrieval/LessonPlanContext";
-import { isSameDay } from "date-fns";
+import { createClient } from "@/utils/supabase/client";
+import { Lesson } from "@/types/lessons";  // Add import
+import { isSameDay } from "date-fns";  // Add this import back
 
 interface MobileDashboardProps {
     accessToken: string;
@@ -20,14 +20,16 @@ export default function MobileDashboard({
     const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
     const [isPopUpVisible, setIsPopUpVisible] = useState(false);
     const { isMobile, isTablet, isDesktop } = useResponsive();
-    const { allLessons, upcomingLessons, getLessonStatus } = useLessons();
+    const [lessons, setLessons] = useState<Lesson[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const supabase = createClient();
     const horizontalDatePickerRef = useRef<HTMLDivElement>(null);
     const [containerHeight, setContainerHeight] = useState(0);
     const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
     let session;
     if (activeSessionId) {
-        session = allLessons.find((session) => session.id === activeSessionId);
+        session = lessons.find((session) => session.id === activeSessionId);
     }
 
     const closeClassDetails = () => {
@@ -36,37 +38,16 @@ export default function MobileDashboard({
         setIsPopUpVisible(false);
     };
 
-    useEffect(() => {
-        if (isPopUpVisible) {
-            updatePopUp(
-                "mobile-class-details-popup",
-                <LessonPlanProvider
-                    sessionId={activeSessionId}
-                    accessToken={accessToken}
-                >
-                    <MobileClassDetails
-                        closeClassDetails={closeClassDetails}
-                        activeSessionId={activeSessionId}
-                    />
-                </LessonPlanProvider>,
-            );
-        }
-    }, [activeSessionId, isPopUpVisible, accessToken]);
-
     const handleMobileShowClassDetails = (sessionId: string) => {
+        setActiveSessionId(sessionId);
         setIsPopUpVisible(true);
         showPopUp({
             id: "mobile-class-details-popup",
             content: (
-                <LessonPlanProvider
-                    sessionId={activeSessionId}
-                    accessToken={accessToken}
-                >
-                    <MobileClassDetails
-                        closeClassDetails={closeClassDetails}
-                        activeSessionId={sessionId}
-                    />
-                </LessonPlanProvider>
+                <MobileClassDetails
+                    closeClassDetails={closeClassDetails}
+                    activeSessionId={sessionId}
+                />
             ),
             container: null,
             style: {
@@ -86,19 +67,24 @@ export default function MobileDashboard({
 
     const renderSessions = () => {
         let sessions;
-        if (selectedDate)
-            sessions = allLessons.filter((session) =>
-                isSameDay(selectedDate, new Date(session.start_time)),
+        if (selectedDate) {
+            sessions = lessons
+                .filter((session) => isSameDay(selectedDate, new Date(session.start_time)))
+                .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+        } else {
+            sessions = [...lessons].sort((a, b) =>
+                new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
             );
-        else sessions = upcomingLessons;
+        }
+
         return sessions?.map((session, index, filteredSessions) => {
             const currentDate = new Date(session.start_time);
             const currentDateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}`;
-            const previousDate =
-                index > 0 ? new Date(filteredSessions[index - 1].start_time) : null;
+            const previousDate = index > 0 ? new Date(filteredSessions[index - 1].start_time) : null;
             const previousDateKey = previousDate
                 ? `${previousDate.getFullYear()}-${previousDate.getMonth()}-${previousDate.getDate()}`
                 : null;
+
             return (
                 <div key={session.id}>
                     {index > 0 && index < filteredSessions.length && (
@@ -107,27 +93,25 @@ export default function MobileDashboard({
                     {currentDateKey === previousDateKey ? (
                         <MiniClassBlock
                             dateCard={
-                                index === 0 &&
-                                upcomingLessons.length > 0 &&
-                                filteredSessions[0].id === upcomingLessons[0].id
+                                index === 0 || currentDateKey !== previousDateKey
                             }
                             sessionId={session.id}
                             activeSessionId={activeSessionId}
                             setActiveSessionId={setActiveSessionId}
                             arrow={true}
                             handleMobileShowClassDetails={handleMobileShowClassDetails}
+                            session={session}
                         />
                     ) : (
                         <MiniClassBlock
                             dateCard={
-                                index === 0 &&
-                                upcomingLessons.length > 0 &&
-                                filteredSessions[0].id === upcomingLessons[0].id
+                                index === 0 || currentDateKey !== previousDateKey
                             }
                             sessionId={session.id}
                             activeSessionId={activeSessionId}
                             setActiveSessionId={setActiveSessionId}
                             handleMobileShowClassDetails={handleMobileShowClassDetails}
+                            session={session}
                         />
                     )}
                 </div>
@@ -138,9 +122,20 @@ export default function MobileDashboard({
     // navbar = 64, containerHeight = horizontaldatepicker, border = 1
     const scrollContainerHeight = window.innerHeight - 64 - containerHeight - 1;
 
+    const getLessonStatus = (lesson: Lesson) => {
+        const now = new Date();
+        const startTime = new Date(lesson.start_time);
+        const endTime = new Date(lesson.end_time);
+
+        if (now >= startTime && now <= endTime) return "Online";
+        //if (lesson.confirmed_students?.includes(supabase.auth.getSession()?.user?.id)) return "Confirmed";
+        // ... other status logic
+        return "Pending";  // Default status
+    };
+
     const createSessionMap = () => {
         const sessionMap = new Map();
-        allLessons.forEach((session) => {
+        lessons.forEach((session) => {
             const startDate = new Date(session.start_time);
             const year = startDate.getFullYear();
             const month = startDate.getMonth();
@@ -150,9 +145,9 @@ export default function MobileDashboard({
             const status = getLessonStatus(session);
             // circle color
             let color;
-            if (status === "Canceled" || status === "Attended")
-                color = "var(--typeface_tertiary)";
-            else if (status === "Confirmed" || status === "Online")
+            /*  if (status === "Canceled" || status === "Attended")
+                 color = "var(--typeface_tertiary)"; */
+            if (/* status === "Confirmed" ||  */status === "Online")
                 color = "var(--status_fg_positive)";
             else if (status === "Pending") color = "var(--typeface_primary)";
             if (sessionMap.get(dateKey)) {
@@ -164,9 +159,34 @@ export default function MobileDashboard({
         return sessionMap;
     };
 
-    const sessionMap = useMemo(() => createSessionMap(), [allLessons]);
+    const sessionMap = useMemo(() => createSessionMap(), [lessons]);
 
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
+    useEffect(() => {
+        const fetchLessons = async () => {
+            const { data: lessons, error } = await supabase
+                .from("lessons_new")
+                .select("*");
+
+            if (error) {
+                console.error("Error fetching lessons:", error);
+                return;
+            }
+
+            const processedLessons = lessons.map(lesson => ({
+                ...lesson,
+                learning_organization_name: "Heu Learning",
+                location_name: "Online",
+                num_enrolled: 80,
+            }));
+
+            setLessons(processedLessons);
+            setIsLoading(false);
+        };
+
+        fetchLessons();
+    }, []);
 
     return (
         <div

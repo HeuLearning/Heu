@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import Button from "../all/buttons/Button";
 import { usePopUp } from "../all/popups/PopUpContext";
 import { useResponsive } from "../all/ResponsiveContext";
-import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import Textbox from "./Textbox";
 import { getGT } from "gt-next";
 import posthog from 'posthog-js';
@@ -17,28 +16,40 @@ interface TextSubmissionExerciseProps {
   size: "small" | "big";
   correctAnswer: string;
   onComplete: () => void;
+  userAnswers: string[];
+  setUserAnswers: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export default function TextSubmissionExercise({
+
+
+export interface TextSubmissionExerciseRef {
+  handleSubmit: () => void;
+}
+
+const TextSubmissionExercise = forwardRef<TextSubmissionExerciseRef, TextSubmissionExerciseProps>(({
   instruction,
   question,
   size = "big",
   correctAnswer,
   onComplete,
-}: TextSubmissionExerciseProps) {
-  const [answer, setAnswer] = useState("");
+  userAnswers,
+  setUserAnswers,
+}, ref) => {
+
+
   const { showPopUp, hidePopUp, updatePopUp } = usePopUp();
 
-  const { setHandleSubmitAnswer } = useButtonBar();
   const t = getGT();
-  const supabase = createClient();
+
+  const removeAccents = (str: string) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
 
   useEffect(() => {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      person_profiles: 'identified_only',
-    });
-  }, []);
+    if (userAnswers.length === 0) {
+      setUserAnswers([""]);
+    }
+  }, [userAnswers.length]);
 
   const handleComplete = () => {
     onComplete();
@@ -46,8 +57,11 @@ export default function TextSubmissionExercise({
     hidePopUp("incorrect-answer-popup");
   };
 
-  const isCorrect = (userAnswer: string): boolean => {
-    return userAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim();
+  const isCorrect = (userAnswers: string[]): boolean => {
+    if (!userAnswers[0] || !correctAnswer) return false;
+    const formattedAnswer = removeAccents(userAnswers[0].toLowerCase().trim());
+    const formattedCorrectAnswer = removeAccents(correctAnswer.toLowerCase().trim());
+    return formattedAnswer === formattedCorrectAnswer;
   };
 
   const CorrectAnswerContent = () => {
@@ -76,9 +90,8 @@ export default function TextSubmissionExercise({
               width="100%"
               value={clearedAnswer}
               onChange={(value) => {
-                clearedAnswer = value;
-                setAnswer(value);
-                checkAnswers(clearedAnswer);
+                setUserAnswers([value]);
+                checkAnswers(value);
               }}
             />
           </div>
@@ -87,8 +100,8 @@ export default function TextSubmissionExercise({
     );
   };
 
-  const checkAnswers = (clearedAnswer: string) => {
-    if (isCorrect(clearedAnswer)) {
+  const checkAnswers = (value: string) => {
+    if (!isCorrect([value])) {
       updatePopUp(
         "incorrect-answer-popup",
         <div>
@@ -124,19 +137,8 @@ export default function TextSubmissionExercise({
     }
   };
 
-  const handleSubmit = async () => {
-    const correct = isCorrect(answer);
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    posthog.capture('submissions', {
-      timestamp: new Date().toISOString(),
-      correct,
-      question: question,
-      answer,
-    });
+  const handleSubmit = () => {
+    const correct = isCorrect(userAnswers);
 
     if (correct) {
       showPopUp({
@@ -163,7 +165,7 @@ export default function TextSubmissionExercise({
         content: (
           <PopUpContainer
             header={t("class_mode_content.try_again")}
-            primaryButtonText={t("button_content.continue")}
+            primaryButtonText={""}
             primaryButtonDisabled={true}
             primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
@@ -181,10 +183,12 @@ export default function TextSubmissionExercise({
     }
   };
 
-  useEffect(() => {
-    setHandleSubmitAnswer(() => handleSubmit);
+  useImperativeHandle(ref, () => ({
+    handleSubmit: () => {
+      handleSubmit();
+    }
+  }), [handleSubmit]);
 
-  }, [answer]);
 
   return (
     <div className="flex flex-col gap-[32px]">
@@ -195,12 +199,14 @@ export default function TextSubmissionExercise({
           size={size}
           placeholder={t("class_mode_content.enter_text_here")}
           width="100%"
-          value={answer}
+          value={userAnswers[0]}
           onChange={(value) => {
-            setAnswer(value);
+            setUserAnswers([value]);
           }}
         />
       </div>
     </div>
   );
-}
+});
+
+export default TextSubmissionExercise;

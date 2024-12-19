@@ -6,30 +6,23 @@ import EnhancedPopUp from "@/components/all/popups/EnhancedPopUp";
 import { PopUpProvider } from "@/components/all/popups/PopUpContext";
 import { ResponsiveProvider } from "@/components/all/ResponsiveContext";
 import { createClient } from "@/utils/supabase/client";
-import { access } from "fs";
 import { getGT } from "gt-next";
-import Head from "next/head";
 import { useEffect, useState } from "react";
 
 const LearnerDashboard = () => {
     const t = getGT();
-
-
     const supabase = createClient();
     const [isLoading, setIsLoading] = useState(true);
     const [UID, setUID] = useState<string | null>(null);
     const [userRole, setUserRole] = useState<"ad" | "in" | "st" | null>(null);
     const [preferredName, setPreferredName] = useState<string | null>(null);
-
     const [accessToken, setAccessToken] = useState<string | null>(null);
-
 
     useEffect(() => {
         // REFACTOR: it's weird how we have to fetch user data here, and then fetch it again from userRoleProvider.
         const fetchUserData = async () => {
             try {
                 const { data: session, error: sessionError } = await supabase.auth.getSession();
-
                 if (sessionError) {
                     console.error("Error fetching session:", sessionError);
                     setIsLoading(false);
@@ -44,7 +37,6 @@ const LearnerDashboard = () => {
                     return;
                 }
                 setUID(userId);
-
 
                 const { data, error } = await supabase
                     .from("users_new")
@@ -61,7 +53,6 @@ const LearnerDashboard = () => {
                 setUserRole(data?.role || null);
                 setPreferredName(data?.preferred_name || null);
                 setIsLoading(false);
-
             } catch (error) {
                 console.error("Unexpected error:", error);
                 setIsLoading(false);
@@ -85,15 +76,12 @@ const LearnerDashboard = () => {
                 <ResponsiveProvider>
                     <UserRoleProvider accessToken={accessToken}>
                         <PopUpProvider>
-                            <MobileNavbar />  {/* When switching to learner desktop, make a single navbar component that functions for both role types and platforms. */}
+                            <MobileNavbar />
                             <MobileDashboard accessToken={accessToken} />
-                            <h1>Name: {preferredName}</h1>
-                            <h1>Learner Dashboard</h1>
                             <EnhancedPopUp />
                         </PopUpProvider>
                     </UserRoleProvider>
                 </ResponsiveProvider>
-
             </div>
         </>
     );

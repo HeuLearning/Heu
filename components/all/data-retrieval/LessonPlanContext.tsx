@@ -5,8 +5,6 @@ import React, {
     useEffect,
     ReactNode,
 } from "react";
-import { useLessons } from "./LessonsContext";
-import { format } from "date-fns";
 import { createClient } from "@/utils/supabase/client";
 
 interface LessonPlan {
@@ -65,10 +63,27 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
     const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { upcomingLessons } = useLessons();
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
 
     const supabase = createClient();
+
+    useEffect(() => {
+        const fetchSessionStartTime = async () => {
+            if (!sessionId) return;
+
+            const { data: session, error } = await supabase
+                .from("lessons_new")
+                .select("start_time")
+                .eq("id", sessionId)
+                .single();
+
+            if (session?.start_time) {
+                setSessionStartTime(session.start_time);
+            }
+        };
+
+        fetchSessionStartTime();
+    }, [sessionId]);
 
     useEffect(() => {
         const fetchPhases = async () => {
@@ -289,25 +304,6 @@ export const LessonPlanProvider: React.FC<LessonPlanProviderProps> = ({
 
         fetchPhases();
     }, [accessToken, sessionId]);
-
-    useEffect(() => {
-        console.log("Upcoming Sessions:", upcomingLessons); // Log upcoming sessions
-        if (upcomingLessons && upcomingLessons.length > 0 && sessionId) {
-            const session = upcomingLessons.find(
-                (session) => String(session.id) === sessionId,
-            );
-
-            if (session && session.start_time) {
-                setSessionStartTime(session.start_time);
-            } else {
-                setSessionStartTime(null);
-            }
-        } else {
-            console.log(
-                "upcomingLessons not available or empty, or sessionId not provided",
-            );
-        }
-    }, [upcomingLessons, sessionId]);
 
     const phases = lessonPlan?.phases || [];
 

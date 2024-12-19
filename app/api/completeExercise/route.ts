@@ -1,60 +1,135 @@
-import Redis from 'ioredis';
+import Redis from "ioredis";
 import { NextRequest, NextResponse } from "next/server";
 
 const redis = new Redis({
-    host: process.env.REDIS_HOST,
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || undefined,
+  host: process.env.REDIS_HOST,
+  port: parseInt(process.env.REDIS_PORT || "6379", 10),
+  password: process.env.REDIS_PASSWORD || undefined,
 });
 
+async function getProgress(userID: string, lessonID: string, moduleID: string) {
+  console.log(`getting progress`);
+  const progressKey = `progress:${userID}:${lessonID}:${moduleID}`;
+  console.log(`progressKey is ${progressKey}`);
+  const results = await redis.hgetall(progressKey);
 
-export async function POST(req: NextRequest) {
-  try {
-    // Set a key in Redis
-    console.log('POST CALLED');
-    const body = await req.json();
-    console.log(`retriving the value "value_1" from body: ${body.value_1}`);
+  return results;
+}
 
+async function getMetrics(lessonID: string, moduleID: string) {
+  console.log(`getting metrics`);
+  const metricsKeyPattern = `metrics:*:${lessonID}:${moduleID}`;
+  const keys = await redis.keys(metricsKeyPattern);
 
-    await redis.set('mykeyhi', 'Hello from Next.js API!');
-
-    const value = await redis.get('mykeyhi');
-
-    // Send the Redis value as a response
-    return new NextResponse(
-      JSON.stringify({ message: 'Connected to Redis', value }),
-      { status: 200 }
+  const progressResults: Record<
+    string,
+    { exerciseID: string; answers: string[] }[]
+  > = {};
+  for (const key of keys) {
+    const userID = key.split(":")[1];
+    const exercises = await redis.hgetall(key);
+    progressResults[userID] = Object.entries(exercises).map(
+      ([exerciseID, answers]) => ({
+        exerciseID,
+        answers: JSON.parse(answers),
+      }),
     );
-  } catch (error) {
-    console.error('Error connecting to Redis:', error);
-    return new NextResponse(
-      JSON.stringify({ error: 'Error connecting to Redis' }),
-      { status: 500 }
+  }
+
+  return progressResults;
+}
+
+export async function GET(req: NextRequest) {
+  // used for a) instructor retrieving metrics for a given module or b) student retrieving their own progress
+  try {
+    const { searchParams } = new URL(req.url);
+    const userID = searchParams.get("userID");
+    const lessonID = searchParams.get("lessonID");
+    const moduleID = searchParams.get("moduleID");
+
+    if (!lessonID || !moduleID) {
+      return NextResponse.json(
+        { error: "Missing required parameters: lessonID and moduleID" },
+        { status: 400 },
+      );
+    }
+
+    let data;
+    if (userID) {
+      data = await getProgress(userID, lessonID, moduleID);
+    } else {
+      data = await getMetrics(lessonID, moduleID);
+    }
+
+    return NextResponse.json({ data }, { status: 200 });
+  } catch (error: any) {
+    console.error("API Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error", details: error.message },
+      { status: 500 },
     );
   }
 }
 
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { userID, lessonID, moduleID, exerciseID, answers } = body;
 
-// What is actually being stored here? Value submitted?
+    const progressKey = `progress:${userID}:${lessonID}:${moduleID}`;
+    const metricsKey = `metrics:${lessonID}:${moduleID}`;
+    const answersJson = JSON.stringify(answers);
 
-/*export async function POST(req: NextRequest) {
-    try {
-        const body = await req.json();
-        const { lessonID, userID, moduleID, exerciseID, index, name } = body; // timestamp too
+    const transaction = redis.multi();
+    // hset( key, field, value )
+    transaction.hset(progressKey, exerciseID, answersJson);
+    const metricField = `${userID}:${exerciseID}`;
+    transaction.hset(metricsKey, metricField, answersJson);
 
-        if (!lessonID || !userID || !moduleID || !exerciseID || index === undefined || !name) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
+    const results = await transaction.exec();
 
-        const key = `completedExercises:${lessonID}:${userID}`;
-        const exercise = { moduleID, exerciseID, index, name };
-
-        // Write the exercise to Redis
-        await redis.rpush(key, JSON.stringify(exercise));
-
-        return NextResponse.json({ message: 'Exercise recorded successfully' }, { status: 200 });
-    } catch (error) {
-        console.error('Error writing to Redis:', error);
-        return NextResponse.json({ error: 'Failed to record exercise' }, { status: 500 });
+    if (!results) {
+      return NextResponse.json(
+        { error: "Transaction failed: no response from Redis" },
+        { status: 500 },
+      );
     }
-}*/
+
+    const hasErrors = results.some(([err]) => err !== null);
+    if (hasErrors) {
+      return NextResponse.json(
+        { error: "Transaction failed with errors", details: results },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json(
+      { message: "Exercise added successfully" },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    console.error("API Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error", details: error.message },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    // Clear all data in Redis
+    await redis.flushall();
+
+    return NextResponse.json(
+      { message: "All data deleted successfully from Redis" },
+      { status: 200 },
+    );
+  } catch (error: any) {
+    console.error("API Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error", details: error.message },
+      { status: 500 },
+    );
+  }
+}

@@ -6,10 +6,9 @@ import { createClient } from "../../../utils/supabase/client";
 import { Exercise } from "@/app/types/db-types";
 import { useRouter } from "next/navigation";
 import ClassModeContentStudent from "./ClassModeContent-Student";
-import MobileClassModeContainer from "../mobile/MobileClassModeContainer";
-import { LessonModule } from "@/app/types/LessonSummaryType";
 import BackButton from "../buttons/BackButton";
 import MobileDetailView from "../mobile/MobileDetailView";
+import { useUserRole } from "../data-retrieval/UserRoleContext";
 
 
 interface ClassModeContainerProps {
@@ -29,6 +28,7 @@ export default function ClassModeContainerStudent({
     const [lessonID, setLessonID] = useState<string>('fbd0f0af-da43-4d1c-a0d6-c85ba18d07b0');
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+    const { UID } = useUserRole();
     const [activeModuleID, setActiveModuleID] = useState<string>('');
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [activeModuleInfo, setActiveModuleInfo] = useState<{ name: string; description: string; id: string }>({ name: '', description: '', id: '' });
@@ -47,7 +47,6 @@ export default function ClassModeContainerStudent({
                 console.error(`Error fetching initial module ID of ${lessonID}: ${error}`);
                 return;
             }
-            console.log(`retrieved active module ID of ${data.active_module_id}`);
             setActiveModuleID(data.active_module_id);
         }
         const connectAsMember = async () => {
@@ -61,7 +60,8 @@ export default function ClassModeContainerStudent({
     useEffect(() => {
         // module content DB retrieval
         //if algorithms are module-to-module, algorithm processing happens in this step, between exercise retrieval and setExercises().
-        if (!activeModuleID) return;
+        if (!activeModuleID || !UID) return;
+
         const retrieveActiveModule = async () => {
             const retrieveActiveModuleDetails = async () => {
                 const { data: moduleData, error: moduleError } = await supabase
@@ -74,39 +74,51 @@ export default function ClassModeContainerStudent({
                     console.error(`Error fetching module details: ${moduleError}`);
                     return;
                 }
-                console.log(`retrieved module details of ${JSON.stringify(moduleData)}`);
                 setActiveModuleInfo(moduleData);
             }
 
-            const retrieveActiveModuleExercises = async () => {
-                console.log(`activeModuleID is ${activeModuleID}`);
-                const { data: exercises, error: exercisesError } = await supabase
-                    .from('exercises_new')
-                    .select('id, simple_id, content, tags, question_type, module_exercises!inner(module_id)')
-                    .eq('module_exercises.module_id', activeModuleID); // Supabase, annoyingly, returns a nested structure when you do a join query.
-                //                                                        I filter after the join because I don't want to flatmap the exercises.
-                //                                                                      (I'm praying SQL optimizes the query on the backend)
+            const retrieveProgress = async () => {
+                // initial check for if user has already completed exercises in this module
+                try {
+                    const url = `/api/completeExercise?userID=${UID}&lessonID=${lessonID}&moduleID=${activeModuleID}`;
+                    const response = await fetch(url, { method: 'GET' });
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch data');
+                    }
+                    const data = await response.json();
+                    // returning list of ids
+                    const parsed = JSON.parse(JSON.stringify(data.data));
+                    return Object.keys(parsed);
+                } catch (error) {
+                    console.error('Error during GET request:', error);
+                }
+            }
 
-                //                                                          TODO: Can change this to a Supabase RPC (postgres function)
+            const retrieveActiveModuleExercises = async (completedExerciseIDs: string[]) => {
+                const { data: exerciseData, error: exercisesError } = await supabase
+                    .rpc('get_exercises_by_module', { module_id_input: activeModuleID });
                 if (exercisesError) {
                     console.error(`Error fetching exercises: ${exercisesError.message}`);
                     return;
                 }
-                console.log(`return value of exercises is ${JSON.stringify(exercises)}`)
-                setExercises(exercises.map(({ module_exercises, ...exerciseWithoutModuleExercises }) => exerciseWithoutModuleExercises));
-                // [ only important for nerds ]
-                //      If you setExercises(exercises), TypeScript will actually keep you from accessing exercises.module_exercises.
-                //      However, the excess information will still be stored in exercises. This is excess stored info, so I remove it here.
+
+                // remove exercises we've already completed
+                const filteredExerciseData = exerciseData.filter(
+                    (exercise: Exercise) => !completedExerciseIDs.includes(exercise.id)
+                );
+                setExercises(filteredExerciseData);
             }
+
+            const completedExerciseIDs = await retrieveProgress();
             await retrieveActiveModuleDetails();
-            await retrieveActiveModuleExercises();
+            await retrieveActiveModuleExercises(completedExerciseIDs || []);
             setIsLoading(false);
         }
 
         retrieveActiveModule();
 
 
-    }, [activeModuleID]);
+    }, [UID, activeModuleID]);
 
     useEffect(() => {
         // setup dynamic DB update of activeModuleID
@@ -136,31 +148,16 @@ export default function ClassModeContainerStudent({
         };
     }, [lessonID]);
 
+    const redisDeleteAll = async () => {
+        console.log(`Deleting all entries from Redis.`);
+        fetch('/api/completeExercise', {
+            method: 'DELETE'
+        });
+    }
 
     const router = useRouter();
     const handleBack = () => {
         router.push("dashboard");
-    };
-
-
-    const redisTest = async () => {
-        try {
-            console.log(`testing redis`);
-            const response = await fetch('/api/completeExercise', {
-                method: 'POST',
-                body: JSON.stringify({
-                    value_1: 'value_1',
-                })
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            console.log('Response from API:', data);
-
-        } catch (error) {
-            console.error('Error:', error);
-        }
     };
 
     if (!isLoading) {
@@ -168,7 +165,7 @@ export default function ClassModeContainerStudent({
             <div>
                 <div className="relative">
                     <MobileDetailView
-                        buttonBar={true} // ideally = classStarted
+                        buttonBar={true}
                         headerContent={
                             <div className="relative flex w-full flex-col gap-[16px]">
                                 <div className="flex h-[44px] w-full items-center justify-center">
@@ -186,8 +183,8 @@ export default function ClassModeContainerStudent({
                         backgroundColor="bg-surface_bg_highlight"
                         className="px-[16px] pt-[16px]"
                     >
-                        <button onClick={redisTest}>{'[ Click me to test redis ]'} </button>
-                        <ClassModeContentStudent exercises={exercises} />
+                        <button onClick={redisDeleteAll}>{"[ REDIS DELETE ALL ]"}</button>
+                        <ClassModeContentStudent exercises={exercises} UID={UID} lessonID={lessonID} activeModuleID={activeModuleID} />
                     </MobileDetailView>
                 </div>
             </div>
@@ -200,26 +197,10 @@ export default function ClassModeContainerStudent({
             </div>
         )
     }
-    /*if (isMobile) {
-        return (
-            <MobileClassModeContainer {exercises=exercises, lessonModules = lessonModules}/>
-        );
-    }*/
-
-    /*return (
-        <div
-            id="class-mode-container"
-            style={{ height: dashboardHeight }}
-            className="relative mb-4 ml-4 mr-4 flex flex-col rounded-[20px] bg-surface_bg_highlight p-[10px]"
-        >
-            <button onClick={redisTest}>{'[ Click me to test redis ]'} </button>
-            <ClassModeHeaderBar
-                onBack={handleBack}
-                title={t("class_mode_content.classroom")}
-                rightSide={'nothing in the right side for now'
-                }
-            />
-            <ClassModeContentStudent exercises={exercises} />
-        </div>
-    );*/
 };
+
+
+
+
+
+

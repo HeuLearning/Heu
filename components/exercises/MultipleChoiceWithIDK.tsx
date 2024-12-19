@@ -59,7 +59,7 @@ export default function MultipleChoiceWithIDK({
 
   if (isMobile) {
     const { setHandleSubmitAnswer } = useButtonBar();
-  
+
     useEffect(() => {
       const handleClick = () => {
         if (isDontKnow || !selectedOption || !isCorrect(selectedOption)) {
@@ -144,10 +144,10 @@ export default function MultipleChoiceWithIDK({
           });
         }
       };
-  
+
       setHandleSubmitAnswer(() => handleClick);
-  
-      return () => setHandleSubmitAnswer(() => () => {});
+
+      return () => setHandleSubmitAnswer(() => () => { });
     }, [setHandleSubmitAnswer, selectedOption, isDontKnow]);
   }
 
@@ -337,8 +337,8 @@ export default function MultipleChoiceWithIDK({
       <div className="flex justify-end gap-[8px] mt-4">
         {!isMobile && (
           <>
-            <Button 
-              className="button-primary" 
+            <Button
+              className="button-primary"
               onClick={handleSubmit}
               disabled={!selectedOption && !isDontKnow}
             >
@@ -346,10 +346,10 @@ export default function MultipleChoiceWithIDK({
             </Button>
           </>
         )}
-          <Button 
-          className="button-primary" 
+        <Button
+          className="button-primary"
           onClick={handleDontKnow}
-          >
+        >
           {t("button_content.dont_know")}
         </Button>
       </div>

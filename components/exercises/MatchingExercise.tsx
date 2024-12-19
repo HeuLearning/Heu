@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import WordBankItem from "../../components/exercises/WordBankItem";
 
 import Badge from "../all/Badge";
-import Button from "../all/buttons/Button";
+
 
 import { usePopUp } from "../all/popups/PopUpContext";
 import PopUpContainer from "../all/popups/PopUpContainer";
 import Textbox from "./Textbox";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import ButtonBar from "../all/mobile/ButtonBar";
-import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import { getGT } from "gt-next";
-import dictionary from "@/dictionary";
-import { createClient } from "@/utils/supabase/client";
-import posthog from 'posthog-js'
+
+
+// TODO: Yende review why you can click out of the correct answer popup
 
 
 interface MatchingExerciseProps {
@@ -22,19 +21,26 @@ interface MatchingExerciseProps {
   right_side: string[];
   correct_answer: string[][];
   onComplete: () => void;
+  setUserAnswers: React.Dispatch<React.SetStateAction<string[]>>;
+  userAnswers: string[];
 }
 
-function MatchingExercise({
+export interface MatchingExerciseRef {
+  handleSubmit: () => void;
+}
+
+const MatchingExercise = forwardRef<MatchingExerciseRef, MatchingExerciseProps>(({
   instruction,
   left_side,
   right_side,
   correct_answer,
   onComplete,
-}: MatchingExerciseProps) {
+  setUserAnswers,
+  userAnswers,
+}, ref) => {
 
   const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
   const t = getGT();
-  const supabase = createClient();
 
   const handleComplete = () => {
     onComplete();
@@ -42,137 +48,27 @@ function MatchingExercise({
     hidePopUp("incorrect-answer-popup");
   };
 
+  const removeAccents = (str: string) => {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
   useEffect(() => {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      person_profiles: 'identified_only',
+    if (left_side.length > 0 && userAnswers.length === 0) {
+      setUserAnswers(new Array(left_side.length).fill(''));
+    }
+  }, [left_side, userAnswers.length]);
+
+
+  const isCorrect = (answers: string[]) => {
+    return answers.every((answer, index) => {
+      const formattedAnswer = removeAccents(answer.toLowerCase().trim());
+      const formattedCorrectAnswer = removeAccents(correct_answer[index][1].toLowerCase().trim());
+      return formattedAnswer === formattedCorrectAnswer;
     });
-  }, []);
+  };
 
-
-
-  const [userAnswers, setUserAnswers] = useState<string[]>(
-    Array.from({ length: left_side.length }, () => ""),
-  );
-
-
-
-
-
-  useEffect(() => {
-    console.log(userAnswers);
-  }, [userAnswers]);
-
-
-  const { setHandleSubmitAnswer } = useButtonBar();
-
-  useEffect(() => {
-    const handleClick = () => {
-      if (isCorrect(userAnswers)) {
-        showPopUp({
-          id: "correct-answer-popup",
-          content: (
-            <div>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => {
-                  hidePopUp("correct-answer-popup");
-                }}
-              />
-              <MobileDetailView
-                buttonBar={true}
-                backgroundColor="bg-surface_bg_highlight"
-                className="bottom-0 z-50 max-h-[216px] px-[16px] pt-[16px]"
-                headerContent={
-                  <div className="flex h-[40px] w-full flex-col justify-center">
-                    <h3 className="text-typeface_primary text-h3">
-                      {t("class_mode_content.well_done")}
-                    </h3>
-                  </div>
-                }
-              >
-                <CorrectAnswerContent />
-                <div className="-ml-[16px]">
-                  <ButtonBar
-                    primaryButtonText={t("button_content.continue")}
-                    primaryButtonOnClick={handleComplete}
-                  />
-                </div>
-              </MobileDetailView>
-            </div>
-          ),
-          container: null, // Ensure this ID exists in your DOM
-          style: {
-            overlay: "overlay-high",
-          },
-          height: "auto",
-        });
-      } else {
-        showPopUp({
-          id: "incorrect-answer-popup",
-          content: (
-            <div>
-              <div
-                className="fixed inset-0 z-10"
-                onClick={() => {
-                  hidePopUp("incorrect-answer-popup");
-                }}
-              />
-              <MobileDetailView
-                buttonBar={true}
-                height={500}
-                backgroundColor="bg-surface_bg_highlight"
-                className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
-                headerContent={
-                  <div className="flex h-[40px] w-full flex-col justify-center">
-                    <h3 className="text-typeface_primary text-h3">
-                      {t("class_mode_content.oops")}
-                    </h3>
-                  </div>
-                }
-              >
-                <IncorrectAnswerContent />
-                <div className="-ml-[16px]">
-                  <ButtonBar
-                    primaryButtonText={t("button_content.continue")}
-                    primaryButtonOnClick={handleComplete}
-                    primaryButtonDisabled={true}
-                  />
-                </div>
-              </MobileDetailView>
-            </div>
-          ),
-          container: null, // Ensure this ID exists in your DOM
-          style: {
-            overlay: "overlay-high",
-          },
-          height: "auto",
-        });
-      }
-    };
-
-    setHandleSubmitAnswer(() => handleClick);
-
-    return () => setHandleSubmitAnswer(() => () => { });
-  }, [setHandleSubmitAnswer, userAnswers]);
-
-
-  const handleSubmit = async () => {
-    console.log(userAnswers);
-
+  const handleSubmit = () => {
     const correct = isCorrect(userAnswers);
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    posthog.capture('submissions', {
-      timestamp: new Date().toISOString(),
-      correct,
-      question: instruction,
-      userAnswers,
-    });
 
 
     if (correct) {
@@ -200,7 +96,7 @@ function MatchingExercise({
         content: (
           <PopUpContainer
             header={t("class_mode_content.try_again")}
-            primaryButtonText={t("button_content.continue")}
+            primaryButtonText={""}
             primaryButtonDisabled={true}
             primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
@@ -218,6 +114,12 @@ function MatchingExercise({
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    handleSubmit: () => {
+      handleSubmit();
+    }
+  }), [handleSubmit]);
+
   const CorrectAnswerContent = () => {
     return (
       <p className="text-typeface_primary text-body-regular">
@@ -228,15 +130,15 @@ function MatchingExercise({
 
   const IncorrectAnswerContent = () => {
     let wrongAnswers: number[] = [];
-    let clearedAnswers = [...userAnswers]; // Create a local copy of answers
+    let clearedAnswers = [...userAnswers];
 
     userAnswers.forEach((answer, index) => {
       if (
-        cleanString(answer.toLowerCase()) !==
-        cleanString(correct_answer.map((pair) => pair[1])[index].toLowerCase())
+        removeAccents(answer.toLowerCase()) !==
+        removeAccents(correct_answer.map((pair) => pair[1])[index].toLowerCase())
       ) {
         wrongAnswers.push(index);
-        clearedAnswers[index] = ""; // Clear the answer locally
+        clearedAnswers[index] = "";
       }
     });
 
@@ -290,22 +192,6 @@ function MatchingExercise({
     );
   };
 
-  const cleanString = (str: string) =>
-    str.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-  const isCorrect = (answers: string[]) => {
-    return (
-      cleanString(answers.join("").toLowerCase().trim()) ===
-      cleanString(
-        correct_answer
-          .map((pair) => pair[1])
-          .join("")
-          .toLowerCase()
-          .trim(),
-      )
-    );
-  };
-
   const checkAnswer = (clearedAnswers: string[]) => {
     setUserAnswers(clearedAnswers);
     if (isCorrect(clearedAnswers)) {
@@ -351,8 +237,7 @@ function MatchingExercise({
     clickedIndex: number;
     userAnswers: string[];
   }) => {
-    console.log("user answers");
-    console.log(userAnswers);
+
     return (
       <div>
         <div
@@ -412,11 +297,7 @@ function MatchingExercise({
       const newAnswers = [...prevAnswers];
       newAnswers[clickedIndex] = right_side[index];
 
-      // Update the popup with the new answers
       updatePopUpWithNewAnswers(clickedIndex, newAnswers);
-
-      console.log("new answers");
-      console.log(newAnswers);
 
       return newAnswers;
     });
@@ -444,7 +325,7 @@ function MatchingExercise({
           userAnswers={userAnswers}
         />
       ),
-      container: null, // Ensure this ID exists in your DOM
+      container: null,
       style: {
         overlay: "overlay-medium",
       },
@@ -489,7 +370,7 @@ function MatchingExercise({
                     newAnswers[index] = "";
                     return newAnswers;
                   });
-                  updatePopUpWithNewAnswers(index, userAnswers);
+                  updatePopUpWithNewAnswers(index, userAnswers); // TODO: Jordy, make this not rely on userAnswers
                 }}
               >
                 <div className="flex items-center gap-[8px]">
@@ -516,6 +397,6 @@ function MatchingExercise({
 
 
 
-}
+});
 
 export default MatchingExercise;

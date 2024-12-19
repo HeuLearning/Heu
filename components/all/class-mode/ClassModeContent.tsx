@@ -25,7 +25,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const { elapsedTime, elapsedLapTime } = state;
 
   const t = getGT();
-  
+
 
   const { userRole } = useUserRole();
   const { isMobile } = useResponsive();
@@ -47,7 +47,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
   const renderContent = useMemo(() => {
     console.log("THIS IS THE JSON DATA");
     console.log(jsonData.student_data?.exercises);
-  
+
     if (currentExerciseIndex >= exercises.length) {
       return (
         <p className="text-typeface_primary text-body-regular">
@@ -55,20 +55,20 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         </p>
       );
     }
-  
+
     const currentExercise = exercises[currentExerciseIndex];
-  
+
     const handleComplete = () => {
       setCurrentExerciseIndex((prevIndex) =>
         Math.min(prevIndex + 1, exercises.length),
       );
     };
-  
+
     console.log(currentExercise);
     console.log("CURRENT EXERCISE BEING SERVED");
 
-  
-    if (userRole === "st"){
+
+    if (userRole === "st") {
       switch (currentExercise.question_type) {
         case "instruction":
           setButtonBarText(t("button_content.continue"));
@@ -137,7 +137,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
         default:
           return <div>Unknown exercise type.</div>;
       }
-    } else if (userRole === "in"){
+    } else if (userRole === "in") {
       setButtonBarText(t("button_content.continue"));
       return (
         <InstructorContent
@@ -149,7 +149,7 @@ function ClassModeContent({ jsonData }: ClassModeContentProps) {
     }
 
   }, [currentExerciseIndex, jsonData]);
-  
+
 
   return (
     <div>

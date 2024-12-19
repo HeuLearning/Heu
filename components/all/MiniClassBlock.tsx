@@ -12,6 +12,9 @@ import Placeholder from "./Placeholder";
 import dictionary from "../../dictionary.js";
 import { getGT } from "gt-next";
 import RSVPSelector from "./buttons/RSVPSelector";
+import { createClient } from "@/utils/supabase/client";
+import { useState, useEffect, MouseEvent } from "react";
+import { Lesson } from "@/types/lessons";
 
 interface MiniClassBlockProps {
     dateCard?: boolean;
@@ -21,7 +24,10 @@ interface MiniClassBlockProps {
     handleMobileShowClassDetails?: (sessionId: string) => void;
     isDaily?: boolean;
     arrow?: boolean;
+    session: Lesson;
 }
+
+type LessonStatus = "Available" | "Online" | "Confirmed" | "Enrolled" | "Waitlisted" | "Canceled" | "Pending" | "Class full" | "Attended";
 
 export default function MiniClassBlock({
     dateCard = false,
@@ -31,26 +37,38 @@ export default function MiniClassBlock({
     handleMobileShowClassDetails = () => { },
     isDaily = false,
     arrow = false,
+    session,
 }: MiniClassBlockProps) {
-    const { getLessonStatus, upcomingLessons, allLessons, confirmLesson } =
-        useLessons();
+    const supabase = createClient();
     const t = getGT();
-    let session: any;
-    let startDate: Date | null;
-    if (sessionId === "") {
-        session = null;
-        startDate = null;
-    } else {
-        session = allLessons.find((session) => session.id === sessionId);
-        startDate = new Date(session.start_time);
-    }
+    const startDate = session ? new Date(session.start_time) : null;
     const router = useRouter();
+    const { isMobile } = useResponsive();
+    const { showPopUp, hidePopUp } = usePopUp();
+    const [status, setStatus] = useState<LessonStatus>("Available");
 
-    const { isMobile, isTablet, isDesktop } = useResponsive();
+    useEffect(() => {
+        const getStatus = async () => {
+            if (!session) return "Available" as LessonStatus;
+            const now = new Date();
+            const startTime = new Date(session.start_time);
+            const endTime = new Date(session.end_time);
+
+            const { data: { user } } = await supabase.auth.getUser();
+            const userId = user?.id;
+
+            if (now >= startTime && now <= endTime) return "Online" as LessonStatus;
+            /*  if (session.confirmed_students?.includes(userId)) return "Confirmed" as LessonStatus;
+             if (session.enrolled_students?.includes(userId)) return "Enrolled" as LessonStatus;
+             if (session.waitlist_students?.includes(userId)) return "Waitlisted" as LessonStatus; */
+            return "Available" as LessonStatus;
+        };
+
+        getStatus().then(result => setStatus(result));
+    }, [session]);
 
     let color = "";
     let fillColor = "";
-    const status = session ? getLessonStatus(session) : null;
 
     if (status === "Confirmed") {
         color = "text-status_fg_positive";
@@ -71,8 +89,6 @@ export default function MiniClassBlock({
         color = "text-typeface_tertiary";
         fillColor = "var(--typeface_tertiary)";
     }
-
-    const { showPopUp, hidePopUp } = usePopUp();
 
     const displayRSVPOptions = () => {
         showPopUp({
@@ -96,9 +112,10 @@ export default function MiniClassBlock({
         router.push(`${sessionId}`);
     };
 
-    const handleClick = (sessionId: string) => {
+    const handleClick = (sessionId: string | undefined) => {
+        if (!sessionId) return;
         setActiveSessionId(sessionId);
-        if (isMobile) {
+        if (isMobile && handleMobileShowClassDetails) {
             handleMobileShowClassDetails(sessionId);
         }
     };
@@ -142,7 +159,7 @@ export default function MiniClassBlock({
                 <Placeholder width={104} height={10} />
             )}
             <div className="flex items-center">
-                {session && getLessonStatus(session) === "Attended" ? (
+                {session && status === "Attended" ? (
                     <div className="pr-[4px]">
                         <svg
                             width="16"
@@ -184,8 +201,11 @@ export default function MiniClassBlock({
             return (
                 <div className="rounded-[10px] shadow-25">
                     <Button
-                        className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height"
-                        onClick={handleEnter}
+                        className="whitespace-nowrap bg-white text-typeface_primary text-body-semibold-cap-height active:bg-surface_bg_secondary"
+                        onClick={(e: MouseEvent) => {
+                            e.stopPropagation();
+                            handleEnter();
+                        }}
                     >
                         {t("button_content.enter_class")}
                     </Button>
@@ -211,7 +231,7 @@ export default function MiniClassBlock({
             className={`min-w-[282px] ${dateCard || arrow ? styles.dateCard : styles.noDateCard
                 } ${isMobile ? "-mr-[8px]" : ""} ${session ? styles.mini_class_block : "cursor-auto"} ${activeSessionId === sessionId && isDaily ? styles.selected : ""
                 }`}
-            onClick={session ? () => handleClick(sessionId) : () => { }}
+            onClick={session && sessionId ? () => handleClick(sessionId) : () => { }}
         >
             {dateCard ? (
                 <div className="flex items-center">

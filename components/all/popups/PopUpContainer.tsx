@@ -64,13 +64,15 @@ export default function PopUpContainer({
               {secondaryButtonText}
             </Button>
           )}
-          <Button
-            className="button-primary"
-            disabled={primaryButtonDisabled}
-            onClick={primaryButtonOnClick}
-          >
-            {primaryButtonText}
-          </Button>
+          {primaryButtonText && (
+            <Button
+              className="button-primary"
+              disabled={primaryButtonDisabled}
+              onClick={primaryButtonOnClick}
+            >
+              {primaryButtonText}
+            </Button>
+          )}
         </div>
       </div>
     </div>

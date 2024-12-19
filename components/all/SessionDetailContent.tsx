@@ -1,3 +1,6 @@
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 import InfoPill from "./InfoPill";
 import Button from "./buttons/Button";
 import InfoCard from "./InfoCard";
@@ -5,13 +8,8 @@ import ClassItem from "./ClassItem";
 import ClassStats from "./ClassStats";
 import Placeholder from "./Placeholder";
 import { useResponsive } from "./ResponsiveContext";
-import {
-    useLearnerSessions,
-    useLessons,
-} from "./data-retrieval/LessonsContext";
 import { format, differenceInMilliseconds } from "date-fns";
 import RSVPSelector from "./buttons/RSVPSelector";
-import { useRouter } from "next/navigation";
 import IconButton from "./buttons/IconButton";
 import { useUserRole } from "./data-retrieval/UserRoleContext";
 import AttendancePopUp from "./popups/AttendancePopUp";
@@ -23,57 +21,129 @@ import { useTransition } from "react";
 interface SessionDetailContentProps {
     activeSessionId: string | null;
     handleShowClassSchedule: () => void;
-    className?: string;
-    lessonPlanData: any;
-    isLessonPlanLoaded: string;
 }
 
 export default function SessionDetailContent({
     activeSessionId,
     handleShowClassSchedule,
-    className = "",
-    lessonPlanData,
-    isLessonPlanLoaded,
 }: SessionDetailContentProps) {
-    // if it is null then placeholder
+    const [session, setSession] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [status, setStatus] = useState<string>("Available");
+    const supabase = createClient();
+    const router = useRouter();
     const { isMobile, isTablet, isDesktop } = useResponsive();
     const { showPopUp, hidePopUp } = usePopUp();
     const { userRole } = useUserRole();
-    const { upcomingLessons, allLessons, getLessonStatus } = useLessons();
     const [isPending, startTransition] = useTransition();
-    let enrollSession;
-    if (userRole === "st") {
-        const learnerHooks = useLearnerSessions();
-        enrollSession = learnerHooks.enrollSession;
-    }
     const t = getGT();
-    const { phases, getModules, phaseTimes, lessonPlan } = lessonPlanData;
+    const [lessonPlan, setLessonPlan] = useState<any>(null);
+    const [lessonPlanLoading, setLessonPlanLoading] = useState<string>("loading");
+    const [lessonPlanError, setLessonPlanError] = useState<any>(null);
 
-    console.log("SESSION ID HERE: " + activeSessionId);
-    console.log("Lesson plan data HERE:");
-    console.log(lessonPlanData);
-    console.log(lessonPlanData.error)
+    const getLessonStatus = async () => {
+        if (!session) return null;
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id;
 
-    let session: any;
-    let startDate: Date = new Date();
-    let endDate: Date = new Date();
+        const now = new Date();
+        const startTime = new Date(session.start_time);
+        const endTime = new Date(session.end_time);
 
-    if (activeSessionId) {
-        session = allLessons.find((session) => session.id === activeSessionId);
-        startDate = new Date(session.start_time);
-        endDate = new Date(session.end_time);
-    }
+        if (now >= startTime && now <= endTime) return "Online";
+        if (session.confirmed_students?.includes(userId)) return "Confirmed";
+        if (session.enrolled_students?.includes(userId)) return "Enrolled";
+        return "Pending";
+    };
 
-    const differenceInDaysToStart = Math.round(
-        differenceInMilliseconds(startDate, new Date()) / (24 * 60 * 60 * 1000),
-    );
-    const isUpcoming = differenceInDaysToStart < 14 && endDate > new Date();
+    const fetchSession = async () => {
+        if (!activeSessionId) return;
+        console.log("Fetching session data for:", activeSessionId);
+        setIsLoading(true);
 
-    const router = useRouter();
+        try {
+            const { data, error } = await supabase
+                .from("lessons_new")
+                .select('*')
+                .eq("id", activeSessionId)
+                .single();
+
+            console.log("Session data received:", data);
+            if (error) throw error;
+
+            if (data) {
+                setSession({
+                    ...data,
+                    learning_organization: { name: "Heu Learning" },
+                    location: { name: "Online" },
+                    num_enrolled: 80,
+                    max_capacity: data.max_capacity
+                });
+            } else {
+                console.error("No data received for session");
+            }
+        } catch (error) {
+            console.error("Error fetching session:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const fetchLessonPlan = async () => {
+        if (!activeSessionId) return;
+        setLessonPlanLoading("loading");
+
+        try {
+            const { data, error } = await supabase
+                .from('lesson_plans_new')
+                .select('*')
+                .eq('session_id', activeSessionId)
+                .single();
+
+            if (error) throw error;
+            setLessonPlan(data);
+            setLessonPlanLoading("loaded");
+        } catch (error) {
+            setLessonPlanError(error);
+            setLessonPlanLoading("error");
+        }
+    };
+
+    useEffect(() => {
+        console.log("Fetching session...");
+        console.log("activeSessionId:", activeSessionId);
+        fetchSession();
+    }, [activeSessionId]);
+
+    useEffect(() => {
+        fetchLessonPlan();
+    }, [activeSessionId]);
+
+    useEffect(() => {
+        if (session) {
+            getLessonStatus().then(result => {
+                setStatus(result || "Available");
+            });
+        }
+    }, [session]);
 
     const handleEnter = () => {
         router.push(`${activeSessionId}`);
     };
+
+    if (isLoading || lessonPlanLoading === "loading" || !session) {
+        console.log("Still loading:", {
+            isLoading,
+            lessonPlanLoading,
+            hasSession: !!session
+        });
+        return <div>Loading session details...</div>;
+    }
+
+    const differenceInDaysToStart = Math.round(
+        differenceInMilliseconds(new Date(session.start_time), new Date()) / (24 * 60 * 60 * 1000),
+    );
+    const isUpcoming = differenceInDaysToStart < 14 && new Date(session.end_time) > new Date();
 
     const showEnrollPopUp = () => {
         showPopUp({
@@ -113,16 +183,16 @@ export default function SessionDetailContent({
 
     const getActionItem = () => {
         if (isMobile) return null;
-        else {
+        /* else {
             if (session) {
                 if (userRole === "in") {
                     if (
-                        getLessonStatus(session) === "Canceled" ||
-                        getLessonStatus(session) === "Confirmed" ||
-                        getLessonStatus(session) === "Attended"
+                        status === "Canceled" ||
+                        status === "Confirmed" ||
+                        status === "Attended"
                     ) {
                         return <RSVPSelector session={session} />;
-                    } else if (getLessonStatus(session) === "Online") {
+                    } else if (status === "Online") {
                         return (
                             <Button
                                 className="button-primary"
@@ -138,7 +208,7 @@ export default function SessionDetailContent({
                         );
                     } else if (
                         new Date(session.end_time) < new Date() &&
-                        getLessonStatus(session) !== "Attended"
+                        status !== "Attended"
                     ) {
                         // if session was in the past and was not attended
                         return null;
@@ -146,14 +216,14 @@ export default function SessionDetailContent({
                         return <RSVPSelector session={session} />;
                     } else return null;
                 } else if (userRole === "st") {
-                    console.log("session status", getLessonStatus(session));
-                    if (getLessonStatus(session) === "Available") {
+                    console.log("session status", status);
+                    if (status === "Available") {
                         return (
                             <Button className="button-primary" onClick={showEnrollPopUp}>
                                 {t("button_content.enroll")}
                             </Button>
                         );
-                    } else if (getLessonStatus(session) === "Online") {
+                    } else if (status === "Online") {
                         return (
                             <Button
                                 className="button-primary"
@@ -167,20 +237,20 @@ export default function SessionDetailContent({
                                 {t("button_content.enter_class")}
                             </Button>
                         );
-                    } else if (getLessonStatus(session) === "Class full") {
+                    } else if (status === "Class full") {
                         return (
                             <Button className="button-primary" onClick={showWaitingListPopUp}>
                                 {t("button_content.join_waiting_list")}
                             </Button>
                         );
                     } else if (
-                        (getLessonStatus(session) === "Enrolled" &&
+                        (status === "Enrolled" &&
                             differenceInDaysToStart < 7) ||
-                        getLessonStatus(session) === "Confirmed" ||
-                        getLessonStatus(session) === "Canceled"
+                        status === "Confirmed" ||
+                        status === "Canceled"
                     ) {
                         return <RSVPSelector session={session} />;
-                    } else if (getLessonStatus(session) === "Waitlisted") {
+                    } else if (status === "Waitlisted") {
                         // no action if waitilisted, but info pill different
                         // doesn't do anything for now, fix later
                         return (
@@ -191,14 +261,44 @@ export default function SessionDetailContent({
                     }
                 }
             }
+        } */
+    };
+
+    const enrollLesson = async (sessionId: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user?.id) return;
+
+        // Commented out until types are properly defined
+        /* const { error } = await supabase
+            .from('lessons_new')
+            .update({
+                enrolled_students: [...(session.enrolled_students || []), user.id]
+            })
+            .eq('id', sessionId); */
+
+        // Temporary no-op
+        const error = null;
+
+        if (!error) {
+            fetchSession();
         }
+    };
+
+    const lessonPlanData = {
+        lessonPlan: lessonPlan || {},
+        isLoading: lessonPlanLoading,
+        error: lessonPlanError,
+        phases: lessonPlan?.phases || [],
+        getModules: (phaseId: string) =>
+            lessonPlan?.phases?.find((p: { id: string }) => p.id === phaseId)?.modules || [],
+        phaseTimes: new Map()
     };
 
     return (
         <div
             id="session-detail-view"
             className={`${isMobile ? "gap-[24px]" : "justify-between"
-                } relative flex h-full w-full flex-col ${className}`}
+                } relative flex h-full w-full flex-col`}
         >
             <div
                 className={`session-info flex items-start justify-between ${isMobile ? "flex-col gap-[12px] px-[8px]" : ""
@@ -209,7 +309,7 @@ export default function SessionDetailContent({
                         {activeSessionId ? (
                             isMobile ? (
                                 <h1 className="text-typeface_primary leading-cap-height text-h1">
-                                    {startDate.toLocaleDateString("default", {
+                                    {new Date(session.start_time).toLocaleDateString("default", {
                                         weekday: "short",
                                         month: "short",
                                         day: "numeric",
@@ -217,7 +317,7 @@ export default function SessionDetailContent({
                                 </h1>
                             ) : (
                                 <h1 className="text-typeface_primary leading-cap-height text-h1">
-                                    {startDate.toLocaleDateString("default", {
+                                    {new Date(session.start_time).toLocaleDateString("default", {
                                         weekday: "long",
                                         month: "long",
                                         day: "numeric",
@@ -229,13 +329,13 @@ export default function SessionDetailContent({
                         )}
                         {activeSessionId ? (
                             <h1 className="text-typeface_secondary leading-tight text-h1">
-                                {startDate.toLocaleTimeString("default", {
+                                {new Date(session.start_time).toLocaleTimeString("default", {
                                     hour: "numeric",
                                     minute: "2-digit",
                                     hour12: undefined,
                                 }) +
                                     " - " +
-                                    endDate.toLocaleTimeString("default", {
+                                    new Date(session.end_time).toLocaleTimeString("default", {
                                         hour: "numeric",
                                         minute: "2-digit",
                                         hour12: undefined,
@@ -265,9 +365,9 @@ export default function SessionDetailContent({
                             </svg>
                             <p className="text-typeface_primary text-body-medium">
                                 {activeSessionId ? (
-                                    session.learning_organization_name +
+                                    session.learning_organization?.name +
                                     ", " +
-                                    session.location_name
+                                    session.location?.name
                                 ) : (
                                     <Placeholder width={144} height={10} />
                                 )}
@@ -289,13 +389,13 @@ export default function SessionDetailContent({
                 </div>
                 <div className="session-buttons flex items-center gap-[16px] pr-[14px]">
                     {activeSessionId &&
-                        (getLessonStatus(session) === "Online" ? (
+                        (status === "Online" ? (
                             <InfoPill
                                 icon={true}
                                 text={t("info_pill_content.class_started")}
                             />
                         ) : userRole === "in" &&
-                            getLessonStatus(session) !== "Canceled" &&
+                            status !== "Canceled" &&
                             isUpcoming ? (
                             <InfoPill
                                 icon={true}
@@ -307,7 +407,7 @@ export default function SessionDetailContent({
                                 }
                             />
                         ) : userRole === "st" &&
-                            getLessonStatus(session) === "Waitlisted" ? (
+                            status === "Waitlisted" ? (
                             <InfoPill icon={true} text={t("info_pill_content.waitlisted")} />
                         ) : null)}
                     {getActionItem()}
@@ -321,14 +421,19 @@ export default function SessionDetailContent({
                     <div className="p-[4px]">
                         {activeSessionId ? (
                             <ClassStats
-                                attending="80/120"
+                                session={session}
                                 level="C1"
                                 agenda="Target"
                                 classCode="7FJR92"
                                 isMobile={isMobile}
                             />
                         ) : (
-                            <ClassStats attending="-" level="-" agenda="-" classCode="-" />
+                            <ClassStats
+                                session={{ num_enrolled: 0, max_capacity: 120 }}
+                                level="-"
+                                agenda="-"
+                                classCode="-"
+                            />
                         )}
                     </div>
                 </InfoCard>
@@ -379,22 +484,22 @@ export default function SessionDetailContent({
                         <InfoCard
                             className={`class-lineup-card h-full min-h-[300px] flex-grow ${!activeSessionId ||
                                 (activeSessionId &&
-                                    (isLessonPlanLoaded === "loading" ||
-                                        isLessonPlanLoaded === "not confirmed instructor" ||
-                                        isLessonPlanLoaded === "canceled session" ||
-                                        isLessonPlanLoaded === "no lesson plan"))
+                                    (lessonPlanLoading === "loading" ||
+                                        lessonPlanLoading === "not confirmed instructor" ||
+                                        lessonPlanLoading === "canceled session" ||
+                                        lessonPlanLoading === "no lesson plan"))
                                 ? ""
                                 : "cursor-pointer"
                                 }`}
                             onClick={
-                                !activeSessionId ||
+                                (!activeSessionId ||
                                     (activeSessionId &&
-                                        (isLessonPlanLoaded === "loading" ||
-                                            isLessonPlanLoaded === "not confirmed instructor" ||
-                                            isLessonPlanLoaded === "canceled session" ||
-                                            isLessonPlanLoaded === "no lesson plan"))
-                                    ? undefined
-                                    : handleShowClassSchedule
+                                        (lessonPlanLoading === "loading" ||
+                                            lessonPlanLoading === "not confirmed instructor" ||
+                                            lessonPlanLoading === "canceled session" ||
+                                            lessonPlanLoading === "no lesson plan" ||
+                                            lessonPlanError
+                                        ))) ? undefined : handleShowClassSchedule
                             }
                         >
                             <div className="flex flex-col gap-[24px]">
@@ -411,11 +516,11 @@ export default function SessionDetailContent({
                                         disabled={Boolean(
                                             !activeSessionId ||
                                             (activeSessionId &&
-                                                (isLessonPlanLoaded === "loading" ||
-                                                    isLessonPlanLoaded === "not confirmed instructor" ||
-                                                    isLessonPlanLoaded === "canceled session" ||
-                                                    isLessonPlanLoaded === "no lesson plan" ||
-                                                    lessonPlanData?.error
+                                                (lessonPlanLoading === "loading" ||
+                                                    lessonPlanLoading === "not confirmed instructor" ||
+                                                    lessonPlanLoading === "canceled session" ||
+                                                    lessonPlanLoading === "no lesson plan" ||
+                                                    lessonPlanError
                                                 )),
                                         )}
                                     >
@@ -435,17 +540,17 @@ export default function SessionDetailContent({
                                         </svg>
                                     </IconButton>
                                 </div>
-                                {activeSessionId && isLessonPlanLoaded !== "loading" ? (
-                                    isLessonPlanLoaded === "not confirmed instructor" ? (
+                                {activeSessionId && lessonPlanLoading !== "loading" ? (
+                                    lessonPlanLoading === "not confirmed instructor" ? (
                                         <div className="text-typeface_primary text-body-medium">
                                             You cannot see the lesson plan until you've confirmed the
                                             session.
                                         </div>
-                                    ) : isLessonPlanLoaded === "canceled session" ? (
+                                    ) : lessonPlanLoading === "canceled session" ? (
                                         <div className="text-typeface_primary text-body-medium">
                                             This session was canceled.
                                         </div>
-                                    ) : isLessonPlanLoaded === "no lesson plan" || !phases || !phaseTimes || lessonPlanData?.error ? (
+                                    ) : lessonPlanLoading === "no lesson plan" || !lessonPlan || lessonPlanError ? (
                                         <div className="flex flex-col gap-[26px]">
                                             {Array.from({ length: 3 }).map((_, index) => (
                                                 <div key={index} className="flex justify-between">
@@ -466,10 +571,11 @@ export default function SessionDetailContent({
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-[19px]">
-                                            {phases.map((phase: any) => (
+                                            {lessonPlan?.phases?.map((phase: any) => (
                                                 <ClassItem
+                                                    key={phase.id}
                                                     phaseTitle={phase.name}
-                                                    time={phaseTimes.get(phase.id)}
+                                                    time={lessonPlanData.phaseTimes.get(phase.id)}
                                                 />
                                             ))}
                                         </div>

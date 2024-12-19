@@ -21,9 +21,8 @@ function StatComponent({
   return (
     <div className="flex gap-[16px]">
       <div
-        className={`relative ${
-          isMobile ? "h-[44px] w-[44px]" : "h-[40px] w-[40px]"
-        }`}
+        className={`relative ${isMobile ? "h-[44px] w-[44px]" : "h-[40px] w-[40px]"
+          }`}
       >
         <div className="z-10 center-atop-svg">{children}</div>
         <svg
@@ -45,18 +44,16 @@ function StatComponent({
       </div>
       <div className={isMobile ? "" : "space-y-[3px]"}>
         <h2
-          className={`text-typeface_primary ${
-            isMobile ? "text-body-semibold-mobile" : "text-h2-desktop"
-          }`}
+          className={`text-typeface_primary ${isMobile ? "text-body-semibold-mobile" : "text-h2-desktop"
+            }`}
         >
           {heading}
         </h2>
         <h2
-          className={`text-typeface_secondary ${
-            isMobile
-              ? "text-body-regular-mobile"
-              : "text-body-medium-cap-height"
-          }`}
+          className={`text-typeface_secondary ${isMobile
+            ? "text-body-regular-mobile"
+            : "text-body-medium-cap-height"
+            }`}
         >
           {subheading}
         </h2>
@@ -66,7 +63,7 @@ function StatComponent({
 }
 
 interface ClassStatsProps {
-  attending: string;
+  session: any;
   level: string;
   agenda: string;
   classCode?: string;
@@ -75,7 +72,7 @@ interface ClassStatsProps {
 }
 
 export default function ClassStats({
-  attending,
+  session,
   level,
   agenda,
   classCode = "",
@@ -94,11 +91,10 @@ export default function ClassStats({
   }) => {
     return condition ? (
       <div
-        className={`${
-          isMobile && direction === ""
-            ? "grid grid-cols-2 gap-x-[24px] gap-y-[16px]"
-            : "flex justify-between"
-        }`}
+        className={`${isMobile && direction === ""
+          ? "grid grid-cols-2 gap-x-[24px] gap-y-[16px]"
+          : "flex justify-between"
+          }`}
         style={{ height: isMobile ? "48px" : "auto" }}
       >
         {children}
@@ -110,13 +106,12 @@ export default function ClassStats({
 
   return (
     <div
-      className={`${
-        isMobile ? "flex-col" : ""
-      } stat-components z-[25] flex justify-between ${direction}`}
+      className={`${isMobile ? "flex-col" : ""
+        } stat-components z-[25] flex justify-between ${direction}`}
     >
       <ConditionalWrapper condition={isMobile && direction === ""}>
         <StatComponent
-          heading={attending}
+          heading={`${session.num_enrolled}/${session.max_capacity || 120}`}
           subheading={t("session_detail_content.attending")}
           bgColor="surface_bg_secondary"
         >

@@ -3,10 +3,8 @@ import XButton from "../buttons/XButton";
 import SessionDetailContent from "../SessionDetailContent";
 import { useState, useEffect, useMemo, useTransition } from "react";
 import { useResponsive } from "../ResponsiveContext";
-import { useLessons } from "../data-retrieval/LessonsContext";
 import ClassSchedulePopUpContainer from "../popups/ClassSchedulePopUpContent";
 import BackButton from "../buttons/BackButton";
-import { useLessonPlan } from "../data-retrieval/LessonPlanContext";
 import ButtonBar from "./ButtonBar";
 import MenuItem from "../buttons/MenuItem";
 import { usePopUp } from "../popups/PopUpContext";
@@ -14,6 +12,7 @@ import { useRouter } from "next/navigation";
 import dictionary from "@/dictionary";
 import { getGT } from "gt-next";
 import RSVPSelector from "../buttons/RSVPSelector";
+import { createClient } from "@/utils/supabase/client";
 
 interface MobileClassDetailsProps {
     activeSessionId: string | null;
@@ -25,13 +24,43 @@ export default function MobileClassDetails({
     closeClassDetails,
 }: MobileClassDetailsProps) {
     const { isMobile, isTablet, isDesktop } = useResponsive();
-    const {
-        allLessons,
-        upcomingLessons,
-        confirmLesson,
-        cancelLesson,
-        getLessonStatus,
-    } = useLessons();
+    const [session, setSession] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const supabase = createClient();
+
+    const fetchSession = async () => {
+        if (!activeSessionId) return;
+
+        const { data, error } = await supabase
+            .from("lessons_new")
+            .select("*")
+            .eq("id", activeSessionId)
+            .single();
+
+        if (data) {
+            setSession(data);
+        }
+        setIsLoading(false);
+    };
+
+    useEffect(() => {
+        fetchSession();
+    }, [activeSessionId]);
+
+    const getLessonStatus = async () => {
+        if (!session) return null;
+        const now = new Date();
+        const startTime = new Date(session.start_time);
+        const endTime = new Date(session.end_time);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id;
+
+        if (now >= startTime && now <= endTime) return "Online";
+        if (session.confirmed_students?.includes(userId)) return "Confirmed";
+        return "Pending";
+    };
+
     const [isLessonPlanLoaded, setIsLessonPlanLoaded] = useState("loading");
     const [isClassSchedShown, setIsClassSchedShown] = useState(false);
 
@@ -44,39 +73,73 @@ export default function MobileClassDetails({
     const { hidePopUp, showPopUp } = usePopUp();
 
     console.log("active session id" + activeSessionId);
-    let lessonPlanData = useLessonPlan();
-    const session = useMemo(() => {
-        return activeSessionId
-            ? allLessons.find((session) => session.id === activeSessionId)
-            : null;
-    }, [activeSessionId, allLessons]);
+    const [lessonPlan, setLessonPlan] = useState<any>(null);
+    const [lessonPlanLoading, setLessonPlanLoading] = useState(true);
+    const [lessonPlanError, setLessonPlanError] = useState<any>(null);
 
-    const sessionStatus = useMemo(() => {
-        return session ? getLessonStatus(session) : null;
-    }, [session, getLessonStatus]);
+    const fetchLessonPlan = async () => {
+        if (!activeSessionId) return;
+        setLessonPlanLoading(true);
+
+        try {
+            const { data, error } = await supabase
+                .from('lesson_plans_new')
+                .select('*')
+                .eq('session_id', activeSessionId)
+                .single();
+
+            if (error) throw error;
+            setLessonPlan(data);
+        } catch (error) {
+            setLessonPlanError(error);
+        } finally {
+            setLessonPlanLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchLessonPlan();
+    }, [activeSessionId]);
+
+    const lessonPlanData = {
+        lessonPlan: lessonPlan,
+        isLoading: lessonPlanLoading,
+        error: lessonPlanError,
+        phases: lessonPlan?.phases || [],
+        getModules: (phaseId: string) =>
+            lessonPlan?.phases?.find((p: { id: string }) => p.id === phaseId)?.modules || [],
+        phaseTimes: new Map()
+    };
+
+    const [status, setStatus] = useState<string>("Pending");
+
+    useEffect(() => {
+        if (session && !isLoading) {
+            getLessonStatus().then(result => {
+                setStatus(result || "Pending");
+            });
+        }
+    }, [session, isLoading]);
 
     useEffect(() => {
         let newState = "loading";
 
         if (!session) {
             newState = "loading";
-        } else if (sessionStatus === "Pending") {
+        } else if (status === "Pending") {
             newState = "not confirmed instructor";
-        } else if (sessionStatus === "Canceled") {
+        } else if (status === "Canceled") {
             newState = "canceled session";
-        } else if (lessonPlanData.error === "lesson plan not found") {
+        } else if (lessonPlanError || !lessonPlan) {
             newState = "no lesson plan";
-        } else if (
-            !lessonPlanData.isLoading &&
-            Object.keys(lessonPlanData.lessonPlan).length > 0
-        ) {
+        } else if (!lessonPlanLoading && lessonPlan) {
             newState = "true";
         }
 
         if (newState !== isLessonPlanLoaded) {
             setIsLessonPlanLoaded(newState);
         }
-    }, [session, sessionStatus, lessonPlanData, isLessonPlanLoaded]);
+    }, [session, status, lessonPlan, lessonPlanLoading, lessonPlanError]);
 
     const handleShowClassSchedule = () => {
         setIsClassSchedShown(true);
@@ -84,6 +147,23 @@ export default function MobileClassDetails({
 
     const hideClassSchedule = () => {
         setIsClassSchedShown(false);
+    };
+
+    const confirmLesson = async (sessionId: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user?.id) return;
+
+        const { error } = await supabase
+            .from('lessons_new')
+            .update({
+                confirmed_students: [...(session.confirmed_students || []), user.id]
+            })
+            .eq('id', sessionId);
+
+        if (!error) {
+            // Refresh session data
+            fetchSession();
+        }
     };
 
     const handleConfirmAttendance = async (sessionId: string) => {
@@ -170,13 +250,7 @@ export default function MobileClassDetails({
     ) : (
         <div className="absolute inset-0 max-h-screen overflow-y-auto">
             <MobileDetailView
-                buttonBar={
-                    session &&
-                        (getLessonStatus(session) === "Pending" ||
-                            getLessonStatus(session) === "Online")
-                        ? true
-                        : false
-                }
+                buttonBar={session && (status === "Pending" || status === "Online")}
                 backgroundColor="bg-surface_bg_highlight"
                 className="px-[16px] pt-[16px]"
                 headerContent={
@@ -192,29 +266,29 @@ export default function MobileClassDetails({
                     </div>
                 }
             >
-                <div className="overflow-y-auto pt-[16px]">
-                    <SessionDetailContent
-                        lessonPlanData={lessonPlanData}
-                        isLessonPlanLoaded={isLessonPlanLoaded}
-                        activeSessionId={activeSessionId}
-                        handleShowClassSchedule={handleShowClassSchedule}
-                    />
-                </div>
-
-                <RSVPSelector session={session} shouldSpan={true} />
+                {isLoading ? (
+                    <div>Loading...</div>
+                ) : (
+                    <div className="overflow-y-auto pt-[16px]">
+                        <SessionDetailContent
+                            activeSessionId={activeSessionId}
+                            handleShowClassSchedule={handleShowClassSchedule}
+                        />
+                    </div>
+                )}
+                {!isLoading && <RSVPSelector session={session} shouldSpan={true} />}
             </MobileDetailView>
             {!session ? (
                 <div>loading</div>
             ) : (
-                (getLessonStatus(session) === "Pending" ||
-                    getLessonStatus(session) === "Online") && (
+                (status === "Pending" || status === "Online") && (
                     <div className="relative">
-                        {session && getLessonStatus(session) === "Pending" ? (
+                        {session && status === "Pending" ? (
                             <ButtonBar
                                 primaryButtonText="RSVP"
                                 primaryButtonOnClick={displayMobileRSVPOptions}
                             />
-                        ) : getLessonStatus(session) === "Online" ? (
+                        ) : status === "Online" ? (
                             <div>
                                 <ButtonBar
                                     primaryButtonText={t("button_content.enter_class")}

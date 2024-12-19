@@ -18,7 +18,7 @@ export default function ButtonBar({
   primaryButtonDisabled,
   secondaryButtonText = "",
   secondaryButtonClassName = "",
-  secondaryButtonOnClick = () => {},
+  secondaryButtonOnClick = () => { },
   secondaryContent = null,
 }: ButtonBarProps) {
   return (
@@ -34,15 +34,13 @@ export default function ButtonBar({
         )}
         {secondaryContent && <div className="w-1/3">{secondaryContent}</div>}
         <div
-          className={`${
-            secondaryButtonText || secondaryContent ? "w-2/3" : "w-full"
-          }`}
+          className={`${secondaryButtonText || secondaryContent ? "w-2/3" : "w-full"
+            }`}
         >
           <Button
             onClick={primaryButtonOnClick}
-            className={`${
-              primaryButtonClassName ? primaryButtonClassName : "button-primary"
-            } w-full rounded-[10px]`}
+            className={`${primaryButtonClassName ? primaryButtonClassName : "button-primary"
+              } w-full rounded-[10px]`}
             disabled={primaryButtonDisabled}
           >
             {primaryButtonText}

@@ -1,52 +1,37 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import Textbox from "./Textbox";
 import Badge from "../all/Badge";
-import InfoPill from "../all/InfoPill";
 import WordBankItem from "./WordBankItem";
-import Button from "../all/buttons/Button";
 import { usePopUp } from "../all/popups/PopUpContext";
 import PopUpContainer from "../all/popups/PopUpContainer";
-import { useResponsive } from "../all/ResponsiveContext";
-import ButtonBar from "../all/mobile/ButtonBar";
-import { useButtonBar } from "../all/mobile/ButtonBarContext";
 import MobileDetailView from "../all/mobile/MobileDetailView";
-import XButton from "../all/buttons/XButton";
 import { getGT } from "gt-next";
-import dictionary from "@/dictionary";
-import posthog from 'posthog-js'
-import { createClient } from "@/utils/supabase/client";
 
 interface QAFillInBlankExerciseProps {
   instruction: string;
   questions: string[];
-  answers: string[];
   word_bank: string[];
   correct_answer: string[];
   onComplete: () => void;
+  setUserAnswers: React.Dispatch<React.SetStateAction<string[]>>;
+  userAnswers: string[];
 }
 
-const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
-  instruction,
-  questions,
-  answers,
-  word_bank,
-  correct_answer,
-  onComplete,
-}) => {
-  const [userAnswers, setUserAnswers] = useState<string[]>(
-    new Array(questions.length).fill(""),
-  );
+export interface QAFillInBlankExerciseRef {
+  handleSubmit: () => void;
+}
 
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+const QAFillInBlankExercise = forwardRef<QAFillInBlankExerciseRef, QAFillInBlankExerciseProps>(({ instruction, questions, word_bank, correct_answer, onComplete, setUserAnswers, userAnswers }, ref) => {
+
   const t = getGT();
-  const supabase = createClient();
 
   useEffect(() => {
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-      person_profiles: 'identified_only',
-    });
-  }, []);
+    if (questions.length > 0 && userAnswers.length === 0) {
+      setUserAnswers(new Array(questions.length).fill(''));
+    }
+  }, [questions, userAnswers.length]);
+
+
 
   const handleComplete = () => {
     onComplete();
@@ -59,87 +44,22 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
   };
 
   const isCorrect = (answers: string[]) => {
-    const formattedAnswer = removeAccents(answers.join("").toLowerCase().trim());
-    const formattedCorrectAnswer = removeAccents(
-      correct_answer.join("").toLowerCase().trim()
-    );
-    return formattedAnswer === formattedCorrectAnswer;
+    return answers.every((answer, index) => {
+      const formattedAnswer = removeAccents(answer.toLowerCase().trim());
+      const formattedCorrectAnswer = removeAccents(correct_answer[index].toLowerCase().trim());
+      return formattedAnswer === formattedCorrectAnswer;
+    });
   };
 
-
-  const { setHandleSubmitAnswer } = useButtonBar();
-
-  useEffect(() => {
-    const handleClick = () => {
-      console.log(userAnswers);
-      if (isCorrect(userAnswers)) {
-        showPopUp({
-          id: "correct-answer-popup",
-          content: (
-            <PopUpContainer
-              header={t("class_mode_content.well_done")}
-              primaryButtonText={t("button_content.continue")}
-              primaryButtonOnClick={handleComplete}
-              popUpId="correct-answer-popup"
-            >
-              <CorrectAnswerContent />
-            </PopUpContainer>
-          ),
-          container: null,
-          style: {
-            overlay: "overlay-high",
-          },
-          height: "auto",
-        });
-      } else {
-        showPopUp({
-          id: "incorrect-answer-popup",
-          content: (
-            <PopUpContainer
-              header={t("class_mode_content.try_again")}
-              primaryButtonText={t("button_content.continue")}
-              primaryButtonDisabled={true}
-              primaryButtonOnClick={handleComplete}
-              popUpId="incorrect-answer-popup"
-              closeButton={false}
-            >
-              <IncorrectAnswerContent />
-            </PopUpContainer>
-          ),
-          container: null,
-          style: {
-            overlay: "overlay-high",
-          },
-          height: "auto",
-        });
-      }
-    };
-
-    setHandleSubmitAnswer(() => handleClick);
-
-    return () => setHandleSubmitAnswer(() => () => { });
-  }, [setHandleSubmitAnswer, userAnswers]);
-
-
-  const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
+  const { showPopUp, hidePopUp } = usePopUp();
 
   const handleAnswerChange = (index: number, answer: string) => {
-    setUserAnswers((prevAnswers) => {
+    setUserAnswers((prevAnswers: string[]) => {
       const newAnswers = [...prevAnswers];
       newAnswers[index] = answer;
       return newAnswers;
     });
   };
-
-  const largestWordWidth = useMemo(() => {
-    const largestWord = word_bank.reduce(
-      (max, word) => (word.length > max.length ? word : max),
-      "",
-    );
-    if (isMobile)
-      return `${Math.max(largestWord.length, "Type here".length) * 10 + 16}`;
-    return `${Math.max(largestWord.length, "Type here".length) * 8 + 20}`;
-  }, [word_bank]);
 
   const CorrectAnswerContent = () => {
     return (
@@ -151,12 +71,12 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   const IncorrectAnswerContent = () => {
     let wrongAnswers: number[] = [];
-    let clearedAnswers = [...userAnswers]; // Create a local copy of answers
+    let clearedAnswers = [...userAnswers];
 
     userAnswers.forEach((answer, index) => {
       if (answer !== correct_answer[index]) {
         wrongAnswers.push(index);
-        clearedAnswers[index] = ""; // Clear the answer locally
+        clearedAnswers[index] = "";
       }
     });
 
@@ -214,24 +134,8 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     );
   };
 
-  const handleSubmit = async () => {
-    console.log(userAnswers);
-
-    const correct = isCorrect(userAnswers);
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    posthog.capture('submissions', {
-      timestamp: new Date().toISOString(),
-      correct,
-      question: questions,
-      userAnswers,
-    });
-
-    if (correct) {
+  const handleSubmit = () => {
+    if (isCorrect(userAnswers)) {
       showPopUp({
         id: "correct-answer-popup",
         content: (
@@ -244,7 +148,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
             <CorrectAnswerContent />
           </PopUpContainer>
         ),
-        container: null, // Ensure this ID exists in your DOM
+        container: null,
         style: {
           overlay: "overlay-high",
         },
@@ -256,15 +160,16 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         content: (
           <PopUpContainer
             header={t("class_mode_content.try_again")}
-            primaryButtonText={t("button_content.continue")}
+            primaryButtonText={""}
             primaryButtonDisabled={true}
             primaryButtonOnClick={handleComplete}
             popUpId="incorrect-answer-popup"
+            closeButton={false}
           >
             <IncorrectAnswerContent />
           </PopUpContainer>
         ),
-        container: null, // Ensure this ID exists in your DOM
+        container: null,
         style: {
           overlay: "overlay-high",
         },
@@ -273,40 +178,29 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     }
   };
 
+
   const checkAnswers = (clearedAnswers: string[]) => {
     if (isCorrect(clearedAnswers)) {
-      updatePopUp(
-        "incorrect-answer-popup",
-        <div>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => {
-              hidePopUp("incorrect-answer-popup");
-            }}
-          />
-          <MobileDetailView
-            buttonBar={true}
-            backgroundColor="bg-surface_bg_highlight"
-            className="bottom-0 z-50 max-h-[216px] px-[16px] pt-[16px]"
-            headerContent={
-              <div className="flex h-[40px] w-full flex-col justify-center">
-                <h3 className="text-typeface_primary text-h3">
-                  {t("class_mode_content.well_done")}
-                </h3>
-              </div>
-            }
+      setUserAnswers(clearedAnswers);
+      hidePopUp("incorrect-answer-popup");
+      showPopUp({
+        id: "correct-answer-popup",
+        content: (
+          <PopUpContainer
+            header={t("class_mode_content.well_done")}
+            primaryButtonText={t("button_content.continue")}
+            primaryButtonOnClick={handleComplete}
+            popUpId="correct-answer-popup"
           >
             <CorrectAnswerContent />
-            <div className="-ml-[16px]">
-              <ButtonBar
-                primaryButtonText={t("button_content.continue")}
-                primaryButtonOnClick={handleComplete}
-                primaryButtonDisabled={false}
-              />
-            </div>
-          </MobileDetailView>
-        </div>,
-      );
+          </PopUpContainer>
+        ),
+        container: null,
+        style: {
+          overlay: "overlay-high",
+        },
+        height: "auto",
+      });
     }
   };
 
@@ -316,7 +210,6 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
       content: (
         <WordBankOptionsContent
           clickedIndex={index}
-          userAnswers={userAnswers}
         />
       ),
       container: null,
@@ -329,10 +222,8 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
 
   const WordBankOptionsContent = ({
     clickedIndex,
-    userAnswers,
   }: {
     clickedIndex: number;
-    userAnswers: string[];
   }) => {
     return (
       <div>
@@ -345,7 +236,7 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
         <MobileDetailView
           backgroundColor="bg-surface_bg_highlight"
           className="bottom-0 z-50 overflow-y-auto px-[16px] pt-[16px]"
-          height={380}
+          height={380} // TODO: make this dynamic 
           headerContent={
             <div className="flex h-[40px] w-full flex-col items-center justify-center">
               <h3 className="text-typeface_primary text-body-medium">
@@ -375,6 +266,11 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
     hidePopUp("word-bank-popup");
   };
 
+  useImperativeHandle(ref, () => ({
+    handleSubmit: () => {
+      handleSubmit();
+    }
+  }), [handleSubmit]);
 
   return (
     <>
@@ -435,6 +331,6 @@ const QAFillInBlankExercise: React.FC<QAFillInBlankExerciseProps> = ({
       </div>
     </>
   );
-};
+});
 
 export default QAFillInBlankExercise;

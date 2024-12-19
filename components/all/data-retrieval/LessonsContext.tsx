@@ -40,6 +40,7 @@ interface InstructorLessonContextType {
     confirmLesson: (LessonId: string) => void;
     cancelLesson: (LessonId: string) => void;
     isLoading: boolean;
+    lessons: Lesson[];
 }
 
 interface LearnerLessonContextType {
@@ -54,6 +55,7 @@ interface LearnerLessonContextType {
     confirmLesson: (LessonId: string) => void;
     cancelLesson: (LessonId: string) => void;
     isLoading: boolean;
+    lessons: Lesson[];
 }
 
 const supabase = createClient();
@@ -127,9 +129,10 @@ export const LessonsProvider: React.FC<LessonsProviderProps> = ({
         const fetchLearnerLessons = async () => {
             // Fetch or initialize your Lessons here
             const { data: Lessons, error: LessonError } = await supabase
-                .from("heu_Lesson")
-                .select("*")
-                .eq("approved", true);
+                .from("lessons_new")
+                .select("*");
+
+            console.log("Fetched Lessons:", Lessons);
 
             if (LessonError) {
                 console.error("Error fetching Lessons:", LessonError);
@@ -195,9 +198,8 @@ export const LessonsProvider: React.FC<LessonsProviderProps> = ({
 
             // Fetch Lessons where the instructor is involved (confirmed, pending, or canceled)
             const { data: Lessons, error: LessonError } = await supabase
-                .from("heu_Lesson")
+                .from("lessons_new")
                 .select("*")
-                .eq("approved", true)
                 .or(
                     `pending_instructors.cs.{${user_id}},confirmed_instructors.cs.{${user_id}},canceled_instructors.cs.{${user_id}}`,
                 );
@@ -513,6 +515,7 @@ export const LessonsProvider: React.FC<LessonsProviderProps> = ({
                 cancelLesson,
                 confirmLesson,
                 isLoading,
+                lessons: allLessons,
             };
         } else {
             return {
@@ -527,6 +530,7 @@ export const LessonsProvider: React.FC<LessonsProviderProps> = ({
                 confirmLesson,
                 cancelLesson,
                 isLoading,
+                lessons: allLessons,
             };
         }
     };
@@ -546,4 +550,15 @@ export const useLessons = ():
         throw new Error("useLessons must be used within a LessonsProvider");
     }
     return context;
+};
+
+export const useLearnerSessions = () => {
+    const context = useLessons();
+    if (context.type !== 'learner') {
+        throw new Error('useLearnerSessions must be used in a learner context');
+    }
+    return {
+        ...context,
+        enrollSession: context.enrollLesson
+    };
 };
