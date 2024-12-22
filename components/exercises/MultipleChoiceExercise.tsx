@@ -47,6 +47,7 @@ export default function MultipleChoiceExercise({
   const showTryAgainPopup = () => {
     const popupContent = (
       <PopUpContainer
+      className="text-typeface_primary text-h3"
         header="Please choose an answer"
         primaryButtonText="Try Again"
         primaryButtonOnClick={() => {
@@ -55,7 +56,7 @@ export default function MultipleChoiceExercise({
         popUpId="try-again-popup"
         closeButton={false}
       >
-        <div></div>
+        
       </PopUpContainer>
     );
     showPopUp({
@@ -72,6 +73,7 @@ export default function MultipleChoiceExercise({
   const showFeedbackPopup = (isAnswerCorrect: boolean) => {
     const popupContent = isAnswerCorrect ? (
       <PopUpContainer
+        className="text-typeface_primary text-h3"
         header={t("class_mode_content.well_done")}
         primaryButtonText={t("button_content.continue")}
         primaryButtonOnClick={() => {
@@ -81,7 +83,7 @@ export default function MultipleChoiceExercise({
         popUpId="correct-answer-popup"
         closeButton={false}
       >
-        <div></div>
+      
       </PopUpContainer>
     ) : (
       <PopUpContainer
@@ -95,9 +97,9 @@ export default function MultipleChoiceExercise({
         popUpId="incorrect-answer-popup"
         closeButton={false}
       >
-        <div>
-          <h1 className="text-typeface_primary text-h3">Incorrect</h1>
-          <p>The correct answer is {content.correct_answer}</p>
+        <div className="text-typeface_primary text-h3">
+          <h1 style={{ marginBottom: "20px" }}>Incorrect</h1>
+          <p style={{ paddingTop: "20px" }}>The correct answer is {content.correct_answer}</p>
           <p>You answered: {selectedOption}</p>
         </div>
       </PopUpContainer>
@@ -130,11 +132,15 @@ export default function MultipleChoiceExercise({
             {" "}
             <button
               style={{
-                backgroundColor: selectedOption === item ? "green" : "black",
-                color: "white",
+                backgroundColor: selectedOption === item ? "#dcdcdc" : "white", // Light gray for selected
+                color: "black",
                 padding: "10px 20px",
-                border: "none",
+                border: "2px solid black",
                 borderRadius: "5px",
+                display: "block",
+                marginBottom: "10px",
+                cursor: "pointer",
+                transition: "background-color 0.3s ease",
               }}
               key={index}
               onClick={() => handleSelect(content.options[index])}
@@ -149,32 +155,36 @@ export default function MultipleChoiceExercise({
 
   return (
     <div>
-      <p>{content.instruction}</p>
+      <p className="text-typeface_primary text-h3">{content.instruction}</p>
 
-      <h1>{content.questions}</h1>
+      <h1 className="mb-4 text-typeface_primary text-h3">
+        {content.questions}
+      </h1>
 
-      {RenderOptions(content.options)}
-
-      <button
-        style={{
-          backgroundColor: "black",
-          color: "white",
-          padding: "10px 20px",
-          border: "none",
-          borderRadius: "5px",
-        }}
-        key="submission"
-        onClick={() => {
-          if (selectedOption == null) {
-            showTryAgainPopup();
-          } else {
-            showFeedbackPopup(isCorrect(selectedOption));
-          }
-          console.log({ selectedOption });
-        }}
-      >
-        Submit
-      </button>
+      
+      <div style={{ paddingTop: "20px" }}>{RenderOptions(content.options)}</div>
+      <div className="absolute bottom-4 right-4">
+        <button
+          style={{
+            backgroundColor: "black",
+            color: "white",
+            padding: "10px 20px",
+            border: "none",
+            borderRadius: "5px",
+          }}
+          key="submission"
+          onClick={() => {
+            if (selectedOption == null) {
+              showTryAgainPopup();
+            } else {
+              showFeedbackPopup(isCorrect(selectedOption));
+            }
+            console.log({ selectedOption });
+          }}
+        >
+          Submit
+        </button>
+      </div>
     </div>
   );
 }

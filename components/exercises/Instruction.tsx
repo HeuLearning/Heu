@@ -37,7 +37,7 @@ export default function Instruction({
     <p className="text-typeface_primary text-h3">{content.instruction}</p>
     
     { canContinue && (
-      <div className="self-end">
+      <div className="absolute bottom-4 right-4">
         <Button 
           className="button-primary" 
           onClick={handleComplete}

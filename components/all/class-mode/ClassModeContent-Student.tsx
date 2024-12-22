@@ -14,200 +14,182 @@ import Instruction from "@/components/exercises/Instruction";
 import Button from "../buttons/Button";
 
 interface ClassModeContentProps {
-    exercises: Exercise[];
+  exercises: Exercise[];
 }
 
 function ClassModeContentStudent({ exercises }: ClassModeContentProps) {
-    const t = getGT();
-    const { isMobile } = useResponsive();
+  const t = getGT();
+  const { isMobile } = useResponsive();
 
-    const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-    const [buttonBarText, setButtonBarText] = useState("");
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [buttonBarText, setButtonBarText] = useState("");
 
-    useEffect(() => {
-        setCurrentExerciseIndex(0);
-    }, [exercises]);
+  useEffect(() => {
+    setCurrentExerciseIndex(0);
+  }, [exercises]);
 
-    // Memoize the content rendering logic to avoid unnecessary re-renders
-    const renderContent = useMemo(() => {
-        if (currentExerciseIndex >= exercises.length) {
-            console.log("NO MORE EXERCISES");
-            return (
-                <p className="text-typeface_primary text-body-regular">
-                    {t("class_mode_content.no_more_exercises")}
-                </p>
-            );
-        }
+  // Memoize the content rendering logic to avoid unnecessary re-renders
+  const renderContent = useMemo(() => {
+    if (currentExerciseIndex >= exercises.length) {
+      console.log("NO MORE EXERCISES");
+      return (
+        <p className="text-typeface_primary text-body-regular">
+          {t("class_mode_content.no_more_exercises")}
+        </p>
+      );
+    }
 
-        const currentExercise = exercises[currentExerciseIndex];
+    const currentExercise = exercises[currentExerciseIndex];
 
-        const handleComplete = () => { // Possibly add back button?
-            setCurrentExerciseIndex((prevIndex) =>
-           
-                Math.min(prevIndex + 1, exercises.length),
+    const handleComplete = () => {
+      // Possibly add back button?
+      setCurrentExerciseIndex((prevIndex) =>
+        Math.min(prevIndex + 1, exercises.length),
+      );
+    };
+    const handleBack = () => {
+      //just for testing purposes
+      return (
+        currentExerciseIndex != 0 &&
+        setCurrentExerciseIndex((prevIndex) => Math.max(prevIndex - 1, 0))
+      );
+    };
+
+    //             return(
+    //                <div>
+
+    //                 <Instruction
+    //                 key={currentExercise.id}
+    //                 content = {currentExercise.content}
+    //                 onComplete={handleComplete}
+    //                 />
+    // <h1>exercise id is {currentExercise.simple_id}</h1>
+    // <Button
+    //           className="button-primary"
+    //           onClick={handleBack}
+    //         >
+    //           {"back"}
+    //         </Button>
+    // </div>
+
+    //             )
+
+    switch (currentExercise.question_type) {
+      case "instruction":
+        setButtonBarText(t("button_content.continue"));
+        return (
+          <div>
+            <Instruction
+              key={currentExercise.id}
+              content={currentExercise.content}
+              onComplete={handleComplete}
+            />
             
-            );
-        };
-       const handleBack = () => { //just for testing purposes
-           return( currentExerciseIndex != 0 &&
-            setCurrentExerciseIndex((prevIndex) =>
-                Math.max(prevIndex - 1, 0),
-            )
-           )
-        };
+           
+          </div>
+        );
+      case "inlinemultiplechoice":
+        setButtonBarText(t("button_content.submit_answer"));
+        return (
+          <div>
+            <Instruction
+              key={currentExercise.id}
+              content={currentExercise.content}
+              onComplete={handleComplete}
+            />
+            <h1>exercise id is {currentExercise.simple_id}</h1>
+           
+          </div>
+        );
+      case "multiplechoice":
+        setButtonBarText(t("button_content.submit_answer"));
+        return (
+          <MultipleChoiceExercise
+            key={currentExercise.id}
+            content={currentExercise.content}
+            onComplete={handleComplete}
+          />
+        );
+      case "multiplechoicewidk":
+        setButtonBarText(t("button_content.submit_answer"));
+        return (
+          <MultipleChoiceWithIDK
+            key={currentExercise.id}
+            {...currentExercise.content}
+            onComplete={handleComplete}
+          />
+        );
+      case "qa_fill_in_blank":
+        setButtonBarText(t("button_content.submit_answer"));
+        return (
+          <QAFillInBlankExercise
+            key={currentExercise.id}
+            {...currentExercise.content}
+            onComplete={handleComplete}
+          />
+        );
+      case "matching":
+        setButtonBarText(t("button_content.submit_answer"));
+        return (
+          <MatchingExercise
+            key={currentExercise.id}
+            content={currentExercise.content}
+            onComplete={handleComplete}
+          />
+        );
+      case "textsubmission":
+        setButtonBarText(t("button_content.submit_answer"));
+        return (
+          <TextSubmissionExercise
+            key={currentExercise.id}
+            content={currentExercise.content}
+            onComplete={handleComplete}
+          />
+        );
+      default:
+        return <div>Unknown exercise type.</div>;
+    }
+  }, [currentExerciseIndex, exercises]);
 
-//             return(
-//                <div>
-             
-//                 <Instruction
-//                 key={currentExercise.id}
-//                 content = {currentExercise.content}
-//                 onComplete={handleComplete}               
-//                 />              
-// <h1>exercise id is {currentExercise.simple_id}</h1>
-// <Button 
-//           className="button-primary" 
-//           onClick={handleBack}
-//         >
-//           {"back"}
-//         </Button>   
-// </div>
-                    
-                
-//             )
-
-        switch (currentExercise.question_type) {
-            case "instruction":
-                setButtonBarText(t("button_content.continue"));
-                return (
-                    <div>
-             
-                <Instruction
-                    key={currentExercise.id}
-                    content = {currentExercise.content}
-                    onComplete={handleComplete}               
-                />              
-<h1>exercise id is {currentExercise.simple_id}</h1>
-<Button 
-          className="button-primary" 
-          onClick={handleBack}
-        >
-          {"back"}
-        </Button>   
-</div>
-                );
-            case "inlinemultiplechoice":
-                setButtonBarText(t("button_content.submit_answer"));
-                return (
-                    <div>
-             
-                    <Instruction
-                        key={currentExercise.id}
-                        content = {currentExercise.content}
-                        onComplete={handleComplete}               
-                    />              
-    <h1>exercise id is {currentExercise.simple_id}</h1>
-    <Button 
-              className="button-primary" 
-              onClick={handleBack}
-            >
-              {"back"}
-            </Button>   
-    </div>
-                );
-            case "multiplechoice":
-                setButtonBarText(t("button_content.submit_answer"));
-                return (
-                    <MultipleChoiceExercise
-                        key={currentExercise.id}
-                        content = {currentExercise.content}
-                        onComplete={handleComplete}
+  return (
+    <div>
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex flex-col">{renderContent}</div>
+      </div>
+      {isMobile && (
+        <div className="-ml-[16px]">
+          {buttonBarText && (
+            <ButtonBar
+              primaryButtonText={buttonBarText}
+              primaryButtonClassName="button-primary"
+              primaryButtonOnClick={() => {}}
+              secondaryContent={
+                <div className="flex items-center gap-[4px] pl-[8px]">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM7.25 4V8V8.31066L7.46967 8.53033L9.96967 11.0303L11.0303 9.96967L8.75 7.68934V4H7.25Z"
+                      fill="var(--typeface_primary)"
                     />
-                );
-            case "multiplechoicewidk":
-                setButtonBarText(t("button_content.submit_answer"));
-                return (
-                    <MultipleChoiceWithIDK
-                        key={currentExercise.id}
-                        {...currentExercise.content}
-                        onComplete={handleComplete}
-                    />
-                );
-            case "qa_fill_in_blank":
-                setButtonBarText(t("button_content.submit_answer"));
-                return (
-                    <QAFillInBlankExercise
-                        key={currentExercise.id}
-                        {...currentExercise.content}
-                        onComplete={handleComplete}
-                    />
-                );
-            case "matching":
-                setButtonBarText(t("button_content.submit_answer"));
-                return (
-                    <MatchingExercise
-                        key={currentExercise.id}
-                        content={currentExercise.content}
-                        onComplete={handleComplete}
-                    />
-                );
-            case "textsubmission": 
-                setButtonBarText(t("button_content.submit_answer"));
-                return (
-                    <TextSubmissionExercise
-                        key={currentExercise.id}
-                        content = {currentExercise.content}
-                        onComplete={handleComplete}
-                    />
-                );
-            default:
-                return <div>Unknown exercise type.</div>;
-        }
-
-    }, [currentExerciseIndex, exercises]);
-
-
-    return (
-        <div>
-            <div className="flex h-full w-full items-center justify-center">
-                <div className="flex flex-col">
-                    {renderContent}
+                  </svg>
+                  <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
+                    x mins left
+                  </p>
                 </div>
-            </div>
-            {isMobile && (
-                <div className="-ml-[16px]">
-                    {buttonBarText && (
-                        <ButtonBar
-                            primaryButtonText={buttonBarText}
-                            primaryButtonClassName="button-primary"
-                            primaryButtonOnClick={() => { }}
-                            secondaryContent={
-                                <div className="flex items-center gap-[4px] pl-[8px]">
-                                    <svg
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 16 16"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            fill-rule="evenodd"
-                                            clip-rule="evenodd"
-                                            d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14ZM7.25 4V8V8.31066L7.46967 8.53033L9.96967 11.0303L11.0303 9.96967L8.75 7.68934V4H7.25Z"
-                                            fill="var(--typeface_primary)"
-                                        />
-                                    </svg>
-                                    <p className="whitespace-nowrap text-typeface_primary text-body-semibold">
-                                        x mins left
-                                    </p>
-                                </div>
-                            }
-                        />
-                    )}
-                </div>
-            )}
+              }
+            />
+          )}
         </div>
-    );
+      )}
+    </div>
+  );
 }
 
 export default React.memo(ClassModeContentStudent);

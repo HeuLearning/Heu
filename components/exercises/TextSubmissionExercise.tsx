@@ -2,22 +2,19 @@ import { useState, useEffect } from "react";
 import Button from "../all/buttons/Button";
 import { usePopUp } from "../all/popups/PopUpContext";
 import { useResponsive } from "../all/ResponsiveContext";
-import { useButtonBar } from "../all/mobile/ButtonBarContext";
+
 import Textbox from "./Textbox";
 import { getGT } from "gt-next";
 
-import { createClient } from "@/utils/supabase/client";
 import PopUpContainer from "../all/popups/PopUpContainer";
 import MobileDetailView from "../all/mobile/MobileDetailView";
 import ButtonBar from "../all/mobile/ButtonBar";
 
-
-interface TextSubmissionContent{
+interface TextSubmissionContent {
   instruction: string;
   question: string;
   size: "small" | "big";
   correctAnswer: string;
-
 }
 
 interface TextSubmissionExerciseProps {
@@ -25,74 +22,135 @@ interface TextSubmissionExerciseProps {
   onComplete: () => void;
 }
 
-
-export default function TextSubmissionExercise({ 
-  content, 
+export default function TextSubmissionExercise({
+  content,
   onComplete,
- 
- 
 }: TextSubmissionExerciseProps) {
   const { isMobile } = useResponsive();
   const t = getGT();
   const [answer, setAnswer] = useState("");
   const [cleared, setCleared] = useState(false);
   const handleComplete = () => {
-
-      onComplete(); 
+    onComplete();
   };
   const isCorrect = (userAnswer: string): boolean => {
-         return userAnswer.toLowerCase().trim() === content.correctAnswer.toLowerCase().trim();
-     };
-  
-  
+    return (
+      userAnswer.toLowerCase().trim() ===
+      content.correctAnswer.toLowerCase().trim()
+    );
+  };
+  const { showPopUp, updatePopUp, hidePopUp } = usePopUp();
+
+
+  const showTryAgainPopup = () => {
+    const popupContent = (
+      <PopUpContainer
+        header="Please choose an answer"
+        primaryButtonText="Try Again"
+        primaryButtonOnClick={() => {
+          hidePopUp("try-again-popup"); // Hide the popup when the button is clicked
+          setAnswer("");
+        }}
+        popUpId="try-again-popup"
+        closeButton={false}
+      >
+        <div></div>
+      </PopUpContainer>
+    );
+    showPopUp({
+      id: "try-again-popup",
+      content: popupContent,
+      container: null,
+      style: {
+        overlay: "overlay-high",
+      },
+      height: "auto",
+    });
+  };
+
+  const showFeedbackPopup = (isAnswerCorrect: boolean) => {
+    const popupContent = isAnswerCorrect ? (
+      <PopUpContainer
+        header={t("class_mode_content.well_done")}
+        primaryButtonText={t("button_content.continue")}
+        primaryButtonOnClick={() => {
+          hidePopUp("correct-answer-popup"); // Hide the popup when the button is clicked
+          handleComplete();
+        }}
+        popUpId="correct-answer-popup"
+        closeButton={false}
+      >
+        <div></div>
+      </PopUpContainer>
+    ) : (
+      <PopUpContainer
+        header={t("class_mode_content.incorrect_answer")}
+        primaryButtonText={t("button_content.continue")}
+        primaryButtonOnClick={() => {
+          hidePopUp("incorrect-answer-popup"); // Hide the popup when the button is clicked
+          handleComplete();
+        }}
+        primaryButtonDisabled={false}
+        popUpId="incorrect-answer-popup"
+        closeButton={false}
+      >
+        <div>
+          <h1 className="text-typeface_primary text-h3">Incorrect</h1>
+          <p>The correct answer is {content.correctAnswer}</p>
+          <p>You answered: {answer}</p>
+        </div>
+      </PopUpContainer>
+    );
+
+    showPopUp({
+      id: isAnswerCorrect ? "correct-answer-popup" : "incorrect-answer-popup",
+      content: popupContent,
+      container: null,
+      style: {
+        overlay: "overlay-high",
+      },
+      height: "auto",
+    });
+  };
+
+
   return (
     <div>
-    
-    <h1>{content.instruction}</h1>
-   
-    <p> {content.question}     </p>
+      <h1 className="text-typeface_primary text-h3">{content.instruction}</h1>
 
-    <Textbox 
-    size={"small"} 
-    placeholder={"enter answer here"} width={""} 
-    value={answer}
-    onChange= {(value) => {
-                  setAnswer(value);
-                  setCleared(false);
-                 }} 
-    ></Textbox>
+      <p className="mb-4 text-typeface_primary text-h3"> {content.question} </p>
 
-   
-     <div className="self-end">
-     <Button 
-       className="button-primary" 
-       onClick={() => {
-        if (isCorrect(answer)) 
-          onComplete();
-        else{
-
-        setCleared(true);
-        setAnswer("");
+<div  style={{ paddingTop: "20px" }}>
+      <Textbox
         
-        }     
-      }}
-     >
-       {"Submit"}
-     </Button>
-   </div>
-   
-    <div>
-      {cleared &&(<h1>Try again</h1>)}
+        size={"small"}
+        placeholder={"enter answer here"}
+        width={""}
+        value={answer}
+        onChange={(value) => {
+          setAnswer(value);
+          setCleared(false);
+        }}
+      ></Textbox>
+</div>
+      <div className="absolute bottom-4 right-4">
+        <Button
+          className="button-primary"
+          onClick={() => {
+            if (answer == "") showTryAgainPopup();
+            else {
+              showFeedbackPopup(isCorrect(answer));
+            }
+          }}
+        >
+          {"Submit"}
+        </Button>
+      </div>
+
+      
     </div>
-
-   
-     
-    
-  </div>
-  )
-
-
-    }
+  );
+}
 
 // export default function TextSubmissionExercise({
 //   instruction,
@@ -291,8 +349,8 @@ export default function TextSubmissionExercise({
 //       </div>
 //       {!isMobile && (
 //         <div className="self-end">
-//           <Button 
-//             className="button-primary" 
+//           <Button
+//             className="button-primary"
 //             onClick={handleSubmit}
 //             disabled={!answer}
 //           >
